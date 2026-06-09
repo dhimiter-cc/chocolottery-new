@@ -1,0 +1,245 @@
+---
+import { loadLeaderboard } from '../lib/game.js';
+
+const monthParam = Astro.url.searchParams.get('month') ?? '';
+const { wins } = loadLeaderboard();
+
+// Collect months
+const allMonths = [...new Set(wins.map((w: any) => w.month))].sort().reverse();
+
+// Compute per-player stats
+interface PlayerStat {
+  name: string;
+  total: number;
+  monthWins: Record<string, number>;
+  expectedWins: number;
+  luckscore: number | null;
+  verdict: string;
+}
+
+const playerMap = new Map<string, PlayerStat>();
+
+for (const win of wins) {
+  if (!playerMap.has(win.name)) {
+    playerMap.set(win.name, { name: win.name, total: 0, monthWins: {}, expectedWins: 0, luckscore: null, verdict: '' });
+  }
+  const p = playerMap.get(win.name)!;
+  p.total++;
+  p.monthWins[win.month] = (p.monthWins[win.month] ?? 0) + 1;
+
+  if (Array.isArray(win.player_names) && win.participants > 0) {
+    for (const name of win.player_names) {
+      if (!playerMap.has(name)) playerMap.set(name, { name, total: 0, monthWins: {}, expectedWins: 0, luckscore: null, verdict: '' });
+      playerMap.get(name)!.expectedWins += 1 / win.participants;
+    }
+  }
+}
+
+for (const p of playerMap.values()) {
+  if (p.expectedWins > 0) {
+    p.luckscore = p.total / p.expectedWins;
+    p.verdict = p.luckscore >= 2 ? '🎰' : p.luckscore >= 0.7 ? '⚖️' : '😢';
+  }
+}
+
+const sortedPlayers = [...playerMap.values()]
+  .sort((a, b) => (monthParam ? (b.monthWins[monthParam] ?? 0) - (a.monthWins[monthParam] ?? 0) : b.total - a.total));
+
+const trackedGames = wins.filter((w: any) => w.player_names?.length > 0).length;
+
+function formatMonth(m: string) {
+  if (!m) return m;
+  const [year, month] = m.split('-');
+  const date = new Date(Number(year), Number(month) - 1, 1);
+  return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function luckColor(score: number | null): string {
+  if (score === null) return 'var(--text-dim)';
+  if (score >= 1.5) return '#b45309'; // orange — lucky
+  if (score >= 0.7) return '#15803d'; // green — fair
+  return '#1d4ed8'; // blue — unlucky
+}
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chocolate.lottery · Leaderboard</title>
+  <style>@import '../styles/global.css';</style>
+  <style>
+    html, body { min-height: 100%; }
+    body { background: var(--bg); margin: 0; }
+
+    .chip {
+      display: inline-block;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: var(--panel);
+      color: var(--text-mute);
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      cursor: pointer;
+    }
+    .chip:hover {
+      background: var(--bg-soft);
+      color: var(--text);
+    }
+    .chip.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      color: white;
+      border-color: transparent;
+    }
+
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .lb-table th {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+      border-bottom: 1.5px solid var(--border);
+    }
+    .lb-table th.right,
+    .lb-table td.right {
+      text-align: right;
+    }
+    .lb-table td {
+      padding: 0.7rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .lb-table tr:last-child td {
+      border-bottom: none;
+    }
+    .lb-table tbody tr:first-child td {
+      background: linear-gradient(90deg, rgba(232,152,23,0.10), rgba(232,152,23,0.04));
+      font-weight: 700;
+    }
+    .lb-table tbody tr:hover td {
+      background: var(--bg-soft);
+    }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 800;
+      background: var(--bg-soft);
+      color: var(--text-dim);
+    }
+    .rank-badge.gold {
+      background: linear-gradient(135deg, #F9C959, #E89817);
+      color: #3D2B12;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav style="max-width: 56rem; margin: 0 auto; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <a href="/" style="font-family: ui-sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text); text-decoration: none;">🍫 chocolate.lottery</a>
+    <span style="color: var(--text-mute); font-size: 0.9rem; font-weight: 600;">🏆 Leaderboard</span>
+  </nav>
+
+  <main style="max-width: 56rem; margin: 0 auto; padding: 1rem 1.5rem 4rem;">
+
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+      <h1 style="font-size: 1.8rem; font-weight: 900; letter-spacing: -0.02em; color: var(--text); margin-bottom: 0.25rem;">🏆 Leaderboard</h1>
+      <p style="color: var(--text-mute); font-size: 0.9rem;">
+        {trackedGames > 0
+          ? `Based on ${trackedGames} tracked game${trackedGames === 1 ? '' : 's'} with full participant data.`
+          : 'No tracked games yet.'}
+      </p>
+    </div>
+
+    <!-- Month filter chips -->
+    {allMonths.length > 0 && (
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.75rem;">
+        <a href="/leaderboard" class:list={['chip', { active: !monthParam }]}>All time</a>
+        {allMonths.map((m: string) => (
+          <a href={`/leaderboard?month=${m}`} class:list={['chip', { active: monthParam === m }]}>
+            {formatMonth(m)}
+          </a>
+        ))}
+      </div>
+    )}
+
+    <!-- Table card -->
+    <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); overflow: hidden;">
+      {sortedPlayers.length === 0 ? (
+        <div style="padding: 3rem; text-align: center; color: var(--text-mute); font-size: 0.95rem;">
+          No data yet. Play some games first!
+        </div>
+      ) : (
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th style="width: 2.5rem;">#</th>
+              <th>Player</th>
+              <th class="right">Wins{monthParam ? ` (${formatMonth(monthParam)})` : ''}</th>
+              {trackedGames > 0 && <th class="right">Expected</th>}
+              {trackedGames > 0 && <th class="right">Luck score</th>}
+              {trackedGames > 0 && <th class="right">Verdict</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {sortedPlayers.map((p, i) => {
+              const displayWins = monthParam ? (p.monthWins[monthParam] ?? 0) : p.total;
+              const luckDisplay = p.luckscore !== null ? p.luckscore.toFixed(2) : '—';
+              const expectedDisplay = p.expectedWins > 0 ? p.expectedWins.toFixed(1) : '—';
+              return (
+                <tr>
+                  <td>
+                    <span class:list={['rank-badge', { gold: i === 0 }]}>
+                      {i === 0 ? '🥇' : i + 1}
+                    </span>
+                  </td>
+                  <td style="font-weight: 600;">{p.name}</td>
+                  <td class="right" style="font-weight: 700; font-size: 1rem;">{displayWins}</td>
+                  {trackedGames > 0 && (
+                    <td class="right" style="color: var(--text-mute);">{expectedDisplay}</td>
+                  )}
+                  {trackedGames > 0 && (
+                    <td class="right" style={`font-weight: 700; color: ${luckColor(p.luckscore)};`}>
+                      {luckDisplay}
+                    </td>
+                  )}
+                  {trackedGames > 0 && (
+                    <td class="right" style="font-size: 1.1rem;">{p.verdict || '—'}</td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+
+    <!-- Legend -->
+    {trackedGames > 0 && (
+      <div style="margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.8rem; color: var(--text-dim);">
+        <span><strong style="color: #b45309;">High luck score</strong> — picked more than expected 🎰</span>
+        <span><strong style="color: #15803d;">Fair</strong> — roughly expected ⚖️</span>
+        <span><strong style="color: #1d4ed8;">Low luck score</strong> — picked less than expected 😢</span>
+      </div>
+    )}
+
+  </main>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "chocolottery-new",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev --port 4321",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node server.js",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^10.1.4",
+    "@astrojs/svelte": "^8.1.2",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^6.4.5",
+    "svelte": "^5.56.3",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
+  }
+}

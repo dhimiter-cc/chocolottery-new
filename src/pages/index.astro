@@ -1,0 +1,106 @@
+---
+import '../styles/global.css';
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('action') as string;
+
+  if (action === 'create') {
+    const res = await fetch(new URL('/api/create', Astro.url), { method: 'POST' });
+    const data = await res.json();
+    if (data.code) return Astro.redirect('/game/' + data.code);
+    error = 'Failed to create game.';
+  }
+
+  if (action === 'join') {
+    const code = String(form.get('code') ?? '').trim().toUpperCase();
+    const name = String(form.get('name') ?? '').trim();
+    const res = await fetch(new URL('/api/join', Astro.url), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, name }),
+    });
+    const data = await res.json();
+    if (!data.error) {
+      const cookies = res.headers.getSetCookie?.() ?? [];
+      for (const c of cookies) Astro.response.headers.append('Set-Cookie', c);
+      return Astro.redirect('/game/' + data.code);
+    }
+    error = data.error;
+  }
+}
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chocolate.lottery</title>
+  <style>@import '../styles/global.css';</style>
+</head>
+<body style="background: var(--bg); min-height: 100vh;">
+
+  <!-- Nav -->
+  <nav class="flex justify-between items-center px-6 py-4 max-w-4xl mx-auto">
+    <span style="font-family: ui-sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text);">🍫 chocolate.lottery</span>
+    <a href="/leaderboard" style="color: var(--text-mute); font-size: 0.9rem; text-decoration: none; font-weight: 600;">🏆 Leaderboard</a>
+  </nav>
+
+  <!-- Hero -->
+  <main class="max-w-3xl mx-auto px-6 pt-12 pb-20">
+    <div class="text-center mb-12">
+      <h1 style="font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #3D2B12, #7A5320, #E89817); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: none; line-height: 1.1; margin-bottom: 0.5rem;">
+        chocolate.lottery
+      </h1>
+      <p style="color: var(--text-mute); font-size: 1.1rem; font-weight: 500;">who's buying?</p>
+    </div>
+
+    {error && (
+      <div style="background: #FFF0F0; border: 1px solid var(--red); color: var(--red); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem;" set:html={error} />
+    )}
+
+    <!-- Two cards -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <!-- Create -->
+      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-1);">
+        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">🎲 Start a game</h2>
+        <p style="color: var(--text-mute); font-size: 0.875rem; margin-bottom: 1.25rem;">Create a room and share the code with your team.</p>
+        <form method="POST">
+          <input type="hidden" name="action" value="create" />
+          <button type="submit" style="width: 100%; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: white; font-weight: 700; font-size: 0.95rem; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.15s; box-shadow: 0 2px 8px rgba(232,152,23,0.4);">
+            Create a new game
+          </button>
+        </form>
+      </div>
+
+      <!-- Join -->
+      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-1);">
+        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">🔗 Join a game</h2>
+        <p style="color: var(--text-mute); font-size: 0.875rem; margin-bottom: 1.25rem;">Enter the game code and your name.</p>
+        <form method="POST" class="flex flex-col gap-3">
+          <input type="hidden" name="action" value="join" />
+          <input type="text" name="code" placeholder="CHOC-1234" required
+            style="padding: 0.65rem 0.875rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background: var(--bg-soft); color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; outline: none;" />
+          <input type="text" name="name" placeholder="Your name" maxlength="30" required
+            style="padding: 0.65rem 0.875rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background: var(--bg-soft); color: var(--text); outline: none;" />
+          <button type="submit" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: white; font-weight: 700; font-size: 0.95rem; border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 2px 8px rgba(232,152,23,0.4);">
+            Join game →
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div style="margin-top: 3rem; text-align: center;">
+      <h3 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 1.5rem;">How it works</h3>
+      <div class="flex justify-center gap-8 flex-wrap">
+        <div class="text-center"><div style="font-size: 2rem;">🎲</div><div style="font-size: 0.85rem; color: var(--text-mute); margin-top: 0.4rem; font-weight: 500;">Create a room</div></div>
+        <div class="text-center"><div style="font-size: 2rem;">👥</div><div style="font-size: 0.85rem; color: var(--text-mute); margin-top: 0.4rem; font-weight: 500;">Everyone joins</div></div>
+        <div class="text-center"><div style="font-size: 2rem;">🍫</div><div style="font-size: 0.85rem; color: var(--text-mute); margin-top: 0.4rem; font-weight: 500;">Loser buys chocolate</div></div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
