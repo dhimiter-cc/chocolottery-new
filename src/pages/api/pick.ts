@@ -48,6 +48,25 @@ export const POST: APIRoute = async ({ request }) => {
     game.players[token].straw_index = strawIndex;
     game.players[token].last_seen = Math.floor(Date.now() / 1000);
 
+    // Auto-pick: if exactly one player is left unpicked, there is only one straw
+    // they could possibly take — assign it for them so the round resolves at once.
+    const unpicked = Object.entries(game.players).filter(
+      ([, p]) => (p as any).straw_index === null
+    );
+    if (unpicked.length === 1) {
+      const taken = new Set(
+        Object.values(game.players)
+          .map((p: any) => p.straw_index)
+          .filter((idx) => idx !== null)
+      );
+      for (let i = 0; i < game.straws.length; i++) {
+        if (!taken.has(i)) {
+          game.players[unpicked[0][0]].straw_index = i;
+          break;
+        }
+      }
+    }
+
     // Check if all players have picked
     const allPicked = Object.values(game.players).every(
       (p: any) => p.straw_index !== null

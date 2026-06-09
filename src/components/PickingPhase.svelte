@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
 
-  let { game, onPick }: { game: GameStateResponse; onPick: (index: number) => void } = $props();
+  let { game, onPick, locked = false }: { game: GameStateResponse; onPick: (index: number) => void; locked?: boolean } = $props();
 
   const QUIPS = [
     "Pick a straw. Try to look casual.",
@@ -44,6 +44,7 @@
   }
 
   async function handleStrawClick(i: number) {
+    if (locked) return;
     if (pickInFlight) return;
     if (game.my_straw != null) return;
     if (isTaken(i)) return;
@@ -76,7 +77,7 @@
     {#each Array.from({ length: strawCount }, (_, i) => i) as i}
       {@const taken = isTaken(i)}
       {@const mine = isMine(i)}
-      {@const disabled = game.my_straw !== null || taken}
+      {@const disabled = game.my_straw !== null || taken || locked}
       {@const player = getStrawPlayer(i)}
       {@const picking = justPicked.has(i)}
 

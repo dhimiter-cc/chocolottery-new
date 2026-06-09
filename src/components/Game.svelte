@@ -537,7 +537,7 @@
             </div>
           {:else if phase === 'picking'}
             <div class="cup-stage" data-phase="picking">
-              <PickingPhase game={gameState} onPick={handlePick} />
+              <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} />
             </div>
           {:else if phase === 'reveal' || phase === 'done'}
             <div class="cup-stage" data-phase="reveal">
