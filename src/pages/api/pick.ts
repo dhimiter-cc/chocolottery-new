@@ -5,6 +5,9 @@ import {
   appendLeaderboard,
   getPlayerToken,
 } from '../../lib/game.js';
+import type { LeaderboardWin } from '../../lib/types.js';
+
+type PickResult = { ok: true } | { error: string; code: number };
 
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
@@ -19,9 +22,9 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  let winRecord: Record<string, any> | null = null;
+  let winRecord: LeaderboardWin | null = null;
 
-  const outcome = await withGame(code, (game) => {
+  const outcome = await withGame<PickResult>(code, (game) => {
     if (game.state !== 'picking') {
       return { result: { error: 'Game not picking', code: 409 }, noWrite: true };
     }
@@ -40,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Check straw not already taken
     for (const p of Object.values(game.players)) {
-      if ((p as any).straw_index === strawIndex) {
+      if (p.straw_index === strawIndex) {
         return { result: { error: 'Straw already taken', code: 409 }, noWrite: true };
       }
     }
@@ -51,12 +54,12 @@ export const POST: APIRoute = async ({ request }) => {
     // Auto-pick: if exactly one player is left unpicked, there is only one straw
     // they could possibly take — assign it for them so the round resolves at once.
     const unpicked = Object.entries(game.players).filter(
-      ([, p]) => (p as any).straw_index === null
+      ([, p]) => p.straw_index === null
     );
     if (unpicked.length === 1) {
       const taken = new Set(
         Object.values(game.players)
-          .map((p: any) => p.straw_index)
+          .map((p) => p.straw_index)
           .filter((idx) => idx !== null)
       );
       for (let i = 0; i < game.straws.length; i++) {
@@ -69,13 +72,13 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Check if all players have picked
     const allPicked = Object.values(game.players).every(
-      (p: any) => p.straw_index !== null
+      (p) => p.straw_index !== null
     );
 
     if (allPicked) {
       let winnerToken: string | null = null;
       for (const [t, p] of Object.entries(game.players)) {
-        if (game.straws[(p as any).straw_index] === 100) {
+        if (game.straws[p.straw_index!] === 100) {
           winnerToken = t;
           break;
         }
@@ -85,7 +88,7 @@ export const POST: APIRoute = async ({ request }) => {
       game.prize_snack = pickPrizeSnack(game);
 
       if (winnerToken) {
-        const playerNames = Object.values(game.players).map((p: any) => p.name);
+        const playerNames = Object.values(game.players).map((p) => p.name);
         winRecord = {
           name: game.players[winnerToken].name,
           game_code: game.code,
@@ -112,9 +115,9 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  if (outcome && typeof outcome === 'object' && 'error' in outcome) {
-    return new Response(JSON.stringify({ error: (outcome as any).error }), {
-      status: (outcome as any).code ?? 400,
+  if ('error' in outcome) {
+    return new Response(JSON.stringify({ error: outcome.error }), {
+      status: outcome.code ?? 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
