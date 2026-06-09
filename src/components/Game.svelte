@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { GameStateResponse } from '../lib/types.js';
   import EffectsCanvas from './EffectsCanvas.svelte';
   import LobbyPhase from './LobbyPhase.svelte';
   import PickingPhase from './PickingPhase.svelte';
@@ -7,6 +6,9 @@
   import Snacks from './Snacks.svelte';
   import Chat from './Chat.svelte';
   import Cupboard from './Cupboard.svelte';
+  import { tone, sounds } from '../lib/sound.js';
+  import { post } from '../lib/api.js';
+  import { GameConnection } from '../lib/gameConnection.svelte.js';
 
   let {
     code,
@@ -20,7 +22,8 @@
     presetName?: string;
   } = $props();
 
-  let gameState = $state<GameStateResponse | null>(null);
+  const conn = new GameConnection(code);
+  let gameState = $derived(conn.state);
   let joined = $state(alreadyJoined);
   let playerName = $state(presetName);
   let joinError = $state('');
@@ -35,79 +38,7 @@
 
   let effectsCanvas: ReturnType<typeof EffectsCanvas> | null = $state(null);
 
-  // ── Sound system ──────────────────────────────────────────────────────────
-  let audioCtx: AudioContext | null = null;
-
-  function getAudio(): AudioContext | null {
-    if (audioCtx) return audioCtx;
-    try { audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)(); }
-    catch { audioCtx = null; }
-    return audioCtx;
-  }
-
-  function tone(freq: number, duration: number, type: OscillatorType = 'sine', volume = 0.15, when = 0) {
-    const ctx = getAudio();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
-    const t0 = ctx.currentTime + when;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, t0);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(t0);
-    osc.stop(t0 + duration + 0.05);
-  }
-
-  function playDrumroll(durationMs: number) {
-    const ticks = Math.floor(durationMs / 55);
-    for (let i = 0; i < ticks; i++) tone(520, 0.06, 'triangle', 0.08, i * 0.055);
-  }
-
-  function playWinFanfare() {
-    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.18, 'triangle', 0.2, i * 0.18));
-    tone(1318.51, 0.6, 'triangle', 0.25, 4 * 0.18);
-  }
-
-  function playLoseTrombone() {
-    const ctx = getAudio();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(330, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 1.1);
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.1);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1.15);
-  }
-
-  function playRisingRumble() {
-    const ctx = getAudio();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(110, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 3);
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 3);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 3.1);
-  }
-
-  const sounds = { playDrumroll, playWinFanfare, playLoseTrombone, playRisingRumble };
+  // Sound engine lives in lib/sound.ts; `tone` (countdown) + `sounds` (reveal) are imported.
 
   // ── Avatar helpers ────────────────────────────────────────────────────────
   function avatarColor(name: string): string {
@@ -117,27 +48,12 @@
     return `linear-gradient(160deg, hsl(${hue} 70% 60%), hsl(${(hue + 30) % 360} 60% 38%))`;
   }
 
-  // ── Polling ───────────────────────────────────────────────────────────────
+  // ── Live connection ─────────────────────────────────────────────────────────
+  // Polling + heartbeat + ETag/304 + adaptive cadence live in GameConnection.
   $effect(() => {
     if (!joined) return;
-    const poll = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/state?code=${code}`);
-        if (res.ok) gameState = await res.json();
-      } catch {}
-    }, 1000);
-    const heartbeat = setInterval(async () => {
-      try {
-        await fetch('/api/heartbeat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
-        });
-      } catch {}
-    }, 5000);
-    // Initial poll
-    fetch(`/api/state?code=${code}`).then(r => r.ok ? r.json() : null).then(d => { if (d) gameState = d; }).catch(() => {});
-    return () => { clearInterval(poll); clearInterval(heartbeat); };
+    conn.start();
+    return () => conn.stop();
   });
 
   // ── Actions ───────────────────────────────────────────────────────────────
@@ -148,15 +64,10 @@
     joinLoading = true;
     joinError = '';
     try {
-      const res = await fetch('/api/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, name }),
-      });
-      if (res.ok) {
+      const { ok, data } = await post('/api/join', { code, name });
+      if (ok) {
         joined = true;
       } else {
-        const data = await res.json().catch(() => ({}));
         joinError = data?.error || 'Failed to join';
       }
     } catch {
@@ -169,22 +80,13 @@
   async function handleStart() {
     if (!gameState) return;
     try {
-      const res = await fetch('/api/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/start', { code });
       if (data.error) actionError = data.error;
     } catch { actionError = 'Could not start'; }
   }
 
   async function handlePick(index: number) {
-    await fetch('/api/pick', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, straw_index: index }),
-    });
+    await post('/api/pick', { code, straw_index: index });
   }
 
   async function handleRestart() {
@@ -195,11 +97,7 @@
       if (restartTimer) { clearTimeout(restartTimer); restartTimer = null; }
       restartArmed = false;
       try {
-        await fetch('/api/restart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
-        });
+        await post('/api/restart', { code });
       } catch {}
     }
   }
@@ -208,12 +106,7 @@
     if (!giveSelectId) return;
     giveError = '';
     try {
-      const res = await fetch('/api/cupboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'give', code, id: giveSelectId }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/cupboard', { action: 'give', code, id: giveSelectId });
       if (data.error) giveError = data.error;
     } catch { giveError = 'Could not save'; }
   }
@@ -221,12 +114,7 @@
   async function handleUngive() {
     giveError = '';
     try {
-      const res = await fetch('/api/cupboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ungive', code }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/cupboard', { action: 'ungive', code });
       if (data.error) giveError = data.error;
     } catch { giveError = 'Could not undo'; }
   }

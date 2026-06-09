@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
+  import { post } from '../lib/api.js';
 
   let { game, code, onOpenCupboard }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void } = $props();
 
@@ -26,12 +27,7 @@
     suggestLoading = true;
     snackError = '';
     try {
-      const res = await fetch('/api/suggest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, text }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/suggest', { code, text });
       if (data.error) snackError = data.error;
     } catch { snackError = 'Could not add'; }
     finally { suggestLoading = false; }
@@ -39,12 +35,7 @@
 
   async function vote(id: string) {
     try {
-      const res = await fetch('/api/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, id }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/vote', { code, id });
       if (data.error) snackError = data.error;
     } catch {}
   }

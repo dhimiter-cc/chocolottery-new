@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
+  import { post } from '../lib/api.js';
 
   let {
     game,
@@ -38,12 +39,7 @@
     if (!text) return;
     inputText = '';
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, text }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/chat', { code, text });
       if (data.error) { chatError = data.error; return; }
       pinnedToBottom = true;
     } catch { chatError = 'Could not send'; }

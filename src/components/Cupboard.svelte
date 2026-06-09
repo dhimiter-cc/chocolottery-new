@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
+  import { post } from '../lib/api.js';
 
   let {
     game,
@@ -32,12 +33,7 @@
     addLoading = true;
     cupboardError = '';
     try {
-      const res = await fetch('/api/cupboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'add', code, name: addName.trim(), stock: parseInt(addStock) || 1 }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/cupboard', { action: 'add', code, name: addName.trim(), stock: parseInt(addStock) || 1 });
       if (data.error) { cupboardError = data.error; return; }
       addName = '';
       addStock = '1';
@@ -48,12 +44,7 @@
   async function updateStock(id: string, newStock: number) {
     cupboardError = '';
     try {
-      const res = await fetch('/api/cupboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', code, id, stock: newStock }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/cupboard', { action: 'update', code, id, stock: newStock });
       if (data.error) cupboardError = data.error;
     } catch {}
   }
@@ -62,12 +53,7 @@
     if (!confirm(`Remove "${name}" from the cupboard?`)) return;
     cupboardError = '';
     try {
-      const res = await fetch('/api/cupboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'remove', code, id }),
-      });
-      const data = await res.json();
+      const { data } = await post('/api/cupboard', { action: 'remove', code, id });
       if (data.error) cupboardError = data.error;
     } catch {}
   }
