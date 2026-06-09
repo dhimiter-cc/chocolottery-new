@@ -6,8 +6,13 @@
   import Snacks from './Snacks.svelte';
   import Chat from './Chat.svelte';
   import Cupboard from './Cupboard.svelte';
-  import { tone, sounds } from '../lib/sound.js';
+  import Countdown from './Countdown.svelte';
+  import Fairness from './Fairness.svelte';
+  import GiveCard from './GiveCard.svelte';
+  import Toaster from './Toaster.svelte';
+  import { sounds } from '../lib/sound.js';
   import { post } from '../lib/api.js';
+  import { showToast } from '../lib/toast.svelte.js';
   import { GameConnection } from '../lib/gameConnection.svelte.js';
 
   let {
@@ -33,10 +38,9 @@
   let copied = $state(false);
   let restartArmed = $state(false);
   let restartTimer: ReturnType<typeof setTimeout> | null = null;
-  let giveSelectId = $state('');
-  let giveError = $state('');
 
   let effectsCanvas: ReturnType<typeof EffectsCanvas> | null = $state(null);
+  let countdownRef: ReturnType<typeof Countdown> | null = $state(null);
 
   // Sound engine lives in lib/sound.ts; `tone` (countdown) + `sounds` (reveal) are imported.
 
@@ -102,23 +106,6 @@
     }
   }
 
-  async function handleGive() {
-    if (!giveSelectId) return;
-    giveError = '';
-    try {
-      const { data } = await post('/api/cupboard', { action: 'give', code, id: giveSelectId });
-      if (data.error) giveError = data.error;
-    } catch { giveError = 'Could not save'; }
-  }
-
-  async function handleUngive() {
-    giveError = '';
-    try {
-      const { data } = await post('/api/cupboard', { action: 'ungive', code });
-      if (data.error) giveError = data.error;
-    } catch { giveError = 'Could not undo'; }
-  }
-
   function copyShareUrl() {
     const url = `${window.location.origin}/game/${code}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -126,14 +113,6 @@
       setTimeout(() => (copied = false), 2000);
       showToast('Link copied. Share. Conquer.');
     });
-  }
-
-  function showToast(msg: string) {
-    const t = document.createElement('div');
-    t.className = 'toast';
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2000);
   }
 
   // ── Derived state ─────────────────────────────────────────────────────────
@@ -169,50 +148,11 @@
 
   $effect(() => {
     const current = phase;
-    if (prevPhase === 'lobby' && current === 'picking' && !countdownActive) {
-      runCountdown();
+    if (prevPhase === 'lobby' && current === 'picking') {
+      countdownRef?.run();
     }
     prevPhase = current;
   });
-
-  function runCountdown() {
-    const cupStageEl = document.querySelector('.cup-stage') as HTMLElement | null;
-    if (!cupStageEl) return;
-    countdownActive = true;
-    const existing = cupStageEl.querySelector('.countdown-overlay');
-    if (existing) existing.remove();
-    const overlay = document.createElement('div');
-    overlay.className = 'countdown-overlay';
-    cupStageEl.appendChild(overlay);
-    cupStageEl.classList.add('countdown');
-
-    const steps = [
-      { text: '3', freq: 440, dur: 700 },
-      { text: '2', freq: 494, dur: 700 },
-      { text: '1', freq: 554, dur: 700 },
-      { text: 'GO!', freq: 880, dur: 700, big: true },
-      { text: 'Pick your straw', freq: 0, dur: 900, small: true },
-    ];
-    let i = 0;
-    function tick() {
-      if (i >= steps.length) {
-        overlay.remove();
-        cupStageEl!.classList.remove('countdown');
-        countdownActive = false;
-        return;
-      }
-      const step = steps[i++];
-      overlay.textContent = step.text;
-      overlay.classList.toggle('big', !!(step as any).big);
-      overlay.classList.toggle('small', !!(step as any).small);
-      overlay.classList.remove('pop');
-      void overlay.offsetWidth;
-      overlay.classList.add('pop');
-      if (step.freq) tone(step.freq, (step as any).big ? 0.35 : 0.12, (step as any).big ? 'triangle' : 'square', (step as any).big ? 0.20 : 0.14);
-      setTimeout(tick, step.dur);
-    }
-    tick();
-  }
 
   let phaseDetailText = $state('Waiting for the brave to gather…');
 
@@ -244,101 +184,10 @@
 
   let phaseDetail = $derived(phaseDetailText);
 
-  // Stocked cupboard items for give-card
-  let stockedItems = $derived((gameState?.cupboard ?? []).filter(i => i.stock > 0));
   let showGiveCard = $derived((phase === 'reveal' || phase === 'done') && (isHost || !!gameState?.prize_given_id));
 
-  // Fairness modal
+  // Fairness modal (rendered by <Fairness>, which fetches its own data)
   let showFairness = $state(false);
-  let fairnessLoaded = $state(false);
-  let fairnessBody = $state('<p class="muted center">Loading…</p>');
-  let fairnessNote = $state('');
-
-  async function openFairness() {
-    showFairness = true;
-    if (fairnessLoaded) return;
-    try {
-      const res = await fetch('/api/fairness');
-      const data = await res.json();
-      fairnessLoaded = true;
-      renderFairnessData(data);
-    } catch {
-      fairnessBody = '<p class="error center">Could not load fairness data.</p>';
-    }
-  }
-
-  function renderFairnessData(data: any) {
-    if (!data.players || data.players.length === 0) {
-      fairnessBody = '<p class="muted center">No games played yet — nothing to check!</p>';
-      return;
-    }
-    function fmtMonth(m: string) {
-      if (!m) return '—';
-      return new Date(m + '-02').toLocaleDateString('en', { month: 'short', year: 'numeric' });
-    }
-    const rows = data.players.map((p: any, i: number) => {
-      const expected = p.expected_wins !== null ? p.expected_wins.toFixed(1) : '—';
-      const score    = p.luck_score    !== null ? p.luck_score.toFixed(2)    : '—';
-      const verdict  = p.verdict
-        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${p.verdict.emoji} ${p.verdict.label}</span>`
-        : '<span class="fairness-verdict fairness-none">—</span>';
-      const gameRows = (p.games || []).map((g: any) => `
-        <div class="fg-row">
-          <span class="fg-month">${fmtMonth(g.month)}</span>
-          <span class="fg-players">👥 ${g.participants} players</span>
-          <span class="fg-chance">1 in ${g.participants} &nbsp;·&nbsp; ${g.chance_pct}% chance</span>
-          <span class="fg-result ${g.won ? 'fg-won' : 'fg-lost'}">${g.won ? '🍫 Won' : '✗ Lost'}</span>
-        </div>`).join('');
-      const detail = p.games?.length
-        ? `<div class="fg-list">${gameRows}</div>`
-        : '<p class="muted" style="margin:0;font-size:0.85rem;">No tracked games yet.</p>';
-      return `
-        <tr class="fairness-row" data-idx="${i}">
-          <td><span class="fg-chevron">▸</span> ${p.name}</td>
-          <td class="tc">${p.actual_wins}</td>
-          <td class="tc">${expected}</td>
-          <td class="tc">${score}</td>
-          <td>${verdict}</td>
-        </tr>
-        <tr class="fairness-detail" id="fg-detail-${i}" hidden>
-          <td colspan="5"><div class="fg-detail-inner">${detail}</div></td>
-        </tr>`;
-    }).join('');
-    fairnessBody = `
-      <table class="leaderboard fairness-table">
-        <thead><tr>
-          <th>Name<span class="th-sub">click a row to see game history</span></th>
-          <th>Wins<span class="th-sub">times you've won</span></th>
-          <th>Expected<span class="th-sub">based on players per game</span></th>
-          <th>Luck score<span class="th-sub">wins ÷ expected</span></th>
-          <th>Verdict<span class="th-sub">our unbiased assessment</span></th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-    const diff = data.total_games - data.tracked_games;
-    fairnessNote = diff > 0
-      ? `${diff} game${diff > 1 ? 's' : ''} predate participant tracking and are excluded from expected win calculations.`
-      : '';
-  }
-
-  function attachFairnessHandlers() {
-    document.querySelectorAll('.fairness-row').forEach((row: any) => {
-      row.addEventListener('click', () => {
-        const detail = document.getElementById('fg-detail-' + row.dataset.idx) as HTMLElement;
-        const chevron = row.querySelector('.fg-chevron') as HTMLElement;
-        const opening = detail.hidden;
-        detail.hidden = !opening;
-        chevron.textContent = opening ? '▾' : '▸';
-        row.classList.toggle('fairness-row-open', opening);
-      });
-    });
-  }
-
-  $effect(() => {
-    if (fairnessBody && fairnessBody.includes('fairness-row')) {
-      setTimeout(attachFairnessHandlers, 0);
-    }
-  });
 
   // Chat drawer
   function openChatDrawer() { chatOpen = true; }
@@ -364,8 +213,9 @@
   </div>
 {/if}
 
-<!-- Effects canvas -->
+<!-- Effects canvas + toasts -->
 <EffectsCanvas bind:this={effectsCanvas} />
+<Toaster />
 
 <!-- Main game layout -->
 {#if joined}
@@ -381,7 +231,7 @@
         </p>
       </div>
       <div class="head-actions">
-        <button type="button" class="btn btn-ghost" onclick={openFairness}>⚖️ Fairness</button>
+        <button type="button" class="btn btn-ghost" onclick={() => (showFairness = true)}>⚖️ Fairness</button>
         <a href="/leaderboard" class="btn btn-ghost">Leaderboard</a>
         <a href="/" class="btn btn-ghost">Home</a>
       </div>
@@ -424,8 +274,9 @@
               <div class="cup"></div>
             </div>
           {:else if phase === 'picking'}
-            <div class="cup-stage" data-phase="picking">
+            <div class="cup-stage" data-phase="picking" class:countdown={countdownActive}>
               <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} />
+              <Countdown bind:this={countdownRef} onActiveChange={(a) => (countdownActive = a)} />
             </div>
           {:else if phase === 'reveal' || phase === 'done'}
             <div class="cup-stage" data-phase="reveal">
@@ -457,33 +308,7 @@
 
           <!-- Give card (post-reveal, host) -->
           {#if showGiveCard}
-            <div class="give-card">
-              <div class="give-label">From the cupboard</div>
-              {#if gameState.prize_given_id}
-                <div class="give-status given">✓ {gameState.prize_given_name} was handed to the winner.</div>
-              {:else}
-                <div class="give-status">Host: which cupboard snack did the winner get?</div>
-              {/if}
-              {#if isHost}
-                <div class="give-controls">
-                  {#if !gameState.prize_given_id}
-                    {#if stockedItems.length > 0}
-                      <select bind:value={giveSelectId}>
-                        {#each stockedItems as item}
-                          <option value={item.id}>{item.name} (×{item.stock})</option>
-                        {/each}
-                      </select>
-                      <button type="button" class="btn btn-primary" onclick={handleGive}>Mark given (−1)</button>
-                    {:else}
-                      <span class="muted" style="font-size:0.88rem;">Nothing in stock</span>
-                    {/if}
-                  {:else}
-                    <button type="button" class="btn btn-ghost" onclick={handleUngive}>Undo</button>
-                  {/if}
-                </div>
-                {#if giveError}<p class="error" style="margin: 8px 0 0;">{giveError}</p>{/if}
-              {/if}
-            </div>
+            <GiveCard game={gameState} {code} {isHost} />
           {/if}
 
           <!-- Restart button (host only) -->
@@ -531,17 +356,6 @@
 
   <!-- Fairness modal -->
   {#if showFairness}
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div class="modal" onclick={(e) => { if (e.target === e.currentTarget) showFairness = false; }}>
-      <div class="modal-card fairness-modal-card">
-        <div class="section-head" style="margin-bottom:16px;">
-          <h2>⚖️ Fairness Check</h2>
-          <button type="button" class="btn btn-ghost" style="padding:4px 10px;" onclick={() => (showFairness = false)}>✕</button>
-        </div>
-        <p class="muted">Actual wins vs. statistically expected wins — based on how many players were in each game.</p>
-        <div style="margin-top:16px;">{@html fairnessBody}</div>
-        {#if fairnessNote}<p class="muted" style="font-size:0.8rem;margin-top:14px;">{fairnessNote}</p>{/if}
-      </div>
-    </div>
+    <Fairness onClose={() => (showFairness = false)} />
   {/if}
 {/if}
