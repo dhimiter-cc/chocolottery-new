@@ -2,11 +2,11 @@
   import type { GameStateResponse } from '../lib/types.js';
 
   let {
-    state,
+    game,
     code,
     onClose,
   }: {
-    state: GameStateResponse;
+    game: GameStateResponse;
     code: string;
     onClose?: () => void;
   } = $props();
@@ -17,7 +17,7 @@
   let pinnedToBottom = $state(true);
 
   $effect(() => {
-    const _len = state.chat.length;
+    const _len = game.chat.length;
     if (pinnedToBottom && chatLogEl) {
       Promise.resolve().then(() => {
         if (chatLogEl) chatLogEl.scrollTop = chatLogEl.scrollHeight;
@@ -53,7 +53,7 @@
 <div class="section-head">
   <h2>💬 Chat</h2>
   <div class="section-head-right">
-    <span class="count">{state.chat.length}</span>
+    <span class="count">{game.chat.length}</span>
     <button type="button" class="chat-drawer-close" onclick={onClose}>✕</button>
   </div>
 </div>
@@ -63,10 +63,10 @@
   class="chat-log"
   onscroll={handleScroll}
 >
-  {#if state.chat.length === 0}
+  {#if game.chat.length === 0}
     <div class="chat-empty">No messages yet. Break the ice.</div>
   {:else}
-    {#each state.chat as msg (msg.id)}
+    {#each game.chat as msg (msg.id)}
       <div class="chat-msg" class:mine={msg.mine}>
         <div class="who">{msg.mine ? 'you' : msg.name}</div>
         <div class="text">{msg.text}</div>

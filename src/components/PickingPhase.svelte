@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
 
-  let { state, onPick }: { state: GameStateResponse; onPick: (index: number) => void } = $props();
+  let { game, onPick }: { game: GameStateResponse; onPick: (index: number) => void } = $props();
 
   const QUIPS = [
     "Pick a straw. Try to look casual.",
@@ -13,39 +13,39 @@
   ];
 
   let quip = $derived.by(() => {
-    const seed = (state.my_token || '').charCodeAt(0) || 0;
+    const seed = (game.my_token || '').charCodeAt(0) || 0;
     return QUIPS[seed % QUIPS.length];
   });
 
   let justPicked: Set<number> = $state(new Set());
   let pickInFlight = $state(false);
 
-  let pickedCount = $derived(state.players.filter(p => p.picked).length);
-  let total = $derived(state.players.length);
+  let pickedCount = $derived(game.players.filter(p => p.picked).length);
+  let total = $derived(game.players.length);
   let remaining = $derived(total - pickedCount);
   let allPicked = $derived(remaining === 0);
 
   let phaseText = $derived.by(() => {
     if (allPicked) return '🥁 The drumroll, please…';
-    if (state.my_straw == null) return quip;
+    if (game.my_straw == null) return quip;
     return `Locked in. Waiting for ${remaining} more brave soul${remaining === 1 ? '' : 's'}.`;
   });
 
   function isTaken(i: number) {
-    return state.players.some(p => p.straw_index === i);
+    return game.players.some(p => p.straw_index === i);
   }
 
   function isMine(i: number) {
-    return state.my_straw === i;
+    return game.my_straw === i;
   }
 
   function getStrawPlayer(i: number) {
-    return state.players.find(p => p.straw_index === i) ?? null;
+    return game.players.find(p => p.straw_index === i) ?? null;
   }
 
   async function handleStrawClick(i: number) {
     if (pickInFlight) return;
-    if (state.my_straw != null) return;
+    if (game.my_straw != null) return;
     if (isTaken(i)) return;
     pickInFlight = true;
     justPicked = new Set([...justPicked, i]);
@@ -56,10 +56,10 @@
     pickInFlight = false;
   }
 
-  let strawCount = $derived(state.straws ? state.straws.length : state.players.length || 4);
+  let strawCount = $derived(game.straws ? game.straws.length : game.players.length || 4);
 </script>
 
-{#if state.in_game === false}
+{#if game.in_game === false}
   <div class="excluded-banner">
     <div class="excluded-icon">😬</div>
     <div class="excluded-title">You missed this round</div>
@@ -76,7 +76,7 @@
     {#each Array.from({ length: strawCount }, (_, i) => i) as i}
       {@const taken = isTaken(i)}
       {@const mine = isMine(i)}
-      {@const disabled = state.my_straw !== null || taken}
+      {@const disabled = game.my_straw !== null || taken}
       {@const player = getStrawPlayer(i)}
       {@const picking = justPicked.has(i)}
 

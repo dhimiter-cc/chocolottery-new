@@ -503,12 +503,12 @@
       <div class="game-grid">
         <!-- Snacks: left column on desktop -->
         <section class="panel snacks-panel">
-          <Snacks state={gameState} {code} onOpenCupboard={() => (showCupboard = true)} />
+          <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} />
         </section>
 
         <!-- Chat: right column on desktop, bottom drawer on mobile -->
         <section class="panel chat-panel" class:drawer-open={chatOpen} hidden={!inGame || undefined}>
-          <Chat state={gameState} {code} onClose={closeChatDrawer} />
+          <Chat game={gameState} {code} onClose={closeChatDrawer} />
         </section>
 
         <!-- Stage: center on desktop, top on mobile -->
@@ -531,18 +531,18 @@
 
           {#if phase === 'lobby'}
             <div class="cup-stage" data-phase="lobby">
-              <LobbyPhase state={gameState} />
+              <LobbyPhase game={gameState} />
               <div class="straws"></div>
               <div class="cup"></div>
             </div>
           {:else if phase === 'picking'}
             <div class="cup-stage" data-phase="picking">
-              <PickingPhase state={gameState} onPick={handlePick} />
+              <PickingPhase game={gameState} onPick={handlePick} />
             </div>
           {:else if phase === 'reveal' || phase === 'done'}
             <div class="cup-stage" data-phase="reveal">
               <RevealPhase
-                state={gameState}
+                game={gameState}
                 {sounds}
                 onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
                 onFireTears={() => effectsCanvas?.fireTears()}
@@ -633,7 +633,7 @@
   <!-- Cupboard modal -->
   {#if showCupboard && gameState}
     <Cupboard
-      state={gameState}
+      game={gameState}
       {code}
       open={showCupboard}
       onClose={() => (showCupboard = false)}

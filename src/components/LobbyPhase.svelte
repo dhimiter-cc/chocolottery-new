@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
 
-  let { state }: { state: GameStateResponse } = $props();
+  let { game }: { game: GameStateResponse } = $props();
 
   function avatarColor(name: string): string {
     let h = 0;
@@ -18,7 +18,7 @@
 <div class="stage-overlay lobby">
   <div class="overlay-headline">In the room</div>
   <div class="lobby-players">
-    {#each state.players as player (player.token)}
+    {#each game.players as player (player.token)}
       <div
         class="lobby-player"
         class:offline={!player.online}
@@ -32,7 +32,7 @@
       </div>
     {/each}
   </div>
-  {#if state.players.length === 0}
+  {#if game.players.length === 0}
     <div class="overlay-sub">Waiting for someone — anyone — to show up.</div>
   {/if}
 </div>

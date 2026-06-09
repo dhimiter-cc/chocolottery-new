@@ -2,12 +2,12 @@
   import type { GameStateResponse } from '../lib/types.js';
 
   let {
-    state,
+    game,
     code,
     open,
     onClose,
   }: {
-    state: GameStateResponse;
+    game: GameStateResponse;
     code: string;
     open: boolean;
     onClose: () => void;
@@ -72,11 +72,11 @@
     } catch {}
   }
 
-  let editable = $derived(state.is_host && state.state === 'lobby');
+  let editable = $derived(game.is_host && game.state === 'lobby');
   let hint = $derived(
     editable
       ? "What's actually on the shelf. Stock locks when the game starts."
-      : (state.is_host ? "Locked while the game is in progress." : "What's on the shelf right now.")
+      : (game.is_host ? "Locked while the game is in progress." : "What's on the shelf right now.")
   );
 </script>
 
@@ -86,7 +86,7 @@
     <div class="modal-card cupboard-modal-card">
       <div class="section-head" style="margin-bottom:12px;">
         <h2>🍫 The cupboard</h2>
-        <span class="count">{state.cupboard.length}</span>
+        <span class="count">{game.cupboard.length}</span>
       </div>
       <p class="muted">{hint}</p>
 
@@ -99,12 +99,12 @@
       {/if}
 
       <div class="cupboard-list">
-        {#if state.cupboard.length === 0}
+        {#if game.cupboard.length === 0}
           <div class="cupboard-empty">
             {editable ? 'Cupboard is bare. Add something.' : 'Cupboard is empty.'}
           </div>
         {:else}
-          {#each state.cupboard as item (item.id)}
+          {#each game.cupboard as item (item.id)}
             <div class="cupboard-item" class:empty={item.stock <= 0}>
               <div class="ci-name">{item.name}</div>
               <div class="ci-stock">×{item.stock}</div>

@@ -9,13 +9,13 @@
   }
 
   let {
-    state,
+    game,
     sounds,
     onFireConfetti,
     onFireTears,
     onFireSparkles,
   }: {
-    state: GameStateResponse;
+    game: GameStateResponse;
     sounds: Sounds;
     onFireConfetti: (big: boolean) => void;
     onFireTears: () => void;
@@ -32,29 +32,29 @@
   const MAX_PX = 280;
 
   let strawHeights = $derived.by(() => {
-    if (!state.straws || state.straws.length === 0) return [];
-    const vals = state.straws.filter(v => v !== null) as number[];
+    if (!game.straws || game.straws.length === 0) return [];
+    const vals = game.straws.filter(v => v !== null) as number[];
     const maxVal = Math.max(...vals, 1);
-    return state.straws.map(v => v === null ? MIN_PX : Math.round(MIN_PX + (v / maxVal) * (MAX_PX - MIN_PX)));
+    return game.straws.map(v => v === null ? MIN_PX : Math.round(MIN_PX + (v / maxVal) * (MAX_PX - MIN_PX)));
   });
 
   function isWinnerIndex(i: number) {
-    if (!state.winner_token) return false;
-    const winner = state.players.find(p => p.token === state.winner_token);
+    if (!game.winner_token) return false;
+    const winner = game.players.find(p => p.token === game.winner_token);
     return winner?.straw_index === i;
   }
 
   function getStrawPlayer(i: number) {
-    return state.players.find(p => p.straw_index === i) ?? null;
+    return game.players.find(p => p.straw_index === i) ?? null;
   }
 
-  let iWon = $derived(state.winner_token !== null && state.my_token === state.winner_token);
-  let winnerPlayer = $derived(state.players.find(p => p.token === state.winner_token) ?? null);
+  let iWon = $derived(game.winner_token !== null && game.my_token === game.winner_token);
+  let winnerPlayer = $derived(game.players.find(p => p.token === game.winner_token) ?? null);
 
   let winnerMessage = $derived.by(() => {
     if (!winnerPlayer) return '';
     if (iWon) return "Take it. Walk slowly. Don't apologise.";
-    const me = state.players.find(p => p.is_me);
+    const me = game.players.find(p => p.is_me);
     return me
       ? "Pretend you're happy for them. That's professionalism."
       : `${winnerPlayer.name} drew the longest straw.`;
@@ -97,7 +97,7 @@
 
 <!-- Straws -->
 <div class="straws reveal-stage" class:drumroll={!revealed}>
-  {#each (state.straws ?? []) as _straw, i}
+  {#each (game.straws ?? []) as _straw, i}
     {@const winner = isWinnerIndex(i)}
     {@const player = getStrawPlayer(i)}
     {@const h = revealed ? (strawHeights[i] ?? MIN_PX) : 240}

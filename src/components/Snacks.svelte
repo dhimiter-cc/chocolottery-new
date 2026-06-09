@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
 
-  let { state, code, onOpenCupboard }: { state: GameStateResponse; code: string; onOpenCupboard?: () => void } = $props();
+  let { game, code, onOpenCupboard }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void } = $props();
 
   let suggestText = $state('');
   let snackError = $state('');
@@ -19,7 +19,7 @@
   }
 
   function isSuggested(itemName: string) {
-    return state.suggestions.find(s => s.text.toLowerCase().trim() === itemName.toLowerCase().trim());
+    return game.suggestions.find(s => s.text.toLowerCase().trim() === itemName.toLowerCase().trim());
   }
 
   async function suggest(text: string) {
@@ -68,19 +68,19 @@
   }
 
   let nonVoters = $derived.by(() => {
-    if (state.suggestions.length === 0) return [];
-    const votedTokens = new Set(state.suggestions.flatMap(s => s.voted_tokens));
-    return state.players.filter(p => !votedTokens.has(p.token));
+    if (game.suggestions.length === 0) return [];
+    const votedTokens = new Set(game.suggestions.flatMap(s => s.voted_tokens));
+    return game.players.filter(p => !votedTokens.has(p.token));
   });
 
-  let availableCupboard = $derived(state.cupboard.filter(item => item.stock > 0));
+  let availableCupboard = $derived(game.cupboard.filter(item => item.stock > 0));
 </script>
 
 <div class="section-head">
   <h2>Snack votes</h2>
   <div class="section-head-right">
     <button type="button" class="cupboard-trigger-btn" onclick={onOpenCupboard}>🍫 Cupboard</button>
-    <span class="count">{state.suggestions.length}</span>
+    <span class="count">{game.suggestions.length}</span>
   </div>
 </div>
 <p class="muted">Pitch ideas. Upvote favourites. Highest-voted wins. Tie or no votes? Random. (Dwight, no beets.)</p>
@@ -125,10 +125,10 @@
 </form>
 
 <div class="snacks-list">
-  {#if state.suggestions.length === 0}
+  {#if game.suggestions.length === 0}
     <div class="snacks-empty">No suggestions yet. Be brave. Be specific. Be Kevin.</div>
   {:else}
-    {#each state.suggestions as s (s.id)}
+    {#each game.suggestions as s (s.id)}
       <div class="snack" class:voted={s.voted}>
         <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
         <div class="snack-vote" onclick={() => vote(s.id)}>
@@ -143,7 +143,7 @@
 </div>
 
 <!-- Non-voter nudge banner -->
-{#if state.suggestions.length > 0 && nonVoters.length > 0}
+{#if game.suggestions.length > 0 && nonVoters.length > 0}
   <div class="snack-non-voters">
     <span class="non-voter-label">Still need votes:</span>
     {#each nonVoters as p (p.token)}

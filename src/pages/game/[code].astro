@@ -1,4 +1,5 @@
 ---
+import '../../styles/global.css';
 import { loadGame, getPlayerToken } from '../../lib/game.js';
 import Game from '../../components/Game.svelte';
 
@@ -21,9 +22,6 @@ if (token && upperCode) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{upperCode} — Chocolate Lottery</title>
-  <style>
-    @import '../../styles/global.css';
-  </style>
 </head>
 <body>
   <Game
