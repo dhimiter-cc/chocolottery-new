@@ -4,8 +4,8 @@
     {
       "name": "dev",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["astro", "dev"],
-      "port": 4321,
+      "runtimeArgs": ["astro", "dev", "--port", "4399"],
+      "port": 4399,
       "autoPort": true
     }
   ]
