@@ -81,13 +81,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const data = resultData!;
-  const cookieHeaders = setPlayerCookies(data.token, data.name);
+  const cookieStrings = setPlayerCookies(data.token, data.name);
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  for (const c of cookieStrings) headers.append('Set-Cookie', c);
 
-  return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      ...cookieHeaders,
-    },
-  });
+  return new Response(JSON.stringify(data), { status: 200, headers });
 };

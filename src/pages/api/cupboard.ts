@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import {
+  loadGame,
   withGame,
   withCupboard,
   cupboardPublic,
@@ -8,7 +9,7 @@ import {
 } from '../../lib/game.js';
 
 export const GET: APIRoute = async () => {
-  const items = await cupboardPublic();
+  const items = cupboardPublic();
   return new Response(JSON.stringify({ items }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
@@ -28,10 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  // All write actions require the caller to be the host of the named game.
-  // Load game first for auth check (lightweight read, no lock needed for read).
-  const { loadGame } = await import('../../lib/game.js');
-  const game = await loadGame(code);
+  const game = loadGame(code);
   if (!game) {
     return new Response(JSON.stringify({ error: 'Game not found' }), {
       status: 404,
@@ -74,20 +72,20 @@ export const POST: APIRoute = async ({ request }) => {
     if (name.length > 60) name = name.slice(0, 60);
     if (stock > 999) stock = 999;
 
-    const result = await withCupboard((data) => {
+    const result = await withCupboard((items) => {
       const needle = name.toLowerCase();
-      for (const item of data.items) {
+      for (const item of items) {
         if (item.name.toLowerCase() === needle) {
           item.stock = Math.min(999, Number(item.stock) + stock);
-          return { data, result: { ok: true, id: item.id } };
+          return { items, result: { ok: true, id: item.id } };
         }
       }
-      if (data.items.length >= 100) {
+      if (items.length >= 100) {
         return { result: { error: 'Cupboard full', code: 429 }, noWrite: true };
       }
       const id = generateId();
-      data.items.push({ id, name, stock, created_at: Math.floor(Date.now() / 1000) });
-      return { data, result: { ok: true, id } };
+      items.push({ id, name, stock, created_at: Math.floor(Date.now() / 1000) });
+      return { items, result: { ok: true, id } };
     });
 
     if (result && typeof result === 'object' && 'error' in result) {
@@ -120,7 +118,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    let newStock = hasStock ? Math.max(0, Math.min(999, Number(body.stock))) : null;
+    const newStock = hasStock ? Math.max(0, Math.min(999, Number(body.stock))) : null;
     let newName = hasName ? (body.name as string).trim() : null;
     if (hasName && !newName) {
       return new Response(JSON.stringify({ error: 'Name is empty' }), {
@@ -130,12 +128,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if (newName && newName.length > 60) newName = newName.slice(0, 60);
 
-    const result = await withCupboard((data) => {
-      for (const item of data.items) {
+    const result = await withCupboard((items) => {
+      for (const item of items) {
         if (item.id === id) {
           if (hasStock) item.stock = newStock!;
           if (hasName) item.name = newName!;
-          return { data, result: { ok: true } };
+          return { items, result: { ok: true } };
         }
       }
       return { result: { error: 'Item not found', code: 404 }, noWrite: true };
@@ -163,13 +161,13 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const result = await withCupboard((data) => {
-      const before = data.items.length;
-      data.items = data.items.filter((it: any) => it.id !== id);
-      if (data.items.length === before) {
+    const result = await withCupboard((items) => {
+      const before = items.length;
+      const filtered = items.filter((it) => it.id !== id);
+      if (filtered.length === before) {
         return { result: { error: 'Item not found', code: 404 }, noWrite: true };
       }
-      return { data, result: { ok: true } };
+      return { items: filtered, result: { ok: true } };
     });
 
     if (result && typeof result === 'object' && 'error' in result) {
@@ -194,35 +192,16 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // 1. Validate game state and host via withGame
-    const gameCheck = await withGame(code, (g) => {
-      if (!['reveal', 'done'].includes(g.state)) {
-        return { result: { error: 'Cannot mark prize given before the reveal', code: 409 }, noWrite: true };
-      }
-      if (g.creator_token !== token) {
-        return { result: { error: 'Host only', code: 403 }, noWrite: true };
-      }
-      return { result: { ok: true }, noWrite: true };
-    });
-
-    if (gameCheck && typeof gameCheck === 'object' && 'error' in gameCheck) {
-      return new Response(JSON.stringify({ error: (gameCheck as any).error }), {
-        status: (gameCheck as any).code ?? 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 2. Decrement stock in cupboard
     let itemName = '';
-    const cupResult = await withCupboard((data) => {
-      for (const item of data.items) {
+    const cupResult = await withCupboard((items) => {
+      for (const item of items) {
         if (item.id === id) {
           if (Number(item.stock) <= 0) {
             return { result: { error: 'Out of stock', code: 409 }, noWrite: true };
           }
           item.stock = Number(item.stock) - 1;
           itemName = item.name;
-          return { data, result: { ok: true, name: item.name } };
+          return { items, result: { ok: true, name: item.name } };
         }
       }
       return { result: { error: 'Item not found', code: 404 }, noWrite: true };
@@ -235,7 +214,6 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // 3. Update prize_given fields on the game
     await withGame(code, (g) => {
       g.prize_given_id = id;
       g.prize_given_name = itemName;
@@ -258,36 +236,16 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // 1. Validate game state via withGame
-    const gameCheck = await withGame(code, (g) => {
-      if (!['reveal', 'done'].includes(g.state)) {
-        return { result: { error: 'Cannot unmark prize before the reveal', code: 409 }, noWrite: true };
-      }
-      if (g.creator_token !== token) {
-        return { result: { error: 'Host only', code: 403 }, noWrite: true };
-      }
-      return { result: { ok: true }, noWrite: true };
-    });
-
-    if (gameCheck && typeof gameCheck === 'object' && 'error' in gameCheck) {
-      return new Response(JSON.stringify({ error: (gameCheck as any).error }), {
-        status: (gameCheck as any).code ?? 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 2. Increment stock in cupboard
-    await withCupboard((data) => {
-      for (const item of data.items) {
+    await withCupboard((items) => {
+      for (const item of items) {
         if (item.id === previousId) {
           item.stock = Math.min(999, Number(item.stock) + 1);
-          return { data, result: { ok: true } };
+          return { items, result: { ok: true } };
         }
       }
       return { result: { ok: true }, noWrite: true };
     });
 
-    // 3. Clear prize_given fields on the game
     await withGame(code, (g) => {
       g.prize_given_id = null;
       g.prize_given_name = null;

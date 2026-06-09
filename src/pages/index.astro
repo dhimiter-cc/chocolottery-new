@@ -1,106 +1,246 @@
 ---
 import '../styles/global.css';
-
-let error = '';
-
-if (Astro.request.method === 'POST') {
-  const form = await Astro.request.formData();
-  const action = form.get('action') as string;
-
-  if (action === 'create') {
-    const res = await fetch(new URL('/api/create', Astro.url), { method: 'POST' });
-    const data = await res.json();
-    if (data.code) return Astro.redirect('/game/' + data.code);
-    error = 'Failed to create game.';
-  }
-
-  if (action === 'join') {
-    const code = String(form.get('code') ?? '').trim().toUpperCase();
-    const name = String(form.get('name') ?? '').trim();
-    const res = await fetch(new URL('/api/join', Astro.url), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, name }),
-    });
-    const data = await res.json();
-    if (!data.error) {
-      const cookies = res.headers.getSetCookie?.() ?? [];
-      for (const c of cookies) Astro.response.headers.append('Set-Cookie', c);
-      return Astro.redirect('/game/' + data.code);
-    }
-    error = data.error;
-  }
-}
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chocolate.lottery</title>
-  <style>@import '../styles/global.css';</style>
+<meta charset="UTF-8">
+<title>Chocolate Lottery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body style="background: var(--bg); min-height: 100vh;">
-
-  <!-- Nav -->
-  <nav class="flex justify-between items-center px-6 py-4 max-w-4xl mx-auto">
-    <span style="font-family: ui-sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--text);">🍫 chocolate.lottery</span>
-    <a href="/leaderboard" style="color: var(--text-mute); font-size: 0.9rem; text-decoration: none; font-weight: 600;">🏆 Leaderboard</a>
-  </nav>
-
-  <!-- Hero -->
-  <main class="max-w-3xl mx-auto px-6 pt-12 pb-20">
-    <div class="text-center mb-12">
-      <h1 style="font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #3D2B12, #7A5320, #E89817); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: none; line-height: 1.1; margin-bottom: 0.5rem;">
-        chocolate.lottery
-      </h1>
-      <p style="color: var(--text-mute); font-size: 1.1rem; font-weight: 500;">who's buying?</p>
+<body>
+<div class="parchment">
+  <header class="masthead">
+    <div>
+      <h1 class="title">chocolate.lottery</h1>
+      <p class="tagline">One chocolate. Many victims. Pick the longest straw. Don't make it weird.</p>
     </div>
-
-    {error && (
-      <div style="background: #FFF0F0; border: 1px solid var(--red); color: var(--red); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem;" set:html={error} />
-    )}
-
-    <!-- Two cards -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-      <!-- Create -->
-      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-1);">
-        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">🎲 Start a game</h2>
-        <p style="color: var(--text-mute); font-size: 0.875rem; margin-bottom: 1.25rem;">Create a room and share the code with your team.</p>
-        <form method="POST">
-          <input type="hidden" name="action" value="create" />
-          <button type="submit" style="width: 100%; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: white; font-weight: 700; font-size: 0.95rem; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.15s; box-shadow: 0 2px 8px rgba(232,152,23,0.4);">
-            Create a new game
-          </button>
-        </form>
-      </div>
-
-      <!-- Join -->
-      <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-1);">
-        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">🔗 Join a game</h2>
-        <p style="color: var(--text-mute); font-size: 0.875rem; margin-bottom: 1.25rem;">Enter the game code and your name.</p>
-        <form method="POST" class="flex flex-col gap-3">
-          <input type="hidden" name="action" value="join" />
-          <input type="text" name="code" placeholder="CHOC-1234" required
-            style="padding: 0.65rem 0.875rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background: var(--bg-soft); color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; outline: none;" />
-          <input type="text" name="name" placeholder="Your name" maxlength="30" required
-            style="padding: 0.65rem 0.875rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background: var(--bg-soft); color: var(--text); outline: none;" />
-          <button type="submit" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: white; font-weight: 700; font-size: 0.95rem; border: none; border-radius: var(--radius); cursor: pointer; box-shadow: 0 2px 8px rgba(232,152,23,0.4);">
-            Join game →
-          </button>
-        </form>
-      </div>
+    <div class="head-actions">
+      <button type="button" id="fairness-btn" class="btn btn-ghost">⚖️ Fairness</button>
+      <a href="/leaderboard" class="btn btn-ghost">Leaderboard →</a>
     </div>
+  </header>
 
-    <!-- How it works -->
-    <div style="margin-top: 3rem; text-align: center;">
-      <h3 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 1.5rem;">How it works</h3>
-      <div class="flex justify-center gap-8 flex-wrap">
-        <div class="text-center"><div style="font-size: 2rem;">🎲</div><div style="font-size: 0.85rem; color: var(--text-mute); margin-top: 0.4rem; font-weight: 500;">Create a room</div></div>
-        <div class="text-center"><div style="font-size: 2rem;">👥</div><div style="font-size: 0.85rem; color: var(--text-mute); margin-top: 0.4rem; font-weight: 500;">Everyone joins</div></div>
-        <div class="text-center"><div style="font-size: 2rem;">🍫</div><div style="font-size: 0.85rem; color: var(--text-mute); margin-top: 0.4rem; font-weight: 500;">Loser buys chocolate</div></div>
-      </div>
-    </div>
+  <main class="landing-grid">
+    <section class="panel">
+      <h2>Start a new round</h2>
+      <p class="muted">Open a new game. Share the code. Watch productivity plummet.</p>
+      <button id="create-btn" class="btn btn-primary big" style="margin-top: 14px;">Create a game</button>
+    </section>
+
+    <section class="panel">
+      <h2>Join an existing round</h2>
+      <p class="muted">Got a code? Drop in. No HR forms. No team-building exercises.</p>
+      <form id="join-form" class="join-form" style="margin-top: 14px;">
+        <label>Game code
+          <input type="text" id="join-code" placeholder="CHOC-1234" autocomplete="off" required>
+        </label>
+        <label>Your name
+          <input type="text" id="join-name" placeholder="your name" maxlength="30" autocomplete="off" required>
+        </label>
+        <button type="submit" class="btn btn-primary">Join the game</button>
+      </form>
+      <p id="join-error" class="error"></p>
+    </section>
   </main>
+
+  <footer class="foot">
+    <a href="/leaderboard">The Chocolate Industrial Complex 🏭</a>
+  </footer>
+</div>
+
+<!-- Feature announcement modal -->
+<div id="announce-modal" class="modal" hidden>
+  <div class="modal-card announce-card">
+    <div id="announce-step-1">
+      <div class="announce-emoji">⚖️</div>
+      <span class="announce-badge">New feature</span>
+      <h2 class="announce-title">Fairness Check is here</h2>
+      <p class="announce-body">Due to recent complaints, the chocolottery has introduced a Fairness Check.</p>
+      <p class="announce-body">It compares each person's actual wins against what chance would statistically predict — based on the real number of players in every game they played.</p>
+      <p class="announce-body">Click anyone's row to see their full game history and individual odds per game.</p>
+      <div class="announce-actions">
+        <span class="announce-step-indicator">1 of 2</span>
+        <button type="button" id="announce-continue" class="btn btn-primary">Continue →</button>
+      </div>
+    </div>
+    <div id="announce-step-2" hidden>
+      <div class="announce-emoji">📊</div>
+      <span class="announce-badge">Good to know</span>
+      <h2 class="announce-title">A heads up on the data</h2>
+      <p class="announce-body">To power this feature, the app now stores a bit more per game: the total number of participants and which players took part — not just who won.</p>
+      <p class="announce-body">Older games don't have this data, so they won't count towards expected win calculations. The first meaningful stats will show up after a few new games have been played.</p>
+      <div class="announce-actions">
+        <span class="announce-step-indicator">2 of 2</span>
+        <div class="announce-actions-right">
+          <button type="button" id="announce-skip" class="btn btn-ghost">Close</button>
+          <button type="button" id="announce-cta" class="btn btn-primary">Check it out ⚖️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fairness Check modal -->
+<div id="fairness-modal" class="modal" hidden>
+  <div class="modal-card fairness-modal-card">
+    <div class="section-head" style="margin-bottom:16px;">
+      <h2>⚖️ Fairness Check</h2>
+      <button type="button" id="fairness-close" class="btn btn-ghost" style="padding:4px 10px;">✕</button>
+    </div>
+    <p class="muted">Actual wins vs. statistically expected wins — based on how many players were in each game.</p>
+    <div id="fairness-body" style="margin-top:16px;"><p class="muted center">Loading…</p></div>
+    <p id="fairness-note" class="muted" style="font-size:0.8rem;margin-top:14px;"></p>
+  </div>
+</div>
+
+<script>
+document.getElementById('create-btn').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/api/create', { method: 'POST' });
+    const data = await res.json();
+    if (data.code) window.location = '/game/' + encodeURIComponent(data.code);
+  } catch { alert('Could not create game'); }
+});
+
+document.getElementById('join-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const name = document.getElementById('join-name').value.trim();
+  const err = document.getElementById('join-error');
+  err.textContent = '';
+  try {
+    const res = await fetch('/api/join', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ code, name })
+    });
+    const data = await res.json();
+    if (data.error) { err.textContent = data.error; return; }
+    window.location = '/game/' + encodeURIComponent(data.code);
+  } catch { err.textContent = 'Join failed'; }
+});
+
+(function () {
+  const modal   = document.getElementById('fairness-modal');
+  const body    = document.getElementById('fairness-body');
+  const note    = document.getElementById('fairness-note');
+  let loaded    = false;
+
+  async function openFairness() {
+    modal.removeAttribute('hidden');
+    if (loaded) return;
+    body.innerHTML = '<p class="muted center">Loading…</p>';
+    try {
+      const res  = await fetch('/api/fairness');
+      const data = await res.json();
+      loaded = true;
+      renderFairness(data);
+    } catch {
+      body.innerHTML = '<p class="error center">Could not load fairness data.</p>';
+    }
+  }
+
+  function renderFairness(data) {
+    if (!data.players || data.players.length === 0) {
+      body.innerHTML = '<p class="muted center">No games played yet — nothing to check!</p>';
+      return;
+    }
+
+    function fmtMonth(m) {
+      if (!m) return '—';
+      return new Date(m + '-02').toLocaleDateString('en', { month: 'short', year: 'numeric' });
+    }
+
+    const rows = data.players.map((p, i) => {
+      const expected = p.expected_wins !== null ? p.expected_wins.toFixed(1) : '—';
+      const score    = p.luck_score    !== null ? p.luck_score.toFixed(2)    : '—';
+      const verdict  = p.verdict
+        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${p.verdict.emoji} ${p.verdict.label}</span>`
+        : '<span class="fairness-verdict fairness-none">—</span>';
+
+      const gameRows = (p.games || []).map(g => `
+        <div class="fg-row">
+          <span class="fg-month">${fmtMonth(g.month)}</span>
+          <span class="fg-players">👥 ${g.participants} players</span>
+          <span class="fg-chance">1 in ${g.participants} &nbsp;·&nbsp; ${g.chance_pct}% chance</span>
+          <span class="fg-result ${g.won ? 'fg-won' : 'fg-lost'}">${g.won ? '🍫 Won' : '✗ Lost'}</span>
+        </div>`).join('');
+
+      const detail = p.games && p.games.length
+        ? `<div class="fg-list">${gameRows}</div>`
+        : '<p class="muted" style="margin:0;font-size:0.85rem;">No tracked games yet.</p>';
+
+      return `
+        <tr class="fairness-row" data-idx="${i}">
+          <td><span class="fg-chevron">▸</span> ${p.name}</td>
+          <td class="tc">${p.actual_wins}</td>
+          <td class="tc">${expected}</td>
+          <td class="tc">${score}</td>
+          <td>${verdict}</td>
+        </tr>
+        <tr class="fairness-detail" id="fg-detail-${i}" hidden>
+          <td colspan="5"><div class="fg-detail-inner">${detail}</div></td>
+        </tr>`;
+    }).join('');
+
+    body.innerHTML = `
+      <table class="leaderboard fairness-table">
+        <thead><tr>
+          <th>Name<span class="th-sub">click a row to see game history</span></th>
+          <th>Wins<span class="th-sub">times you've won</span></th>
+          <th>Expected<span class="th-sub">wins chance predicts, based on how many players were in each game you played</span></th>
+          <th>Luck score<span class="th-sub">your wins ÷ expected — 1.0 means perfectly average</span></th>
+          <th>Verdict<span class="th-sub">our completely unbiased assessment</span></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    body.querySelectorAll('.fairness-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const detail  = document.getElementById('fg-detail-' + row.dataset.idx);
+        const chevron = row.querySelector('.fg-chevron');
+        const opening = detail.hidden;
+        detail.hidden = !opening;
+        chevron.textContent = opening ? '▾' : '▸';
+        row.classList.toggle('fairness-row-open', opening);
+      });
+    });
+
+    const diff = data.total_games - data.tracked_games;
+    note.textContent = diff > 0
+      ? `${diff} game${diff > 1 ? 's' : ''} predate participant tracking and are excluded from expected win calculations.`
+      : '';
+  }
+
+  document.getElementById('fairness-btn').addEventListener('click', openFairness);
+  document.getElementById('fairness-close').addEventListener('click', () => modal.setAttribute('hidden', ''));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.setAttribute('hidden', ''); });
+
+  const ANNOUNCE_KEY  = 'choclottery_fairness_intro_v1';
+  const announceModal = document.getElementById('announce-modal');
+  const step1         = document.getElementById('announce-step-1');
+  const step2         = document.getElementById('announce-step-2');
+
+  function dismissAnnounce() {
+    announceModal.setAttribute('hidden', '');
+    localStorage.setItem(ANNOUNCE_KEY, '1');
+  }
+
+  document.getElementById('announce-continue').addEventListener('click', () => {
+    step1.setAttribute('hidden', '');
+    step2.removeAttribute('hidden');
+  });
+  document.getElementById('announce-skip').addEventListener('click', dismissAnnounce);
+  document.getElementById('announce-cta').addEventListener('click', () => {
+    dismissAnnounce();
+    openFairness();
+  });
+
+  if (!localStorage.getItem(ANNOUNCE_KEY)) {
+    announceModal.removeAttribute('hidden');
+  }
+})();
+</script>
 </body>
 </html>

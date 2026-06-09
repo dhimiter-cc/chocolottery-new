@@ -12,50 +12,55 @@
     code,
     initialToken = null,
     alreadyJoined = false,
+    presetName = '',
   }: {
     code: string;
     initialToken?: string | null;
     alreadyJoined?: boolean;
+    presetName?: string;
   } = $props();
 
   let gameState = $state<GameStateResponse | null>(null);
   let joined = $state(alreadyJoined);
-  let playerName = $state('');
+  let playerName = $state(presetName);
   let joinError = $state('');
   let joinLoading = $state(false);
   let showCupboard = $state(false);
   let chatOpen = $state(false);
   let copied = $state(false);
+  let restartArmed = $state(false);
+  let restartTimer: ReturnType<typeof setTimeout> | null = null;
+  let giveSelectId = $state('');
+  let giveError = $state('');
 
   let effectsCanvas: ReturnType<typeof EffectsCanvas> | null = $state(null);
 
-  // ──────────────────── Sound system ────────────────────
+  // ── Sound system ──────────────────────────────────────────────────────────
   let audioCtx: AudioContext | null = null;
 
-  function getCtx(): AudioContext {
-    if (!audioCtx) audioCtx = new AudioContext();
+  function getAudio(): AudioContext | null {
+    if (audioCtx) return audioCtx;
+    try { audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)(); }
+    catch { audioCtx = null; }
     return audioCtx;
   }
 
-  function tone(
-    freq: number,
-    duration: number,
-    type: OscillatorType = 'sine',
-    volume = 0.15,
-    when = 0,
-  ) {
-    const ctx = getCtx();
+  function tone(freq: number, duration: number, type: OscillatorType = 'sine', volume = 0.15, when = 0) {
+    const ctx = getAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const t0 = ctx.currentTime + when;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime + when);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime + when);
-    gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + when + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + when + duration);
-    osc.start(ctx.currentTime + when);
-    osc.stop(ctx.currentTime + when + duration + 0.05);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.05);
   }
 
   function playDrumroll(durationMs: number) {
@@ -64,13 +69,14 @@
   }
 
   function playWinFanfare() {
-    const notes = [523.25, 659.25, 783.99, 1046.5];
-    notes.forEach((f, i) => tone(f, 0.18, 'triangle', 0.2, i * 0.18));
-    tone(1318.51, 0.6, 'triangle', 0.25, notes.length * 0.18);
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.18, 'triangle', 0.2, i * 0.18));
+    tone(1318.51, 0.6, 'triangle', 0.25, 4 * 0.18);
   }
 
   function playLoseTrombone() {
-    const ctx = getCtx();
+    const ctx = getAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -85,7 +91,9 @@
   }
 
   function playRisingRumble() {
-    const ctx = getCtx();
+    const ctx = getAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -99,42 +107,25 @@
     osc.stop(ctx.currentTime + 3.1);
   }
 
-  const sounds = {
-    playDrumroll,
-    playWinFanfare,
-    playLoseTrombone,
-    playRisingRumble,
-  };
+  const sounds = { playDrumroll, playWinFanfare, playLoseTrombone, playRisingRumble };
 
-  // ──────────────────── Avatar helpers ────────────────────
+  // ── Avatar helpers ────────────────────────────────────────────────────────
   function avatarColor(name: string): string {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = Math.abs(hash) % 360;
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+    const hue = ((h % 360) + 360) % 360;
     return `linear-gradient(160deg, hsl(${hue} 70% 60%), hsl(${(hue + 30) % 360} 60% 38%))`;
   }
 
-  function avatarInitial(name: string): string {
-    return (name || '?').trim().charAt(0).toUpperCase();
-  }
-
-  // ──────────────────── Polling ────────────────────
+  // ── Polling ───────────────────────────────────────────────────────────────
   $effect(() => {
     if (!joined) return;
-
     const poll = setInterval(async () => {
       try {
         const res = await fetch(`/api/state?code=${code}`);
-        if (res.ok) {
-          gameState = await res.json();
-        }
-      } catch {
-        // ignore network errors
-      }
+        if (res.ok) gameState = await res.json();
+      } catch {}
     }, 1000);
-
     const heartbeat = setInterval(async () => {
       try {
         await fetch('/api/heartbeat', {
@@ -142,18 +133,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code }),
         });
-      } catch {
-        // ignore
-      }
+      } catch {}
     }, 5000);
-
-    return () => {
-      clearInterval(poll);
-      clearInterval(heartbeat);
-    };
+    // Initial poll
+    fetch(`/api/state?code=${code}`).then(r => r.ok ? r.json() : null).then(d => { if (d) gameState = d; }).catch(() => {});
+    return () => { clearInterval(poll); clearInterval(heartbeat); };
   });
 
-  // ──────────────────── Actions ────────────────────
+  // ── Actions ───────────────────────────────────────────────────────────────
   async function handleJoin(e: SubmitEvent) {
     e.preventDefault();
     const name = playerName.trim();
@@ -180,11 +167,16 @@
   }
 
   async function handleStart() {
-    await fetch('/api/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
+    if (!gameState) return;
+    try {
+      const res = await fetch('/api/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (data.error) actionError = data.error;
+    } catch { actionError = 'Could not start'; }
   }
 
   async function handlePick(index: number) {
@@ -196,11 +188,47 @@
   }
 
   async function handleRestart() {
-    await fetch('/api/restart', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
+    if (!restartArmed) {
+      restartArmed = true;
+      restartTimer = setTimeout(() => { restartArmed = false; restartTimer = null; }, 4000);
+    } else {
+      if (restartTimer) { clearTimeout(restartTimer); restartTimer = null; }
+      restartArmed = false;
+      try {
+        await fetch('/api/restart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+      } catch {}
+    }
+  }
+
+  async function handleGive() {
+    if (!giveSelectId) return;
+    giveError = '';
+    try {
+      const res = await fetch('/api/cupboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'give', code, id: giveSelectId }),
+      });
+      const data = await res.json();
+      if (data.error) giveError = data.error;
+    } catch { giveError = 'Could not save'; }
+  }
+
+  async function handleUngive() {
+    giveError = '';
+    try {
+      const res = await fetch('/api/cupboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ungive', code }),
+      });
+      const data = await res.json();
+      if (data.error) giveError = data.error;
+    } catch { giveError = 'Could not undo'; }
   }
 
   function copyShareUrl() {
@@ -208,208 +236,423 @@
     navigator.clipboard.writeText(url).then(() => {
       copied = true;
       setTimeout(() => (copied = false), 2000);
+      showToast('Link copied. Share. Conquer.');
     });
   }
 
-  let phase = $derived(gameState?.state ?? 'lobby');
-  let isLobby = $derived(phase === 'lobby');
-  let isHost = $derived(gameState?.is_host ?? false);
-  let showRestartBtn = $derived(isHost && phase !== 'lobby');
+  function showToast(msg: string) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+  }
 
-  // ──────────────────── Effects canvas helpers ────────────────────
-  function fireConfetti(big: boolean) {
-    effectsCanvas?.fireConfetti(big);
+  // ── Derived state ─────────────────────────────────────────────────────────
+  let phase = $derived(gameState?.state ?? 'lobby');
+  let isHost = $derived(gameState?.is_host ?? false);
+  let inGame = $derived(gameState?.in_game ?? false);
+  let showRestartBtn = $derived(isHost && inGame && phase !== 'lobby');
+  let actionError = $state('');
+
+  let actionBtnText = $derived.by(() => {
+    if (!gameState) return 'Start the lottery';
+    if (phase === 'lobby') {
+      const onlineCount = gameState.players.filter(p => p.online).length;
+      return onlineCount < 2 ? 'Need 2+ players' : `Start the lottery (${onlineCount})`;
+    }
+    if (phase === 'reveal' || phase === 'done') return 'New game';
+    return '';
+  });
+
+  let actionBtnDisabled = $derived.by(() => {
+    if (phase === 'lobby') {
+      const onlineCount = gameState?.players.filter(p => p.online).length ?? 0;
+      return onlineCount < 2;
+    }
+    return false;
+  });
+
+  let showActionBtn = $derived(isHost && (phase === 'lobby' || phase === 'reveal' || phase === 'done'));
+
+  // Track previous phase for countdown
+  let prevPhase = $state<string | null>(null);
+  let countdownActive = $state(false);
+
+  $effect(() => {
+    const current = phase;
+    if (prevPhase === 'lobby' && current === 'picking' && !countdownActive) {
+      runCountdown();
+    }
+    prevPhase = current;
+  });
+
+  function runCountdown() {
+    const cupStageEl = document.querySelector('.cup-stage') as HTMLElement | null;
+    if (!cupStageEl) return;
+    countdownActive = true;
+    const existing = cupStageEl.querySelector('.countdown-overlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'countdown-overlay';
+    cupStageEl.appendChild(overlay);
+    cupStageEl.classList.add('countdown');
+
+    const steps = [
+      { text: '3', freq: 440, dur: 700 },
+      { text: '2', freq: 494, dur: 700 },
+      { text: '1', freq: 554, dur: 700 },
+      { text: 'GO!', freq: 880, dur: 700, big: true },
+      { text: 'Pick your straw', freq: 0, dur: 900, small: true },
+    ];
+    let i = 0;
+    function tick() {
+      if (i >= steps.length) {
+        overlay.remove();
+        cupStageEl!.classList.remove('countdown');
+        countdownActive = false;
+        return;
+      }
+      const step = steps[i++];
+      overlay.textContent = step.text;
+      overlay.classList.toggle('big', !!(step as any).big);
+      overlay.classList.toggle('small', !!(step as any).small);
+      overlay.classList.remove('pop');
+      void overlay.offsetWidth;
+      overlay.classList.add('pop');
+      if (step.freq) tone(step.freq, (step as any).big ? 0.35 : 0.12, (step as any).big ? 'triangle' : 'square', (step as any).big ? 0.20 : 0.14);
+      setTimeout(tick, step.dur);
+    }
+    tick();
   }
-  function fireTears() {
-    effectsCanvas?.fireTears();
+
+  let phaseDetailText = $state('Waiting for the brave to gather…');
+
+  $effect(() => {
+    if (!gameState) { phaseDetailText = 'Waiting for the brave to gather…'; return; }
+    const onlineCount = gameState.players.filter(p => p.online).length;
+    if (phase === 'lobby') {
+      if (!isHost) {
+        const host = gameState.players.find(p => p.token === gameState!.creator_token);
+        phaseDetailText = onlineCount < 2
+          ? `${onlineCount} here. Waiting for more.`
+          : `${onlineCount} ready. Waiting for ${host?.name ?? 'the host'} to start.`;
+      } else {
+        phaseDetailText = onlineCount < 2
+          ? `${onlineCount} here. Send the link to your colleagues.`
+          : `${onlineCount} ready. Press Start when everyone's in.`;
+      }
+    } else if (phase === 'picking') {
+      const pickedCount = gameState.players.filter(p => p.picked).length;
+      const remaining = gameState.players.length - pickedCount;
+      if (remaining === 0) phaseDetailText = '🥁 The drumroll, please…';
+      else if (gameState.my_straw == null) phaseDetailText = '';
+      else phaseDetailText = `Locked in. Waiting for ${remaining} more brave soul${remaining === 1 ? '' : 's'}.`;
+    } else if (phase === 'reveal' || phase === 'done') {
+      const winner = gameState.players.find(p => p.token === gameState!.winner_token);
+      phaseDetailText = winner ? `🍫 ${winner.name} wins.` : 'Round over.';
+    }
+  });
+
+  let phaseDetail = $derived(phaseDetailText);
+
+  // Stocked cupboard items for give-card
+  let stockedItems = $derived((gameState?.cupboard ?? []).filter(i => i.stock > 0));
+  let showGiveCard = $derived((phase === 'reveal' || phase === 'done') && (isHost || !!gameState?.prize_given_id));
+
+  // Fairness modal
+  let showFairness = $state(false);
+  let fairnessLoaded = $state(false);
+  let fairnessBody = $state('<p class="muted center">Loading…</p>');
+  let fairnessNote = $state('');
+
+  async function openFairness() {
+    showFairness = true;
+    if (fairnessLoaded) return;
+    try {
+      const res = await fetch('/api/fairness');
+      const data = await res.json();
+      fairnessLoaded = true;
+      renderFairnessData(data);
+    } catch {
+      fairnessBody = '<p class="error center">Could not load fairness data.</p>';
+    }
   }
-  function fireSparkles() {
-    effectsCanvas?.fireSparkles();
+
+  function renderFairnessData(data: any) {
+    if (!data.players || data.players.length === 0) {
+      fairnessBody = '<p class="muted center">No games played yet — nothing to check!</p>';
+      return;
+    }
+    function fmtMonth(m: string) {
+      if (!m) return '—';
+      return new Date(m + '-02').toLocaleDateString('en', { month: 'short', year: 'numeric' });
+    }
+    const rows = data.players.map((p: any, i: number) => {
+      const expected = p.expected_wins !== null ? p.expected_wins.toFixed(1) : '—';
+      const score    = p.luck_score    !== null ? p.luck_score.toFixed(2)    : '—';
+      const verdict  = p.verdict
+        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${p.verdict.emoji} ${p.verdict.label}</span>`
+        : '<span class="fairness-verdict fairness-none">—</span>';
+      const gameRows = (p.games || []).map((g: any) => `
+        <div class="fg-row">
+          <span class="fg-month">${fmtMonth(g.month)}</span>
+          <span class="fg-players">👥 ${g.participants} players</span>
+          <span class="fg-chance">1 in ${g.participants} &nbsp;·&nbsp; ${g.chance_pct}% chance</span>
+          <span class="fg-result ${g.won ? 'fg-won' : 'fg-lost'}">${g.won ? '🍫 Won' : '✗ Lost'}</span>
+        </div>`).join('');
+      const detail = p.games?.length
+        ? `<div class="fg-list">${gameRows}</div>`
+        : '<p class="muted" style="margin:0;font-size:0.85rem;">No tracked games yet.</p>';
+      return `
+        <tr class="fairness-row" data-idx="${i}">
+          <td><span class="fg-chevron">▸</span> ${p.name}</td>
+          <td class="tc">${p.actual_wins}</td>
+          <td class="tc">${expected}</td>
+          <td class="tc">${score}</td>
+          <td>${verdict}</td>
+        </tr>
+        <tr class="fairness-detail" id="fg-detail-${i}" hidden>
+          <td colspan="5"><div class="fg-detail-inner">${detail}</div></td>
+        </tr>`;
+    }).join('');
+    fairnessBody = `
+      <table class="leaderboard fairness-table">
+        <thead><tr>
+          <th>Name<span class="th-sub">click a row to see game history</span></th>
+          <th>Wins<span class="th-sub">times you've won</span></th>
+          <th>Expected<span class="th-sub">based on players per game</span></th>
+          <th>Luck score<span class="th-sub">wins ÷ expected</span></th>
+          <th>Verdict<span class="th-sub">our unbiased assessment</span></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    const diff = data.total_games - data.tracked_games;
+    fairnessNote = diff > 0
+      ? `${diff} game${diff > 1 ? 's' : ''} predate participant tracking and are excluded from expected win calculations.`
+      : '';
   }
+
+  function attachFairnessHandlers() {
+    document.querySelectorAll('.fairness-row').forEach((row: any) => {
+      row.addEventListener('click', () => {
+        const detail = document.getElementById('fg-detail-' + row.dataset.idx) as HTMLElement;
+        const chevron = row.querySelector('.fg-chevron') as HTMLElement;
+        const opening = detail.hidden;
+        detail.hidden = !opening;
+        chevron.textContent = opening ? '▾' : '▸';
+        row.classList.toggle('fairness-row-open', opening);
+      });
+    });
+  }
+
+  $effect(() => {
+    if (fairnessBody && fairnessBody.includes('fairness-row')) {
+      setTimeout(attachFairnessHandlers, 0);
+    }
+  });
+
+  // Chat drawer
+  function openChatDrawer() { chatOpen = true; }
+  function closeChatDrawer() { chatOpen = false; }
 </script>
 
 <!-- Join modal -->
 {#if !joined}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-      <h1 class="text-2xl font-extrabold text-gray-800 mb-1 text-center">Join Game</h1>
-      <p class="text-gray-400 text-sm text-center mb-6">Code: <span class="font-mono font-bold text-orange-500">{code}</span></p>
-
-      <form onsubmit={handleJoin} class="flex flex-col gap-4">
-        <input
-          type="text"
-          bind:value={playerName}
-          placeholder="Your name…"
-          maxlength="32"
-          autofocus
-          class="rounded-xl px-4 py-3 text-base border border-gray-200 outline-none focus:border-orange-400 transition-colors"
-        />
-        {#if joinError}
-          <p class="text-red-500 text-sm text-center">{joinError}</p>
-        {/if}
-        <button
-          type="submit"
-          disabled={joinLoading || !playerName.trim()}
-          class="py-3 rounded-xl font-bold text-white text-base transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
-          style="background: linear-gradient(135deg, #E89817 0%, #F0B429 100%);"
-        >
+  <div class="modal">
+    <div class="modal-card">
+      <h2>Join the round</h2>
+      <p class="muted">Game <span class="stamp">{code}</span></p>
+      <form onsubmit={handleJoin} style="margin-top:18px;">
+        <label>Display name
+          <input type="text" bind:value={playerName} maxlength="30" required placeholder="your name" autofocus>
+        </label>
+        <button type="submit" class="btn btn-primary" disabled={joinLoading || !playerName.trim()}>
           {joinLoading ? 'Joining…' : 'Join'}
         </button>
+        {#if joinError}<p class="error">{joinError}</p>{/if}
       </form>
     </div>
   </div>
 {/if}
 
-<!-- Effects canvas overlay -->
+<!-- Effects canvas -->
 <EffectsCanvas bind:this={effectsCanvas} />
 
-<!-- Main layout -->
-{#if joined && gameState}
-  <div class="min-h-screen flex flex-col" style="background: var(--bg, #1a1a2e); --accent: #E89817; --stage: #12122a; --panel: rgba(255,255,255,0.06);">
-
-    <!-- Header -->
-    <header class="flex items-center gap-3 px-4 py-3 border-b" style="border-color: rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
-      <!-- Code badge -->
-      <button
-        onclick={copyShareUrl}
-        class="font-mono text-sm font-bold px-3 py-1 rounded-lg transition-all hover:scale-105 active:scale-95"
-        style="background: rgba(255,255,255,0.1); color: {copied ? '#0F9D6E' : 'rgba(255,255,255,0.8)'};"
-        title="Click to copy invite link"
-      >
-        {copied ? '✓ Copied!' : code}
-      </button>
-
-      <!-- Phase pill -->
-      <span
-        class="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide"
-        style="background: rgba(232,152,23,0.2); color: var(--accent,#E89817);"
-      >
-        {phase}
-      </span>
-
-      <div class="flex-1"></div>
-
-      <!-- Cupboard button (host + lobby) -->
-      {#if isHost && isLobby}
-        <button
-          onclick={() => (showCupboard = true)}
-          class="px-3 py-1.5 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
-        >
-          🍫 Cupboard
-        </button>
-      {/if}
-
-      <!-- Restart button (host + non-lobby) -->
-      {#if showRestartBtn}
-        <button
-          onclick={handleRestart}
-          class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:scale-105 active:scale-95"
-          style="background: rgba(232,152,23,0.15); color: var(--accent,#E89817); border: 1px solid rgba(232,152,23,0.3);"
-        >
-          ↺ Restart
-        </button>
-      {/if}
+<!-- Main game layout -->
+{#if joined}
+  <div class="parchment game-room">
+    <header class="game-head">
+      <div>
+        <h1 class="title small">chocolate.lottery</h1>
+        <p class="muted">Game
+          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+          <span class="stamp" title="Click to copy share link" onclick={copyShareUrl}>
+            {copied ? '✓ Copied!' : code}
+          </span>
+        </p>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="btn btn-ghost" onclick={openFairness}>⚖️ Fairness</button>
+        <a href="/leaderboard" class="btn btn-ghost">Leaderboard</a>
+        <a href="/" class="btn btn-ghost">Home</a>
+      </div>
     </header>
 
-    <!-- Desktop: 3-col grid -->
-    <div class="flex-1 hidden lg:grid" style="grid-template-columns: 280px 1fr 280px; min-height: 0;">
-      <!-- Left: Snacks -->
-      <div class="border-r overflow-y-auto" style="border-color: rgba(255,255,255,0.08);">
-        <Snacks state={gameState} {code} />
+    {#if gameState}
+      <div class="game-grid">
+        <!-- Snacks: left column on desktop -->
+        <section class="panel snacks-panel">
+          <Snacks state={gameState} {code} onOpenCupboard={() => (showCupboard = true)} />
+        </section>
+
+        <!-- Chat: right column on desktop, bottom drawer on mobile -->
+        <section class="panel chat-panel" class:drawer-open={chatOpen} hidden={!inGame || undefined}>
+          <Chat state={gameState} {code} onClose={closeChatDrawer} />
+        </section>
+
+        <!-- Stage: center on desktop, top on mobile -->
+        <section class="panel stage-panel">
+          <div class="phase-bar">
+            <div class="phase-info">
+              <span class="phase-pill {phase}">{phase.charAt(0).toUpperCase() + phase.slice(1)}</span>
+              <span class="phase-detail">{phaseDetail}</span>
+            </div>
+            {#if showActionBtn}
+              <button
+                class="btn btn-primary big"
+                disabled={actionBtnDisabled}
+                onclick={phase === 'lobby' ? handleStart : () => { window.location.href = '/'; }}
+              >
+                {actionBtnText}
+              </button>
+            {/if}
+          </div>
+
+          {#if phase === 'lobby'}
+            <div class="cup-stage" data-phase="lobby">
+              <LobbyPhase state={gameState} />
+              <div class="straws"></div>
+              <div class="cup"></div>
+            </div>
+          {:else if phase === 'picking'}
+            <div class="cup-stage" data-phase="picking">
+              <PickingPhase state={gameState} onPick={handlePick} />
+            </div>
+          {:else if phase === 'reveal' || phase === 'done'}
+            <div class="cup-stage" data-phase="reveal">
+              <RevealPhase
+                state={gameState}
+                {sounds}
+                onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
+                onFireTears={() => effectsCanvas?.fireTears()}
+                onFireSparkles={() => effectsCanvas?.fireSparkles()}
+              />
+            </div>
+          {/if}
+
+          {#if actionError}<p class="error" style="margin: 10px 0 0;">{actionError}</p>{/if}
+
+          <!-- Prize snack card -->
+          {#if gameState.prize_snack && (phase === 'reveal' || phase === 'done')}
+            <div class="prize-card">
+              <div class="prize-label">🍫 Prize snack</div>
+              <div class="prize-text">{gameState.prize_snack.text}</div>
+              <div class="prize-meta">
+                {gameState.prize_snack.random
+                  ? 'picked at random — democracy failed'
+                  : `${gameState.prize_snack.votes} vote${gameState.prize_snack.votes === 1 ? '' : 's'} · suggested by ${gameState.prize_snack.author_name}`}
+              </div>
+            </div>
+          {/if}
+
+          <!-- Give card (post-reveal, host) -->
+          {#if showGiveCard}
+            <div class="give-card">
+              <div class="give-label">From the cupboard</div>
+              {#if gameState.prize_given_id}
+                <div class="give-status given">✓ {gameState.prize_given_name} was handed to the winner.</div>
+              {:else}
+                <div class="give-status">Host: which cupboard snack did the winner get?</div>
+              {/if}
+              {#if isHost}
+                <div class="give-controls">
+                  {#if !gameState.prize_given_id}
+                    {#if stockedItems.length > 0}
+                      <select bind:value={giveSelectId}>
+                        {#each stockedItems as item}
+                          <option value={item.id}>{item.name} (×{item.stock})</option>
+                        {/each}
+                      </select>
+                      <button type="button" class="btn btn-primary" onclick={handleGive}>Mark given (−1)</button>
+                    {:else}
+                      <span class="muted" style="font-size:0.88rem;">Nothing in stock</span>
+                    {/if}
+                  {:else}
+                    <button type="button" class="btn btn-ghost" onclick={handleUngive}>Undo</button>
+                  {/if}
+                </div>
+                {#if giveError}<p class="error" style="margin: 8px 0 0;">{giveError}</p>{/if}
+              {/if}
+            </div>
+          {/if}
+
+          <!-- Restart button (host only) -->
+          {#if showRestartBtn}
+            <button
+              class="restart-btn"
+              class:armed={restartArmed}
+              onclick={handleRestart}
+            >
+              {restartArmed ? 'Really restart? Click again to confirm' : '↺ restart game'}
+            </button>
+          {/if}
+        </section>
       </div>
-
-      <!-- Center: Stage -->
-      <div class="relative overflow-hidden" style="background: var(--stage);">
-        {#if phase === 'lobby'}
-          <LobbyPhase state={gameState} onStart={handleStart} />
-        {:else if phase === 'picking'}
-          <PickingPhase state={gameState} onPick={handlePick} />
-        {:else if phase === 'reveal' || phase === 'done'}
-          <RevealPhase
-            state={gameState}
-            {sounds}
-            onFireConfetti={fireConfetti}
-            onFireTears={fireTears}
-            onFireSparkles={fireSparkles}
-          />
-        {/if}
-      </div>
-
-      <!-- Right: Chat -->
-      <div class="border-l flex flex-col min-h-0" style="border-color: rgba(255,255,255,0.08);">
-        <Chat state={gameState} {code} mobile={false} />
-      </div>
-    </div>
-
-    <!-- Mobile layout -->
-    <div class="flex-1 flex flex-col lg:hidden">
-      <!-- Stage -->
-      <div class="relative flex-shrink-0" style="min-height: 55vh; background: var(--stage);">
-        {#if phase === 'lobby'}
-          <LobbyPhase state={gameState} onStart={handleStart} />
-        {:else if phase === 'picking'}
-          <PickingPhase state={gameState} onPick={handlePick} />
-        {:else if phase === 'reveal' || phase === 'done'}
-          <RevealPhase
-            state={gameState}
-            {sounds}
-            onFireConfetti={fireConfetti}
-            onFireTears={fireTears}
-            onFireSparkles={fireSparkles}
-          />
-        {/if}
-      </div>
-
-      <!-- Snacks below stage -->
-      <div class="overflow-y-auto" style="background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.08);">
-        <Snacks state={gameState} {code} />
-      </div>
-
-      <!-- Chat FAB -->
-      <button
-        onclick={() => (chatOpen = !chatOpen)}
-        class="fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full flex items-center justify-center text-white text-xl shadow-2xl transition-all hover:scale-110 active:scale-95"
-        style="background: var(--accent,#E89817); box-shadow: 0 4px 20px rgba(232,152,23,0.5);"
-      >
-        💬
-        {#if gameState.chat.length > 0}
-          <span
-            class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
-          >
-            {Math.min(gameState.chat.length, 99)}
-          </span>
-        {/if}
-      </button>
-
-      <!-- Chat bottom sheet -->
-      {#if chatOpen}
-        <Chat state={gameState} {code} mobile={true} />
-        <!-- Backdrop to close -->
-        <div
-          class="fixed inset-0 z-30"
-          style="background: rgba(0,0,0,0.3);"
-          onclick={() => (chatOpen = false)}
-        ></div>
-      {/if}
-    </div>
+    {:else}
+      <p class="muted center" style="padding: 40px;">Loading game…</p>
+    {/if}
   </div>
+
+  <!-- Mobile chat backdrop -->
+  <div id="chat-backdrop" class="chat-backdrop" hidden={!chatOpen || undefined} onclick={closeChatDrawer}></div>
+  <!-- Mobile chat FAB -->
+  {#if inGame}
+    <button
+      class="chat-fab"
+      aria-label="Open chat"
+      onclick={openChatDrawer}
+    >
+      💬
+      {#if gameState && gameState.chat.length > 0}
+        <span class="chat-fab-dot"></span>
+      {/if}
+    </button>
+  {/if}
 
   <!-- Cupboard modal -->
-  <Cupboard
-    state={gameState}
-    {code}
-    open={showCupboard}
-    onClose={() => (showCupboard = false)}
-  />
-{:else if joined && !gameState}
-  <!-- Loading state -->
-  <div class="fixed inset-0 flex items-center justify-center" style="background: #12122a;">
-    <div class="flex flex-col items-center gap-4">
-      <div
-        class="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-        style="border-color: rgba(232,152,23,0.3); border-top-color: var(--accent,#E89817);"
-      ></div>
-      <p class="text-white/40 text-sm">Loading game…</p>
+  {#if showCupboard && gameState}
+    <Cupboard
+      state={gameState}
+      {code}
+      open={showCupboard}
+      onClose={() => (showCupboard = false)}
+    />
+  {/if}
+
+  <!-- Fairness modal -->
+  {#if showFairness}
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div class="modal" onclick={(e) => { if (e.target === e.currentTarget) showFairness = false; }}>
+      <div class="modal-card fairness-modal-card">
+        <div class="section-head" style="margin-bottom:16px;">
+          <h2>⚖️ Fairness Check</h2>
+          <button type="button" class="btn btn-ghost" style="padding:4px 10px;" onclick={() => (showFairness = false)}>✕</button>
+        </div>
+        <p class="muted">Actual wins vs. statistically expected wins — based on how many players were in each game.</p>
+        <div style="margin-top:16px;">{@html fairnessBody}</div>
+        {#if fairnessNote}<p class="muted" style="font-size:0.8rem;margin-top:14px;">{fairnessNote}</p>{/if}
+      </div>
     </div>
-  </div>
+  {/if}
 {/if}

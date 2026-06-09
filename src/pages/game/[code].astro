@@ -7,10 +7,12 @@ const upperCode = code?.toUpperCase() ?? '';
 
 const token = getPlayerToken(Astro.request);
 let alreadyJoined = false;
+let presetName = '';
 
 if (token && upperCode) {
   const game = loadGame(upperCode);
   alreadyJoined = !!(game && game.players[token]);
+  if (alreadyJoined && game) presetName = game.players[token]?.name ?? '';
 }
 ---
 <!DOCTYPE html>
@@ -18,11 +20,9 @@ if (token && upperCode) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chocolate.lottery · {upperCode}</title>
-  <style>@import '../../styles/global.css';</style>
+  <title>{upperCode} — Chocolate Lottery</title>
   <style>
-    html, body { height: 100%; }
-    body { background: var(--bg); margin: 0; }
+    @import '../../styles/global.css';
   </style>
 </head>
 <body>
@@ -30,6 +30,7 @@ if (token && upperCode) {
     code={upperCode}
     initialToken={token}
     alreadyJoined={alreadyJoined}
+    presetName={presetName}
     client:load
   />
 </body>
