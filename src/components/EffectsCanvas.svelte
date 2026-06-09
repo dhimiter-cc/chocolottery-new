@@ -14,7 +14,9 @@
     color: string;
     life: number;
     maxLife: number;
-    kind: 'rect' | 'circle' | 'tear';
+    kind: 'rect' | 'circle' | 'tear' | 'star' | 'streamer' | 'spark' | 'ring' | 'emoji';
+    grow?: number;   // radius growth per frame (used by 'ring' shockwaves)
+    glyph?: string;  // character to draw (used by 'emoji')
   }
 
   let canvas: HTMLCanvasElement;
@@ -40,6 +42,8 @@
       life: 0,
       maxLife: opts.maxLife ?? rand(180, 280),
       kind: opts.kind,
+      grow: opts.grow,
+      glyph: opts.glyph,
     };
   }
 
@@ -85,9 +89,34 @@
     }
   }
 
+  const CONFETTI_COLORS = ['#E89817', '#FFD24A', '#E63946', '#6366F1', '#0F9D6E', '#FFFFFF', '#FF7AD5', '#22D3EE'];
+
+  function spawnEmojiBurst(n: number) {
+    const glyphs = ['🎉', '🍫', '👏', '✨', '🎊'];
+    const w = canvas.width / (window.devicePixelRatio || 1);
+    const h = canvas.height / (window.devicePixelRatio || 1);
+    for (let i = 0; i < n; i++) {
+      particles.push(
+        spawnParticle({
+          x: rand(0.18, 0.82) * w,
+          y: h * 0.92,
+          vx: rand(-4.5, 4.5),
+          vy: rand(-16, -9),
+          g: 0.3,
+          drag: 0.995,
+          size: rand(10, 16),
+          color: '#fff',
+          maxLife: rand(150, 220),
+          kind: 'emoji',
+          glyph: glyphs[Math.floor(Math.random() * glyphs.length)],
+        }),
+      );
+    }
+  }
+
   export function fireConfetti(big: boolean) {
-    const count = big ? 220 : 160;
-    const colors = ['#E89817', '#FFD24A', '#E63946', '#6366F1', '#0F9D6E', '#FFFFFF'];
+    const count = big ? 260 : 180;
+    const colors = CONFETTI_COLORS;
     const perEmitter = Math.floor(count / 3);
 
     // Left cannon
@@ -97,7 +126,65 @@
     // Top burst
     launchCannon(0.5, -90, count - perEmitter * 2, colors, 0.7, 0.22, 0.993, 6, 16, 180, 280, 'circle', 5, 10);
 
+    // Glittering stars arcing in from the sides
+    launchCannon(0.12, -62, big ? 42 : 26, ['#FFD24A', '#FFFBE0', '#FF7AD5'], 0.5, 0.18, 0.99, 9, 18, 200, 300, 'star', 9, 16);
+    launchCannon(0.88, -118, big ? 42 : 26, ['#FFD24A', '#FFFBE0', '#22D3EE'], 0.5, 0.18, 0.99, 9, 18, 200, 300, 'star', 9, 16);
+    // Slow tumbling streamers
+    launchCannon(0.5, -90, big ? 30 : 18, colors, 0.6, 0.12, 0.992, 7, 14, 240, 340, 'streamer', 12, 22);
+
+    // A few emoji lobbed up for good measure
+    spawnEmojiBurst(big ? 16 : 9);
+
     ensureLoop();
+  }
+
+  // Timed aerial firework bursts: each pops a shockwave ring + a radial spray of sparks.
+  export function fireFireworks(bursts = 6) {
+    const w = canvas.width / (window.devicePixelRatio || 1);
+    const h = canvas.height / (window.devicePixelRatio || 1);
+    const palettes = [
+      ['#FFD24A', '#E89817', '#FFFBE0'],
+      ['#FF7AD5', '#E63946', '#FFFFFF'],
+      ['#22D3EE', '#6366F1', '#FFFFFF'],
+      ['#0F9D6E', '#A7F3D0', '#FFD24A'],
+    ];
+    let delay = 0;
+    for (let b = 0; b < bursts; b++) {
+      setTimeout(() => {
+        if (!canvas) return;
+        const cx = rand(0.18, 0.82) * w;
+        const cy = rand(0.12, 0.45) * h;
+        const pal = palettes[Math.floor(Math.random() * palettes.length)];
+
+        // Shockwave ring
+        particles.push(
+          spawnParticle({
+            x: cx, y: cy, vx: 0, vy: 0, g: 0, drag: 1,
+            size: 2, grow: rand(2.2, 3.4),
+            color: pal[0], maxLife: rand(28, 42), kind: 'ring',
+          }),
+        );
+
+        // Radial spark spray
+        const n = 42;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + rand(-0.05, 0.05);
+          const sp = rand(3, 7);
+          particles.push(
+            spawnParticle({
+              x: cx, y: cy,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              g: 0.05, drag: 0.95,
+              size: rand(3, 6),
+              color: pal[Math.floor(Math.random() * pal.length)],
+              maxLife: rand(50, 100), kind: 'spark',
+            }),
+          );
+        }
+        ensureLoop();
+      }, delay);
+      delay += rand(220, 420);
+    }
   }
 
   export function fireTears() {
@@ -156,6 +243,18 @@
     ensureLoop();
   }
 
+  function drawStar(ctx: CanvasRenderingContext2D, r: number) {
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const outer = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      const inner = outer + Math.PI / 5;
+      ctx.lineTo(Math.cos(outer) * r, Math.sin(outer) * r);
+      ctx.lineTo(Math.cos(inner) * r * 0.45, Math.sin(inner) * r * 0.45);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
   function drawParticle(ctx: CanvasRenderingContext2D, p: Particle) {
     const alpha = p.life > p.maxLife * 0.7 ? 1 - (p.life - p.maxLife * 0.7) / (p.maxLife * 0.3) : 1;
     ctx.globalAlpha = Math.max(0, alpha);
@@ -171,6 +270,43 @@
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
       ctx.fill();
+    } else if (p.kind === 'star') {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      drawStar(ctx, p.size * 0.7);
+      ctx.restore();
+    } else if (p.kind === 'streamer') {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillRect(-p.size * 0.16, -p.size, p.size * 0.32, p.size * 2);
+      ctx.restore();
+    } else if (p.kind === 'spark') {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+      // faint trailing glow
+      ctx.globalAlpha = Math.max(0, alpha * 0.35);
+      ctx.beginPath();
+      ctx.arc(p.x - p.vx, p.y - p.vy, p.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (p.kind === 'ring') {
+      ctx.globalAlpha = Math.max(0, alpha);
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (p.kind === 'emoji') {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.font = `${p.size * 2}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.glyph || '🎉', 0, 0);
+      ctx.restore();
     } else if (p.kind === 'tear') {
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -202,6 +338,7 @@
       p.x += p.vx;
       p.y += p.vy;
       p.rot += p.vr;
+      if (p.grow) p.size += p.grow;
       p.life++;
 
       if (p.life >= p.maxLife) {

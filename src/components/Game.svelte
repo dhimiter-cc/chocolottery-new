@@ -435,6 +435,7 @@
                 onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
                 onFireTears={() => effectsCanvas?.fireTears()}
                 onFireSparkles={() => effectsCanvas?.fireSparkles()}
+                onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
               />
             </div>
           {/if}

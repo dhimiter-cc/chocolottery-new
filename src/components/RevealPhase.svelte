@@ -6,6 +6,11 @@
     playWinFanfare: () => void;
     playLoseTrombone: () => void;
     playRisingRumble: () => void;
+    playApplause: (ms?: number) => void;
+    playCheer: (ms?: number) => void;
+    playPartyHorn: () => void;
+    playTada: () => void;
+    playSparkleChime: () => void;
   }
 
   let {
@@ -14,12 +19,14 @@
     onFireConfetti,
     onFireTears,
     onFireSparkles,
+    onFireFireworks,
   }: {
     game: GameStateResponse;
     sounds: Sounds;
     onFireConfetti: (big: boolean) => void;
     onFireTears: () => void;
     onFireSparkles: () => void;
+    onFireFireworks: (bursts?: number) => void;
   } = $props();
 
   let revealDone = $state(false);
@@ -68,6 +75,7 @@
 
     sounds.playDrumroll(3000);
     sounds.playRisingRumble();
+    sounds.playSparkleChime();
     onFireSparkles();
     charging = true;
 
@@ -82,8 +90,16 @@
         showWinner = true;
         revealDone = true;
         if (iWon) {
+          // Big celebratory stack: horn + fanfare, a roaring crowd, fireworks
+          // and confetti — then a final round of applause + a second pop.
+          sounds.playPartyHorn();
           sounds.playWinFanfare();
+          sounds.playCheer(2400);
+          sounds.playApplause(3000);
           onFireConfetti(true);
+          onFireFireworks(7);
+          setTimeout(() => { onFireConfetti(true); sounds.playTada(); }, 1100);
+          setTimeout(() => onFireFireworks(4), 1600);
         } else {
           setTimeout(() => sounds.playLoseTrombone(), 500);
           onFireTears();
