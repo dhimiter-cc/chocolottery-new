@@ -9,6 +9,7 @@
 //  - Visibility-aware: when the tab is hidden we stop polling and beating; on
 //    return we fire both immediately so the player is marked online again.
 
+import { untrack } from 'svelte';
 import type { GameStateResponse } from './types.js';
 import { post } from './api.js';
 
@@ -62,7 +63,7 @@ export class GameConnection {
 
   #scheduleNext() {
     if (this.#stopped) return;
-    const delay = this.state?.state === 'picking' ? POLL_FAST : POLL_SLOW;
+    const delay = untrack(() => this.state?.state === 'picking' ? POLL_FAST : POLL_SLOW);
     this.#pollTimer = setTimeout(async () => {
       if (!document.hidden) await this.#fetchState();
       this.#scheduleNext();
