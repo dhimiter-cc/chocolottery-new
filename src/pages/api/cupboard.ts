@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const game = loadGame(code);
+  const game = await loadGame(code);
   if (!game) {
     return new Response(JSON.stringify({ error: 'Game not found' }), {
       status: 404,

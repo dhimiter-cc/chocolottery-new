@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import { loadLeaderboard } from '../lib/game.js';
 
-const data = loadLeaderboard();
+const data = await loadLeaderboard();
 const wins: any[] = data.wins ?? [];
 
 const selectedMonth = (Astro.url.searchParams.get('month') ?? '').replace(/[^0-9-]/g, '').slice(0, 7);

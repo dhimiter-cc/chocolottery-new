@@ -19,13 +19,13 @@ function json(payload: unknown, status: number) {
 export const GET: APIRoute = async ({ request, url }) => {
   requestCounter++;
   if (requestCounter % 10 === 0) {
-    cleanupOldGames();
+    void cleanupOldGames(); // fire-and-forget; self-contained try/catch inside
   }
 
   const code = (url.searchParams.get('code') ?? '').trim();
   if (!code) return json({ error: 'Missing code' }, 400);
 
-  const game = loadGame(code);
+  const game = await loadGame(code);
   if (!game) return json({ error: 'Game not found' }, 404);
 
   const myToken = getPlayerToken(request);

@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { promises as fsp } from 'node:fs';
 import path from 'node:path';
 import { randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
@@ -21,21 +22,42 @@ if (!fs.existsSync(CB_FILE))   fs.writeFileSync(CB_FILE, JSON.stringify({ items:
 export const ONLINE_THRESHOLD = 30;
 export const GAME_TTL         = 86400;
 
+// ── In-memory caches ───────────────────────────────────────────────────────
+// Games and the (global) cupboard are mirrored in memory so the polling hot
+// path (/api/state every 1s) never touches disk. All writes go through the
+// per-file mutex in withLock, so the cache stays consistent with disk.
+//
+// Reads hand out a structuredClone so callers can mutate freely without
+// corrupting the cached copy or being observed mid-mutation by the lockless
+// GET reader; saveGame swaps in a fresh clone atomically.
+const gameCache = new Map<string, Game>();
+
+function cacheKey(code: string): string {
+  return code.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+}
+
 // ── Game CRUD ────────────────────────────────────────────────────────────────
 export function gamePath(code: string): string {
-  const safe = code.toUpperCase().replace(/[^A-Z0-9-]/g, '');
-  return path.join(GAMES_DIR, safe + '.json');
+  return path.join(GAMES_DIR, cacheKey(code) + '.json');
 }
 
-export function loadGame(code: string): Game | null {
-  const p = gamePath(code);
-  if (!fs.existsSync(p)) return null;
-  try { return JSON.parse(fs.readFileSync(p, 'utf8')) as Game; }
-  catch { return null; }
+export async function loadGame(code: string): Promise<Game | null> {
+  const key = cacheKey(code);
+  let game = gameCache.get(key);
+  if (!game) {
+    try {
+      game = JSON.parse(await fsp.readFile(gamePath(code), 'utf8')) as Game;
+      gameCache.set(key, game);
+    } catch {
+      return null;
+    }
+  }
+  return structuredClone(game);
 }
 
-export function saveGame(game: Game): void {
-  fs.writeFileSync(gamePath(game.code), JSON.stringify(game));
+export async function saveGame(game: Game): Promise<void> {
+  gameCache.set(cacheKey(game.code), structuredClone(game));
+  await fsp.writeFile(gamePath(game.code), JSON.stringify(game));
 }
 
 export async function withGame<T>(
@@ -43,10 +65,10 @@ export async function withGame<T>(
   fn: (game: Game) => { game?: Game; result: T; noWrite?: boolean }
 ): Promise<T | null> {
   return withLock(gamePath(code), async () => {
-    const game = loadGame(code);
+    const game = await loadGame(code);
     if (!game) return null;
     const { game: updated, result, noWrite } = fn(game);
-    if (!noWrite && updated) saveGame(updated);
+    if (!noWrite && updated) await saveGame(updated);
     return result;
   });
 }
@@ -66,7 +88,7 @@ export function generateGameCode(): string | null {
     const prefix = prefixes[randomInt(prefixes.length)];
     const num    = String(randomInt(10000)).padStart(4, '0');
     const code   = `${prefix}-${num}`;
-    if (!fs.existsSync(gamePath(code))) return code;
+    if (!gameCache.has(cacheKey(code)) && !fs.existsSync(gamePath(code))) return code;
   }
   return null;
 }
@@ -110,36 +132,40 @@ export function pickPrizeSnack(game: Game): PrizeSnack | null {
 export async function appendLeaderboard(win: LeaderboardWin): Promise<void> {
   return withLock(LB_FILE, async () => {
     let data: { wins: LeaderboardWin[] } = { wins: [] };
-    try { data = JSON.parse(fs.readFileSync(LB_FILE, 'utf8')); } catch {}
+    try { data = JSON.parse(await fsp.readFile(LB_FILE, 'utf8')); } catch {}
     data.wins.push(win);
-    fs.writeFileSync(LB_FILE, JSON.stringify(data));
+    await fsp.writeFile(LB_FILE, JSON.stringify(data));
   });
 }
 
-export function loadLeaderboard(): { wins: LeaderboardWin[] } {
-  try { return JSON.parse(fs.readFileSync(LB_FILE, 'utf8')); }
+export async function loadLeaderboard(): Promise<{ wins: LeaderboardWin[] }> {
+  try { return JSON.parse(await fsp.readFile(LB_FILE, 'utf8')); }
   catch { return { wins: [] }; }
 }
 
 // ── Cupboard ─────────────────────────────────────────────────────────────────
+// The cupboard is global and read on every poll (inside sanitiseState), so it
+// lives in memory. Seeded once at startup; kept in sync by withCupboard.
+let cupboardCache: CupboardItem[] = [];
+try { cupboardCache = JSON.parse(fs.readFileSync(CB_FILE, 'utf8')).items ?? []; } catch {}
+
 export async function withCupboard<T>(
   fn: (items: CupboardItem[]) => { items?: CupboardItem[]; result: T; noWrite?: boolean }
 ): Promise<T> {
   return withLock(CB_FILE, async () => {
-    let data: { items: CupboardItem[] } = { items: [] };
-    try { data = JSON.parse(fs.readFileSync(CB_FILE, 'utf8')); } catch {}
-    const { items: updated, result, noWrite } = fn(data.items ?? []);
+    // Hand the callback a private copy; commit to cache + disk only on write.
+    const items = cupboardCache.map(i => ({ ...i }));
+    const { items: updated, result, noWrite } = fn(items);
     if (!noWrite && updated !== undefined) {
-      fs.writeFileSync(CB_FILE, JSON.stringify({ items: updated }));
+      cupboardCache = updated;
+      await fsp.writeFile(CB_FILE, JSON.stringify({ items: updated }));
     }
     return result;
   });
 }
 
 export function cupboardPublic(): { id: string; name: string; stock: number }[] {
-  let data: { items: CupboardItem[] } = { items: [] };
-  try { data = JSON.parse(fs.readFileSync(CB_FILE, 'utf8')); } catch {}
-  return (data.items ?? [])
+  return cupboardCache
     .map(i => ({ id: i.id, name: i.name, stock: i.stock }))
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 }
@@ -210,14 +236,17 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
 }
 
 // ── Cleanup ──────────────────────────────────────────────────────────────────
-export function cleanupOldGames(): void {
+export async function cleanupOldGames(): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   try {
-    for (const f of fs.readdirSync(GAMES_DIR)) {
+    for (const f of await fsp.readdir(GAMES_DIR)) {
       const p = path.join(GAMES_DIR, f);
       try {
-        const g: Game = JSON.parse(fs.readFileSync(p, 'utf8'));
-        if (now - (g.created_at ?? 0) > GAME_TTL) fs.unlinkSync(p);
+        const g: Game = JSON.parse(await fsp.readFile(p, 'utf8'));
+        if (now - (g.created_at ?? 0) > GAME_TTL) {
+          await fsp.unlink(p);
+          gameCache.delete(cacheKey(g.code ?? f.replace(/\.json$/, '')));
+        }
       } catch {}
     }
   } catch {}

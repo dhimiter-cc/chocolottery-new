@@ -11,7 +11,7 @@ let alreadyJoined = false;
 let presetName = '';
 
 if (token && upperCode) {
-  const game = loadGame(upperCode);
+  const game = await loadGame(upperCode);
   alreadyJoined = !!(game && game.players[token]);
   if (alreadyJoined && game) presetName = game.players[token]?.name ?? '';
 }

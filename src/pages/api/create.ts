@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
-import fs from 'node:fs';
-import path from 'node:path';
-import { generateGameCode } from '../../lib/game.js';
+import { generateGameCode, saveGame } from '../../lib/game.js';
+import type { Game } from '../../lib/types.js';
 
 export const POST: APIRoute = async ({ request }) => {
   console.log('[api/create] POST called');
@@ -19,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
       return response;
     }
 
-    const game = {
+    const game: Game = {
       code,
       state: 'lobby',
       created_at: Math.floor(Date.now() / 1000),
@@ -28,11 +27,13 @@ export const POST: APIRoute = async ({ request }) => {
       winner_token: null,
       creator_token: null,
       suggestions: [],
+      prize_snack: null,
+      prize_given_id: null,
+      prize_given_name: null,
       chat: [],
     };
 
-    const gamesDir = path.join(path.resolve('data/games'));
-    fs.writeFileSync(path.join(gamesDir, `${code}.json`), JSON.stringify(game));
+    await saveGame(game);
 
     const response = new Response(JSON.stringify({ code }), {
       status: 200,
