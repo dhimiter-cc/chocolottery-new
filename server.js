@@ -30,7 +30,25 @@ const MIME_TYPES = {
 
 const CLIENT_DIR = path.join(process.cwd(), 'dist', 'client');
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
+};
+
 const server = http.createServer((req, res) => {
+  // Add CORS headers to every response so the browser allows cross-origin
+  // requests and the Astro Node adapter does not reject them before they
+  // reach the API route handlers.
+  Object.entries(CORS_HEADERS).forEach(([key, value]) => res.setHeader(key, value));
+
+  // Handle OPTIONS preflight requests immediately — no need to hit the handler.
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   // Strip query string to get the file path.
   const urlPath = new URL(req.url, 'http://localhost').pathname;
   const filePath = path.join(CLIENT_DIR, urlPath);
