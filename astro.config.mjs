@@ -7,4 +7,5 @@ export default defineConfig({
   output: 'server',
   adapter: node({ mode: 'middleware' }),
   integrations: [svelte()],
+  security: { checkOrigin: false },
 });
