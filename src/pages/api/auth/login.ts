@@ -22,6 +22,8 @@ export const GET: APIRoute = async ({ url }) => {
       // names/counts only — never values
       present: wanted.filter((k) => !!process.env[k]),
       total_env_keys: Object.keys(process.env).length,
+      // any keys that LOOK like ours, to catch typos/case/whitespace/prefix
+      lookalike_keys: Object.keys(process.env).filter((k) => /azure|session/i.test(k)),
     };
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Auth misconfigured', diag }),
