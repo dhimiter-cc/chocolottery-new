@@ -86,11 +86,13 @@
     try {
       const { data } = await post('/api/start', { code });
       if (data.error) actionError = data.error;
+      else conn.refresh();
     } catch { actionError = 'Could not start'; }
   }
 
   async function handlePick(index: number) {
     await post('/api/pick', { code, straw_index: index });
+    conn.refresh();
   }
 
   async function handleRestart() {
@@ -102,6 +104,7 @@
       restartArmed = false;
       try {
         await post('/api/restart', { code });
+        conn.refresh();
       } catch {}
     }
   }
@@ -241,12 +244,12 @@
       <div class="game-grid">
         <!-- Snacks: left column on desktop -->
         <section class="panel snacks-panel">
-          <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} />
+          <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
         </section>
 
         <!-- Chat: right column on desktop, bottom drawer on mobile -->
         <section class="panel chat-panel" class:drawer-open={chatOpen} hidden={!inGame || undefined}>
-          <Chat game={gameState} {code} onClose={closeChatDrawer} />
+          <Chat game={gameState} {code} onClose={closeChatDrawer} onRefresh={() => conn.refresh()} />
         </section>
 
         <!-- Stage: center on desktop, top on mobile -->
@@ -308,7 +311,7 @@
 
           <!-- Give card (post-reveal, host) -->
           {#if showGiveCard}
-            <GiveCard game={gameState} {code} {isHost} />
+            <GiveCard game={gameState} {code} {isHost} onRefresh={() => conn.refresh()} />
           {/if}
 
           <!-- Restart button (host only) -->

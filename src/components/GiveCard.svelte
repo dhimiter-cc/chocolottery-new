@@ -4,7 +4,7 @@
   import type { GameStateResponse } from '../lib/types.js';
   import { post } from '../lib/api.js';
 
-  let { game, code, isHost }: { game: GameStateResponse; code: string; isHost: boolean } = $props();
+  let { game, code, isHost, onRefresh }: { game: GameStateResponse; code: string; isHost: boolean; onRefresh?: () => void } = $props();
 
   let giveSelectId = $state('');
   let giveError = $state('');
@@ -17,6 +17,7 @@
     try {
       const { data } = await post('/api/cupboard', { action: 'give', code, id: giveSelectId });
       if (data.error) giveError = data.error;
+      else onRefresh?.();
     } catch { giveError = 'Could not save'; }
   }
 
@@ -25,6 +26,7 @@
     try {
       const { data } = await post('/api/cupboard', { action: 'ungive', code });
       if (data.error) giveError = data.error;
+      else onRefresh?.();
     } catch { giveError = 'Could not undo'; }
   }
 </script>

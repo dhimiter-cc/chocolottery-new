@@ -6,10 +6,12 @@
     game,
     code,
     onClose,
+    onRefresh,
   }: {
     game: GameStateResponse;
     code: string;
     onClose?: () => void;
+    onRefresh?: () => void;
   } = $props();
 
   let inputText = $state('');
@@ -42,6 +44,7 @@
       const { data } = await post('/api/chat', { code, text });
       if (data.error) { chatError = data.error; return; }
       pinnedToBottom = true;
+      onRefresh?.();
     } catch { chatError = 'Could not send'; }
   }
 </script>

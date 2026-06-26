@@ -70,6 +70,10 @@ export class GameConnection {
     }, delay);
   }
 
+  refresh() {
+    if (!this.#stopped) this.#fetchState();
+  }
+
   async #fetchState() {
     try {
       const res = await fetch(`/api/state?code=${this.#code}`, {

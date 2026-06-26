@@ -2,7 +2,7 @@
   import type { GameStateResponse } from '../lib/types.js';
   import { post } from '../lib/api.js';
 
-  let { game, code, onOpenCupboard }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void } = $props();
+  let { game, code, onOpenCupboard, onRefresh }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void; onRefresh?: () => void } = $props();
 
   let suggestText = $state('');
   let snackError = $state('');
@@ -29,6 +29,7 @@
     try {
       const { data } = await post('/api/suggest', { code, text });
       if (data.error) snackError = data.error;
+      else onRefresh?.();
     } catch { snackError = 'Could not add'; }
     finally { suggestLoading = false; }
   }
@@ -37,6 +38,7 @@
     try {
       const { data } = await post('/api/vote', { code, id });
       if (data.error) snackError = data.error;
+      else onRefresh?.();
     } catch {}
   }
 
