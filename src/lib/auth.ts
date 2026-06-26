@@ -1,14 +1,24 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 // ── Config ─────────────────────────────────────────────────────────────────
-// Read from the host environment (prod, e.g. Railway) first, then from Vite's
-// import.meta.env (which loads `.env` in dev). This makes the same code work in
-// `astro dev` and in `node server.js`.
+// Secrets are read from process.env at RUNTIME only. We must not touch
+// import.meta.env here: Vite inlines it at build time, which both freezes
+// build-time values (ignoring the host's runtime vars) and bakes secrets into
+// the bundle. In production the host (e.g. Railway) injects real env vars into
+// process.env. For local `astro dev`, we load `.env` into process.env ourselves
+// — guarded by import.meta.env.DEV (a static boolean Vite replaces with
+// false in prod, so this branch is dead-code-eliminated and inlines nothing).
+if (import.meta.env.DEV) {
+  try {
+    (process as any).loadEnvFile?.('.env'); // Node >= 20.12 / 22.12
+  } catch {
+    /* missing .env in dev is fine */
+  }
+}
+
 function env(key: string): string | undefined {
-  const fromProc = (globalThis as any).process?.env?.[key];
-  if (fromProc != null && fromProc !== '') return fromProc;
-  const fromVite = (import.meta as any).env?.[key];
-  return fromVite != null && fromVite !== '' ? fromVite : undefined;
+  const v = process.env[key];
+  return v != null && v !== '' ? v : undefined;
 }
 
 export interface AuthConfig {

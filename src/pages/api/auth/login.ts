@@ -17,8 +17,14 @@ export const GET: APIRoute = async ({ url }) => {
     // Surface configuration problems (e.g. missing env vars) instead of an
     // opaque 500 — the message names the missing vars and contains no secrets.
     console.error('[api/auth/login]', err);
+    const wanted = ['AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_REDIRECT_URI', 'SESSION_SECRET'];
+    const diag = {
+      // names/counts only — never values
+      present: wanted.filter((k) => !!process.env[k]),
+      total_env_keys: Object.keys(process.env).length,
+    };
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Auth misconfigured' }),
+      JSON.stringify({ error: err instanceof Error ? err.message : 'Auth misconfigured', diag }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
