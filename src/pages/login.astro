@@ -1,0 +1,45 @@
+---
+import '../styles/global.css';
+import { getSession } from '../lib/auth.js';
+
+// Already signed in? Bounce to the requested page (or home).
+const session = getSession(Astro.request);
+const returnTo = Astro.url.searchParams.get('return_to') ?? '/';
+if (session) return Astro.redirect(returnTo);
+
+const error = Astro.url.searchParams.get('error');
+const loginHref = '/api/auth/login?return_to=' + encodeURIComponent(returnTo);
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sign in — Chocolate Lottery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<div class="parchment">
+  <header class="masthead">
+    <div>
+      <h1 class="title">chocolate.lottery</h1>
+      <p class="tagline">One chocolate. Many victims. Pick the longest straw. Don't make it weird.</p>
+    </div>
+  </header>
+
+  <main class="landing-grid">
+    <section class="panel" style="max-width:420px;margin:0 auto;text-align:center;">
+      <h2>Sign in to play</h2>
+      <p class="muted">This office game is for colleagues only. Sign in with your work account to continue.</p>
+      {error && <p class="error" style="margin-top:10px;">{error}</p>}
+      <a href={loginHref} class="btn btn-primary big" style="margin-top:18px;display:inline-block;">
+        🔐 Sign in with Microsoft
+      </a>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>The Chocolate Industrial Complex 🏭</span>
+  </footer>
+</div>
+</body>
+</html>

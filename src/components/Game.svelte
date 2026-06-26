@@ -63,12 +63,11 @@
   // ── Actions ───────────────────────────────────────────────────────────────
   async function handleJoin(e: SubmitEvent) {
     e.preventDefault();
-    const name = playerName.trim();
-    if (!name) return;
+    // Name comes from the signed-in Entra session server-side; we only send the code.
     joinLoading = true;
     joinError = '';
     try {
-      const { ok, data } = await post('/api/join', { code, name });
+      const { ok, data } = await post('/api/join', { code });
       if (ok) {
         joined = true;
       } else {
@@ -204,11 +203,9 @@
       <h2>Join the round</h2>
       <p class="muted">Game <span class="stamp">{code}</span></p>
       <form onsubmit={handleJoin} style="margin-top:18px;">
-        <label>Display name
-          <input type="text" bind:value={playerName} maxlength="30" required placeholder="your name" autofocus>
-        </label>
-        <button type="submit" class="btn btn-primary" disabled={joinLoading || !playerName.trim()}>
-          {joinLoading ? 'Joining…' : 'Join'}
+        <p class="muted">You'll join as <strong>{playerName || 'your account'}</strong>.</p>
+        <button type="submit" class="btn btn-primary" style="margin-top:14px;" disabled={joinLoading}>
+          {joinLoading ? 'Joining…' : `Join as ${playerName || 'me'}`}
         </button>
         {#if joinError}<p class="error">{joinError}</p>{/if}
       </form>

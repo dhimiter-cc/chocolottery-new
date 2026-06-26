@@ -1,15 +1,13 @@
 import type { APIRoute } from 'astro';
 import {
   withGame,
-  generateToken,
   getPlayerToken,
-  setPlayerCookies,
+  getPlayerName,
 } from '../../lib/game.js';
 
 export const POST: APIRoute = async ({ request }) => {
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const code = (body.code ?? '').trim();
-  let name = (body.name ?? '').trim();
 
   if (!code) {
     return new Response(JSON.stringify({ error: 'Missing code' }), {
@@ -17,52 +15,46 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  if (!name) {
-    return new Response(JSON.stringify({ error: 'Missing name' }), {
-      status: 400,
+
+  // Identity comes from the signed Entra session (enforced by middleware).
+  const token = getPlayerToken(request);
+  let name = getPlayerName(request);
+  if (!token || !name) {
+    return new Response(JSON.stringify({ error: 'Not signed in' }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }
   if (name.length > 30) name = name.slice(0, 30);
 
-  const existingToken = getPlayerToken(request);
-
   let resultData: { token: string; name: string; code: string } | null = null;
 
   const outcome = await withGame(code, (game) => {
-    if (game.state !== 'lobby') {
-      // Allow rejoin if already a player (handles reload during play)
-      if (existingToken && game.players[existingToken]) {
-        game.players[existingToken].last_seen = Math.floor(Date.now() / 1000);
-        resultData = {
-          token: existingToken,
-          name: game.players[existingToken].name,
-          code: game.code,
-        };
-        return { game, result: resultData };
-      }
-      return { result: { error: 'Game already started', code: 409 }, noWrite: true };
-    }
+    const now = Math.floor(Date.now() / 1000);
 
-    // Existing token already in this game — update name + last_seen
-    if (existingToken && game.players[existingToken]) {
-      game.players[existingToken].last_seen = Math.floor(Date.now() / 1000);
-      game.players[existingToken].name = name;
-      resultData = { token: existingToken, name, code: game.code };
+    // Already a player in this game — refresh name + last_seen (handles reload,
+    // rejoin during play, and Entra display-name changes).
+    if (game.players[token]) {
+      game.players[token].last_seen = now;
+      game.players[token].name = name!;
+      resultData = { token, name: name!, code: game.code };
       return { game, result: resultData };
     }
 
-    // New player
-    const token = generateToken();
+    // New players may only join during the lobby.
+    if (game.state !== 'lobby') {
+      return { result: { error: 'Game already started', code: 409 }, noWrite: true };
+    }
+
     game.players[token] = {
-      name,
-      last_seen: Math.floor(Date.now() / 1000),
+      name: name!,
+      last_seen: now,
       straw_index: null,
     };
     if (!game.creator_token) {
       game.creator_token = token;
     }
-    resultData = { token, name, code: game.code };
+    resultData = { token, name: name!, code: game.code };
     return { game, result: resultData };
   });
 
@@ -80,10 +72,8 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const data = resultData!;
-  const cookieStrings = setPlayerCookies(data.token, data.name);
-  const headers = new Headers({ 'Content-Type': 'application/json' });
-  for (const c of cookieStrings) headers.append('Set-Cookie', c);
-
-  return new Response(JSON.stringify(data), { status: 200, headers });
+  return new Response(JSON.stringify(resultData), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 };
