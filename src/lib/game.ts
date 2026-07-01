@@ -3,7 +3,6 @@ import { promises as fsp } from 'node:fs';
 import path from 'node:path';
 import { randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
-import { getSession, derivePlayerToken } from './auth.js';
 import type {
   Game, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack,
   PublicPlayer, PublicSuggestion, PublicChatMessage
@@ -253,16 +252,13 @@ export async function cleanupOldGames(): Promise<void> {
   } catch {}
 }
 
-// ── Identity helpers ───────────────────────────────────────────────────────
-// Identity now comes from the Entra sign-in session (see lib/auth.ts), not a
-// random per-join cookie. The player token is a stable hash of the user's Entra
-// object id, so the same person is recognised across every game they join.
+// ── Cookie helpers ────────────────────────────────────────────────────────────
 export function getPlayerToken(request: Request): string | null {
-  const session = getSession(request);
-  return session ? derivePlayerToken(session.uid) : null;
+  const cookie = request.headers.get('cookie') ?? '';
+  const match  = cookie.match(/(?:^|;\s*)player_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
-export function getPlayerName(request: Request): string | null {
-  const session = getSession(request);
-  return session ? session.name : null;
+export function setPlayerCookie(token: string): string {
+  return `player_token=${token}; Path=/; Max-Age=86400; SameSite=Lax`;
 }

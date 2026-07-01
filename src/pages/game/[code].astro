@@ -1,20 +1,19 @@
 ---
 import '../../styles/global.css';
-import { loadGame, getPlayerToken, getPlayerName } from '../../lib/game.js';
+import { loadGame, getPlayerToken } from '../../lib/game.js';
 import Game from '../../components/Game.svelte';
 
 const { code } = Astro.params;
 const upperCode = code?.toUpperCase() ?? '';
 
 const token = getPlayerToken(Astro.request);
-// Name comes from the Entra session; fall back to the stored game name.
-let presetName = getPlayerName(Astro.request) ?? '';
 let alreadyJoined = false;
+let presetName = '';
 
 if (token && upperCode) {
   const game = await loadGame(upperCode);
   alreadyJoined = !!(game && game.players[token]);
-  if (alreadyJoined && game) presetName = game.players[token]?.name ?? presetName;
+  if (alreadyJoined && game) presetName = game.players[token]?.name ?? '';
 }
 ---
 <!DOCTYPE html>

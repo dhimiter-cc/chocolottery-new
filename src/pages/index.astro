@@ -1,9 +1,5 @@
 ---
 import '../styles/global.css';
-import { getSession } from '../lib/auth.js';
-
-const session = getSession(Astro.request);
-const playerName = session?.name ?? '';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -22,8 +18,6 @@ const playerName = session?.name ?? '';
     <div class="head-actions">
       <button type="button" id="fairness-btn" class="btn btn-ghost">⚖️ Fairness</button>
       <a href="/leaderboard" class="btn btn-ghost">Leaderboard →</a>
-      {playerName && <span class="stamp" title="Signed in">👤 {playerName}</span>}
-      <a href="/api/auth/logout" class="btn btn-ghost">Logout</a>
     </div>
   </header>
 
@@ -36,10 +30,13 @@ const playerName = session?.name ?? '';
 
     <section class="panel">
       <h2>Join an existing round</h2>
-      <p class="muted">Got a code? Drop in as <strong>{playerName || 'yourself'}</strong>. No HR forms. No team-building exercises.</p>
+      <p class="muted">Got a code? Drop in. No HR forms. No team-building exercises.</p>
       <form id="join-form" class="join-form" style="margin-top: 14px;">
         <label>Game code
           <input type="text" id="join-code" placeholder="CHOC-1234" autocomplete="off" required>
+        </label>
+        <label id="join-name-label">Your name
+          <input type="text" id="join-name" placeholder="your name" maxlength="30" autocomplete="off" required>
         </label>
         <button type="submit" class="btn btn-primary">Join the game</button>
       </form>
@@ -106,19 +103,31 @@ document.getElementById('create-btn').addEventListener('click', async () => {
   } catch { alert('Could not create game'); }
 });
 
+const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
+const joinNameInput = document.getElementById('join-name');
+const rememberedName = localStorage.getItem(REMEMBERED_NAME_KEY) ?? '';
+joinNameInput.value = rememberedName;
+if (rememberedName) {
+  // Skip asking again — we already know who you are.
+  document.getElementById('join-name-label').hidden = true;
+  joinNameInput.required = false;
+}
+
 document.getElementById('join-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const name = joinNameInput.value.trim();
   const err = document.getElementById('join-error');
   err.textContent = '';
   try {
     const res = await fetch('/api/join', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code, name })
     });
     const data = await res.json();
     if (data.error) { err.textContent = data.error; return; }
+    localStorage.setItem(REMEMBERED_NAME_KEY, name);
     window.location = '/game/' + encodeURIComponent(data.code);
   } catch { err.textContent = 'Join failed'; }
 });

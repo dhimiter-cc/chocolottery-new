@@ -27,12 +27,17 @@
     presetName?: string;
   } = $props();
 
+  const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
+  const rememberedName = typeof localStorage !== 'undefined' ? localStorage.getItem(REMEMBERED_NAME_KEY) ?? '' : '';
+
   const conn = new GameConnection(code);
   let gameState = $derived(conn.state);
   let joined = $state(alreadyJoined);
-  let playerName = $state(presetName);
+  let playerName = $state(presetName || rememberedName);
   let joinError = $state('');
-  let joinLoading = $state(false);
+  // Skip the name form entirely when a remembered name exists — join right away.
+  let autoJoining = $state(!alreadyJoined && !!rememberedName);
+  let joinLoading = $state(autoJoining);
   let showCupboard = $state(false);
   let chatOpen = $state(false);
   let copied = $state(false);
@@ -61,24 +66,37 @@
   });
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  async function handleJoin(e: SubmitEvent) {
-    e.preventDefault();
-    // Name comes from the signed-in Entra session server-side; we only send the code.
+  async function join(name: string) {
     joinLoading = true;
     joinError = '';
     try {
-      const { ok, data } = await post('/api/join', { code });
+      const { ok, data } = await post('/api/join', { code, name });
       if (ok) {
         joined = true;
+        localStorage.setItem(REMEMBERED_NAME_KEY, name);
       } else {
         joinError = data?.error || 'Failed to join';
+        autoJoining = false;
       }
     } catch {
       joinError = 'Network error';
+      autoJoining = false;
     } finally {
       joinLoading = false;
     }
   }
+
+  function handleJoin(e: SubmitEvent) {
+    e.preventDefault();
+    const name = playerName.trim();
+    if (!name) return;
+    join(name);
+  }
+
+  // Join immediately with the remembered name, without showing the form.
+  $effect(() => {
+    if (autoJoining) join(playerName.trim());
+  });
 
   async function handleStart() {
     if (!gameState) return;
@@ -202,13 +220,20 @@
     <div class="modal-card">
       <h2>Join the round</h2>
       <p class="muted">Game <span class="stamp">{code}</span></p>
-      <form onsubmit={handleJoin} style="margin-top:18px;">
-        <p class="muted">You'll join as <strong>{playerName || 'your account'}</strong>.</p>
-        <button type="submit" class="btn btn-primary" style="margin-top:14px;" disabled={joinLoading}>
-          {joinLoading ? 'Joining…' : `Join as ${playerName || 'me'}`}
-        </button>
+      {#if autoJoining}
+        <p class="muted" style="margin-top:18px;">Joining as <strong>{playerName}</strong>…</p>
         {#if joinError}<p class="error">{joinError}</p>{/if}
-      </form>
+      {:else}
+        <form onsubmit={handleJoin} style="margin-top:18px;">
+          <label>Display name
+            <input type="text" bind:value={playerName} maxlength="30" required placeholder="your name" autofocus>
+          </label>
+          <button type="submit" class="btn btn-primary" disabled={joinLoading || !playerName.trim()}>
+            {joinLoading ? 'Joining…' : 'Join'}
+          </button>
+          {#if joinError}<p class="error">{joinError}</p>{/if}
+        </form>
+      {/if}
     </div>
   </div>
 {/if}
