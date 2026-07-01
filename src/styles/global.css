@@ -997,7 +997,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   font-weight: 600;
   color: rgba(255, 230, 160, 0.9);
   font-family: var(--font-mono);
-  max-width: 90px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

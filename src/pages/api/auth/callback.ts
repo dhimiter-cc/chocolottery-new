@@ -36,7 +36,13 @@ export const GET: APIRoute = async ({ request, url }) => {
   const uid = claims.oid ?? claims.sub;
   if (!uid) return fail('Identity token missing subject');
 
-  const name  = (claims.name ?? claims.preferred_username ?? 'Player').slice(0, 30);
+  // Prefer the discrete given_name/family_name claims over `name`. This
+  // tenant's `name` claim is formatted as "First Last | CompanyName" —
+  // split on the `|` and keep only the name portion.
+  const rawName = claims.given_name && claims.family_name
+    ? `${claims.given_name} ${claims.family_name}`
+    : claims.name ?? claims.preferred_username ?? 'Player';
+  const name = rawName.split('|')[0].trim().slice(0, 60);
   const email = claims.email ?? claims.preferred_username;
 
   const headers = new Headers({ Location: tx.return_to || '/' });

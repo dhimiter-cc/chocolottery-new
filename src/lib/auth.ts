@@ -212,6 +212,7 @@ export async function exchangeCode(code: string, codeVerifier: string): Promise<
 
 export interface IdTokenClaims {
   oid?: string; sub?: string; name?: string; preferred_username?: string;
+  given_name?: string; family_name?: string;
   email?: string; tid?: string; nonce?: string;
 }
 
