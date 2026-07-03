@@ -420,6 +420,41 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .phase-pill.picking { color: var(--accent-deep); border-color: rgba(232,152,23,0.4); background: var(--accent-soft); }
 .phase-pill.reveal  { color: var(--green); border-color: rgba(15,157,110,0.4); background: rgba(15,157,110,0.08); }
 
+.timer-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.timer-presets .timer-preset { font-variant-numeric: tabular-nums; }
+
+.pick-timer {
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+.pick-timer.urgent {
+  color: var(--red);
+  animation: pulse-dot 0.8s infinite;
+}
+.pick-timer .timer-caption {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-variant-numeric: normal;
+  letter-spacing: 0;
+  color: var(--text-mute);
+}
+.phase-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .phase-detail {
   color: var(--text-mute);
   font-size: 0.92rem;

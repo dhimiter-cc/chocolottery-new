@@ -4,7 +4,7 @@ import path from 'node:path';
 import { randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
 import type {
-  Game, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack,
+  Game, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack, Player,
   PublicPlayer, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
@@ -21,6 +21,8 @@ if (!fs.existsSync(CB_FILE))   fs.writeFileSync(CB_FILE, JSON.stringify({ items:
 // ── Constants ────────────────────────────────────────────────────────────────
 export const ONLINE_THRESHOLD = 30;
 export const GAME_TTL         = 86400;
+// Fixed picking window: once picking starts, straws auto-resolve after this.
+export const PICK_SECONDS     = 30;
 
 // ── In-memory caches ───────────────────────────────────────────────────────
 // Games and the (global) cupboard are mirrored in memory so the polling hot
@@ -128,6 +130,76 @@ export function pickPrizeSnack(game: Game): PrizeSnack | null {
   };
 }
 
+// ── Lobby → picking ─────────────────────────────────────────────────────────
+// Drop offline players, deal the straws and flip to `picking` with the fixed
+// 30s auto-resolve deadline. Returns false (and mutates nothing) when fewer
+// than 2 players are online. Shared by the host's manual start and the lobby
+// timer's auto-start.
+export function beginPicking(game: Game): boolean {
+  const now = Math.floor(Date.now() / 1000);
+  const online: Record<string, Player> = {};
+  for (const [t, p] of Object.entries(game.players)) {
+    if (isOnline(p, now)) online[t] = p;
+  }
+  if (Object.keys(online).length < 2) return false;
+
+  for (const t of Object.keys(online)) online[t].straw_index = null;
+  game.players = online;
+  game.straws = generateStraws(Object.keys(online).length);
+  game.state = 'picking';
+  game.winner_token = null;
+  game.lobby_deadline = null;
+  game.picking_deadline = now + PICK_SECONDS;
+  return true;
+}
+
+// ── Picking resolution ─────────────────────────────────────────────────────────
+// Give every still-unpicked player a random one of the remaining straws. Used
+// when the timer expires so an idle player can't stall the round.
+export function assignRemainingStraws(game: Game): void {
+  if (!Array.isArray(game.straws)) return;
+  const taken = new Set(
+    Object.values(game.players).map(p => p.straw_index).filter(i => i !== null)
+  );
+  const free: number[] = [];
+  for (let i = 0; i < game.straws.length; i++) if (!taken.has(i)) free.push(i);
+  for (let i = free.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [free[i], free[j]] = [free[j], free[i]];
+  }
+  for (const p of Object.values(game.players)) {
+    if (p.straw_index === null && free.length) p.straw_index = free.pop()!;
+  }
+}
+
+// Resolve a fully-picked game: find the 100-straw holder, flip to `reveal`,
+// choose the prize snack, and return a leaderboard record for the caller to
+// append (outside the game lock). Shared by pick.ts and resolve.ts.
+export function finalizePicking(game: Game): LeaderboardWin | null {
+  let winnerToken: string | null = null;
+  for (const [t, p] of Object.entries(game.players)) {
+    if (Array.isArray(game.straws) && game.straws[p.straw_index!] === 100) {
+      winnerToken = t;
+      break;
+    }
+  }
+  game.winner_token = winnerToken;
+  game.state = 'reveal';
+  game.picking_deadline = null;
+  game.prize_snack = pickPrizeSnack(game);
+
+  if (!winnerToken) return null;
+  return {
+    name: game.players[winnerToken].name,
+    game_code: game.code,
+    timestamp: Math.floor(Date.now() / 1000),
+    month: new Date().toISOString().slice(0, 7),
+    participants: Object.keys(game.players).length,
+    player_names: Object.values(game.players).map(p => p.name),
+    prize_snack: game.prize_snack?.text ?? null,
+  };
+}
+
 // ── Leaderboard ──────────────────────────────────────────────────────────────
 export async function appendLeaderboard(win: LeaderboardWin): Promise<void> {
   return withLock(LB_FILE, async () => {
@@ -232,6 +304,9 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     prize_given_name: game.prize_given_name ?? null,
     chat,
     in_game:          inGame,
+    timer_seconds:    game.timer_seconds ?? null,
+    lobby_deadline:   game.lobby_deadline ?? null,
+    picking_deadline: game.picking_deadline ?? null,
   };
 }
 

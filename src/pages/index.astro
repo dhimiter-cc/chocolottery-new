@@ -49,6 +49,24 @@ import '../styles/global.css';
   </footer>
 </div>
 
+<!-- Create game modal: pick the picking-timer duration -->
+<div id="create-modal" class="modal" hidden>
+  <div class="modal-card">
+    <h2>Start a new round</h2>
+    <p class="muted">How long should we wait for people to join before the round auto-starts? You can add 30 seconds in the lobby if stragglers are still trickling in.</p>
+    <div class="timer-presets" role="radiogroup" aria-label="Lobby wait timer">
+      <button type="button" class="btn btn-ghost timer-preset" data-seconds="60">1:00</button>
+      <button type="button" class="btn btn-ghost timer-preset" data-seconds="120">2:00</button>
+      <button type="button" class="btn btn-ghost timer-preset" data-seconds="300">5:00</button>
+      <button type="button" class="btn btn-ghost timer-preset" data-seconds="">No timer</button>
+    </div>
+    <div class="announce-actions" style="margin-top:22px;">
+      <button type="button" id="create-cancel" class="btn btn-ghost">Cancel</button>
+      <button type="button" id="create-confirm" class="btn btn-primary">Create game</button>
+    </div>
+  </div>
+</div>
+
 <!-- Feature announcement modal -->
 <div id="announce-modal" class="modal" hidden>
   <div class="modal-card announce-card">
@@ -95,13 +113,38 @@ import '../styles/global.css';
 </div>
 
 <script>
-document.getElementById('create-btn').addEventListener('click', async () => {
-  try {
-    const res = await fetch('/api/create', { method: 'POST' });
-    const data = await res.json();
-    if (data.code) window.location = '/game/' + encodeURIComponent(data.code);
-  } catch { alert('Could not create game'); }
-});
+(function () {
+  const modal    = document.getElementById('create-modal');
+  const presets  = Array.from(modal.querySelectorAll('.timer-preset'));
+  const confirm  = document.getElementById('create-confirm');
+  // Chosen duration in seconds; '' means "No timer". Prefilled to 2:00.
+  let selected = '120';
+
+  function highlight() {
+    presets.forEach(b => b.classList.toggle('active', b.dataset.seconds === selected));
+  }
+  presets.forEach(b => b.addEventListener('click', () => { selected = b.dataset.seconds; highlight(); }));
+  highlight();
+
+  function closeModal() { modal.setAttribute('hidden', ''); }
+  document.getElementById('create-btn').addEventListener('click', () => modal.removeAttribute('hidden'));
+  document.getElementById('create-cancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+  confirm.addEventListener('click', async () => {
+    confirm.disabled = true;
+    try {
+      const res = await fetch('/api/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timer_seconds: selected === '' ? null : Number(selected) }),
+      });
+      const data = await res.json();
+      if (data.code) window.location = '/game/' + encodeURIComponent(data.code);
+      else { alert('Could not create game'); confirm.disabled = false; }
+    } catch { alert('Could not create game'); confirm.disabled = false; }
+  });
+})();
 
 const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
 const joinNameInput = document.getElementById('join-name');

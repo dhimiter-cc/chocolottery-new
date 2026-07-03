@@ -25,6 +25,13 @@ export interface Game {
   suggestions: Suggestion[]; prize_snack: PrizeSnack | null;
   prize_given_id: string | null; prize_given_name: string | null;
   chat: ChatMessage[];
+  // Timers (absolute Unix-second deadlines). `timer_seconds` is the host's
+  // chosen lobby wait duration (null = no auto-start). `lobby_deadline` is when
+  // the round auto-starts (bumped by the host's "+30s"). `picking_deadline` is
+  // a fixed short window after which picking auto-resolves.
+  timer_seconds: number | null;
+  lobby_deadline: number | null;
+  picking_deadline: number | null;
 }
 export interface LeaderboardWin {
   name: string; game_code: string; timestamp: number; month: string;
@@ -50,4 +57,7 @@ export interface GameStateResponse {
   prize_snack: PrizeSnack | null; cupboard: PublicCupboardItem[];
   prize_given_id: string | null; prize_given_name: string | null;
   chat: PublicChatMessage[]; in_game: boolean;
+  timer_seconds: number | null;
+  lobby_deadline: number | null;
+  picking_deadline: number | null;
 }

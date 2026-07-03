@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import {
   withGame,
-  pickPrizeSnack,
+  finalizePicking,
   appendLeaderboard,
   getPlayerToken,
 } from '../../lib/game.js';
@@ -76,29 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
 
     if (allPicked) {
-      let winnerToken: string | null = null;
-      for (const [t, p] of Object.entries(game.players)) {
-        if (game.straws[p.straw_index!] === 100) {
-          winnerToken = t;
-          break;
-        }
-      }
-      game.winner_token = winnerToken;
-      game.state = 'reveal';
-      game.prize_snack = pickPrizeSnack(game);
-
-      if (winnerToken) {
-        const playerNames = Object.values(game.players).map((p) => p.name);
-        winRecord = {
-          name: game.players[winnerToken].name,
-          game_code: game.code,
-          timestamp: Math.floor(Date.now() / 1000),
-          month: new Date().toISOString().slice(0, 7),
-          participants: Object.keys(game.players).length,
-          player_names: playerNames,
-          prize_snack: game.prize_snack?.text ?? null,
-        };
-      }
+      winRecord = finalizePicking(game);
     }
 
     return { game, result: { ok: true } };

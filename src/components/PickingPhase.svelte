@@ -1,7 +1,15 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
 
-  let { game, onPick, locked = false }: { game: GameStateResponse; onPick: (index: number) => void; locked?: boolean } = $props();
+  let { game, onPick, locked = false, timeLeft = null }:
+    { game: GameStateResponse; onPick: (index: number) => void; locked?: boolean; timeLeft?: number | null } = $props();
+
+  let timerLabel = $derived.by(() => {
+    if (timeLeft == null) return null;
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  });
 
   const QUIPS = [
     "Pick a straw. Try to look casual.",
@@ -70,6 +78,9 @@
   <!-- Phase detail strip above straws -->
   <div style="position:absolute;top:14px;left:0;right:0;text-align:center;z-index:2;">
     <span style="font-size:0.88rem;font-style:italic;color:rgba(255,230,160,0.6);">{phaseText}</span>
+    {#if timerLabel && !allPicked}
+      <div class="pick-timer" class:urgent={timeLeft != null && timeLeft <= 10}>⏳ {timerLabel}</div>
+    {/if}
   </div>
 
   <!-- Straws -->

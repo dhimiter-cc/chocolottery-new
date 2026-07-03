@@ -8,6 +8,16 @@ export const POST: APIRoute = async ({ request }) => {
   console.log('[api/create] headers:', Object.fromEntries(request.headers.entries()));
 
   try {
+    // Optional lobby wait duration (seconds): after this the round auto-starts
+    // so we don't wait all day for people to join. Absent / invalid → no timer.
+    let timerSeconds: number | null = null;
+    try {
+      const body = await request.json();
+      const raw = Number(body?.timer_seconds);
+      if (Number.isFinite(raw) && raw > 0) timerSeconds = Math.min(3600, Math.floor(raw));
+    } catch { /* no body — no timer */ }
+
+    const createdAt = Math.floor(Date.now() / 1000);
     const code = generateGameCode();
     if (!code) {
       const response = new Response(JSON.stringify({ error: 'Could not generate game code' }), {
@@ -21,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
     const game: Game = {
       code,
       state: 'lobby',
-      created_at: Math.floor(Date.now() / 1000),
+      created_at: createdAt,
       players: {},
       straws: null,
       winner_token: null,
@@ -31,6 +41,9 @@ export const POST: APIRoute = async ({ request }) => {
       prize_given_id: null,
       prize_given_name: null,
       chat: [],
+      timer_seconds: timerSeconds,
+      lobby_deadline: timerSeconds ? createdAt + timerSeconds : null,
+      picking_deadline: null,
     };
 
     await saveGame(game);

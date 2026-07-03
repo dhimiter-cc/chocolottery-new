@@ -112,6 +112,14 @@
     conn.refresh();
   }
 
+  // Give latecomers another 30s before the lobby auto-starts.
+  async function handleExtend() {
+    try {
+      await post('/api/extend', { code });
+      conn.refresh();
+    } catch { actionError = 'Could not add time'; }
+  }
+
   async function handleRestart() {
     if (!restartArmed) {
       restartArmed = true;
@@ -165,6 +173,53 @@
   // Track previous phase for countdown
   let prevPhase = $state<string | null>(null);
   let countdownActive = $state(false);
+
+  // ── Timers ────────────────────────────────────────────────────────────────
+  // Deadlines (Unix seconds) are authoritative on the server; the client just
+  // ticks a local clock and counts down toward them. The lobby timer auto-starts
+  // the round so we don't wait all day for joiners; picking gets a fixed short
+  // window before straws auto-resolve.
+  let nowTs = $state(Math.floor(Date.now() / 1000));
+  $effect(() => {
+    const id = setInterval(() => { nowTs = Math.floor(Date.now() / 1000); }, 1000);
+    return () => clearInterval(id);
+  });
+
+  let onlineCount = $derived(gameState?.players.filter(p => p.online).length ?? 0);
+
+  let lobbyDeadline = $derived(gameState?.lobby_deadline ?? null);
+  let lobbyTimeLeft = $derived(
+    phase === 'lobby' && lobbyDeadline != null ? Math.max(0, lobbyDeadline - nowTs) : null
+  );
+
+  let pickingDeadline = $derived(gameState?.picking_deadline ?? null);
+  let timeLeft = $derived(
+    phase === 'picking' && pickingDeadline != null ? Math.max(0, pickingDeadline - nowTs) : null
+  );
+
+  // Lobby countdown hit zero with enough players → any client fires the
+  // idempotent auto-start. The in-flight guard stops this client from spamming
+  // while the poll catches up; the server no-ops duplicate/early calls.
+  let autoStarting = $state(false);
+  $effect(() => {
+    if (phase === 'lobby' && lobbyTimeLeft === 0 && onlineCount >= 2 && !autoStarting) {
+      autoStarting = true;
+      post('/api/autostart', { code })
+        .then(() => conn.refresh())
+        .finally(() => { autoStarting = false; });
+    }
+  });
+
+  // Picking countdown hit zero → any client fires the idempotent resolve.
+  let resolving = $state(false);
+  $effect(() => {
+    if (phase === 'picking' && !countdownActive && timeLeft === 0 && !resolving) {
+      resolving = true;
+      post('/api/resolve', { code })
+        .then(() => conn.refresh())
+        .finally(() => { resolving = false; });
+    }
+  });
 
   $effect(() => {
     const current = phase;
@@ -280,15 +335,28 @@
             <div class="phase-info">
               <span class="phase-pill {phase}">{phase.charAt(0).toUpperCase() + phase.slice(1)}</span>
               <span class="phase-detail">{phaseDetail}</span>
+              {#if lobbyTimeLeft != null}
+                <span class="pick-timer" class:urgent={lobbyTimeLeft <= 10}>
+                  ⏳ {Math.floor(lobbyTimeLeft / 60)}:{(lobbyTimeLeft % 60).toString().padStart(2, '0')}
+                  <span class="timer-caption">{onlineCount < 2 ? 'waiting for players' : 'until auto-start'}</span>
+                </span>
+              {/if}
             </div>
             {#if showActionBtn}
-              <button
-                class="btn btn-primary big"
-                disabled={actionBtnDisabled}
-                onclick={phase === 'lobby' ? handleStart : () => { window.location.href = '/'; }}
-              >
-                {actionBtnText}
-              </button>
+              <div class="phase-actions">
+                {#if isHost && phase === 'lobby' && lobbyDeadline != null}
+                  <button class="btn btn-ghost" onclick={handleExtend} title="Wait 30 more seconds for people to join">
+                    +30s
+                  </button>
+                {/if}
+                <button
+                  class="btn btn-primary big"
+                  disabled={actionBtnDisabled}
+                  onclick={phase === 'lobby' ? handleStart : () => { window.location.href = '/'; }}
+                >
+                  {actionBtnText}
+                </button>
+              </div>
             {/if}
           </div>
 
@@ -300,7 +368,7 @@
             </div>
           {:else if phase === 'picking'}
             <div class="cup-stage" data-phase="picking" class:countdown={countdownActive}>
-              <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} />
+              <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} {timeLeft} />
               <Countdown bind:this={countdownRef} onActiveChange={(a) => (countdownActive = a)} />
             </div>
           {:else if phase === 'reveal' || phase === 'done'}
