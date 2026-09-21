@@ -123,11 +123,16 @@
   {:else}
     {#each game.suggestions as s (s.id)}
       <div class="snack" class:voted={s.voted}>
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="snack-vote" onclick={() => vote(s.id)}>
+        <button
+          type="button"
+          class="snack-vote"
+          aria-pressed={s.voted}
+          aria-label={s.voted ? `Voted for ${s.text} (${s.votes} votes) — click to remove your vote` : `Vote for ${s.text} (${s.votes} votes)`}
+          onclick={() => vote(s.id)}
+        >
           <span class="arrow">▲</span>
           <span class="num">{s.votes}</span>
-        </div>
+        </button>
         <div class="snack-text">{s.text}</div>
         <div class="snack-author">— {s.author_name}</div>
       </div>

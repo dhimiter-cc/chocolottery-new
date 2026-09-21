@@ -3,8 +3,9 @@ import { promises as fsp } from 'node:fs';
 import path from 'node:path';
 import { randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
+import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
 import type {
-  Game, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack, Player,
+  Game, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack,
   PublicPlayer, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
@@ -21,8 +22,6 @@ if (!fs.existsSync(CB_FILE))   fs.writeFileSync(CB_FILE, JSON.stringify({ items:
 // ── Constants ────────────────────────────────────────────────────────────────
 export const ONLINE_THRESHOLD = 30;
 export const GAME_TTL         = 86400;
-// Fixed picking window: once picking starts, straws auto-resolve after this.
-export const PICK_SECONDS     = 30;
 
 // ── In-memory caches ───────────────────────────────────────────────────────
 // Games and the (global) cupboard are mirrored in memory so the polling hot
@@ -131,31 +130,30 @@ export function pickPrizeSnack(game: Game): PrizeSnack | null {
 }
 
 // ── Lobby → picking ─────────────────────────────────────────────────────────
-// Drop offline players, deal the straws and flip to `picking` with the fixed
-// 30s auto-resolve deadline. Returns false (and mutates nothing) when fewer
-// than 2 players are online. Shared by the host's manual start and the lobby
-// timer's auto-start.
+// Deal the straws and flip to `picking`. Requires 2+ players currently online
+// (so the host can't start a round nobody's actually in), but the draw itself
+// includes every player in the lobby, online or not — a connection blip at the
+// exact moment Start is clicked shouldn't silently cut someone from a round
+// they already joined. Shared by the host's manual start and the lobby timer's
+// auto-start.
 export function beginPicking(game: Game): boolean {
   const now = Math.floor(Date.now() / 1000);
-  const online: Record<string, Player> = {};
-  for (const [t, p] of Object.entries(game.players)) {
-    if (isOnline(p, now)) online[t] = p;
-  }
-  if (Object.keys(online).length < 2) return false;
+  const onlineCount = Object.values(game.players).filter(p => isOnline(p, now)).length;
+  if (onlineCount < 2) return false;
 
-  for (const t of Object.keys(online)) online[t].straw_index = null;
-  game.players = online;
-  game.straws = generateStraws(Object.keys(online).length);
+  for (const t of Object.keys(game.players)) game.players[t].straw_index = null;
+  game.straws = generateStraws(Object.keys(game.players).length);
   game.state = 'picking';
   game.winner_token = null;
   game.lobby_deadline = null;
-  game.picking_deadline = now + PICK_SECONDS;
+  game.picking_deadline = null;
   return true;
 }
 
 // ── Picking resolution ─────────────────────────────────────────────────────────
 // Give every still-unpicked player a random one of the remaining straws. Used
-// when the timer expires so an idle player can't stall the round.
+// by the host's manual "resolve now" escape hatch — picking has no auto-timer,
+// so this is the only way a round with a truly AFK player ever finishes.
 export function assignRemainingStraws(game: Game): void {
   if (!Array.isArray(game.straws)) return;
   const taken = new Set(
@@ -201,18 +199,97 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
 }
 
 // ── Leaderboard ──────────────────────────────────────────────────────────────
+// The local JSON file is a read cache on disposable container disk. GitHub is
+// the durable copy (see leaderboardRemote.ts) — we hydrate from it once on boot
+// and mirror every new win back to it.
+
+async function readLocalWins(): Promise<LeaderboardWin[]> {
+  try {
+    const wins = JSON.parse(await fsp.readFile(LB_FILE, 'utf8'))?.wins;
+    return Array.isArray(wins) ? wins : [];
+  } catch { return []; }
+}
+
+async function writeLocalWins(wins: LeaderboardWin[]): Promise<void> {
+  await fsp.writeFile(LB_FILE, JSON.stringify({ wins }));
+}
+
+// One win == one game, so code + timestamp + winner identifies it. Used to
+// union the local and remote lists without ever double-counting a win.
+function winKey(w: LeaderboardWin): string {
+  return `${w.game_code}|${w.timestamp}|${w.name}`;
+}
+
+function mergeWins(...lists: LeaderboardWin[][]): LeaderboardWin[] {
+  const seen = new Map<string, LeaderboardWin>();
+  for (const list of lists) for (const w of list) seen.set(winKey(w), w);
+  return [...seen.values()].sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+}
+
+// Pull the durable copy into the local cache. Runs at most once per process;
+// every read awaits the same promise so a cold start can't serve a stale board.
+let hydration: Promise<void> | null = null;
+
+function hydrateLeaderboard(): Promise<void> {
+  if (!hydration) {
+    hydration = (async () => {
+      if (!remoteEnabled()) {
+        console.warn(
+          '[leaderboard] GITHUB_TOKEN / GITHUB_REPO not set — wins are stored ' +
+          'on local disk only and will be lost if this host is wiped.'
+        );
+        return;
+      }
+      const remote = await pullRemoteWins();
+      if (remote === null) return;               // unreachable — keep local as-is
+
+      const local  = await readLocalWins();
+      const merged = mergeWins(remote, local);
+      await writeLocalWins(merged);
+      console.log(`[leaderboard] hydrated ${merged.length} wins from ${remoteTarget()}`);
+
+      // Local had wins GitHub didn't (e.g. a crash before the mirror landed).
+      if (merged.length > remote.length) void mirror(merged);
+    })().catch(err => { console.error('[leaderboard] hydrate error:', err); });
+  }
+  return hydration;
+}
+
+// Mirror pushes are serialised: the Contents API rejects concurrent writes to
+// the same file, and two rounds can finish at the same moment.
+let mirrorQueue: Promise<unknown> = Promise.resolve();
+
+function mirror(wins: LeaderboardWin[]): Promise<unknown> {
+  mirrorQueue = mirrorQueue
+    .then(() => pushRemoteWins(wins))
+    .catch(err => { console.error('[leaderboard] mirror error:', err); });
+  return mirrorQueue;
+}
+
+// Warm the cache at boot rather than on first use. Appending has to wait for
+// hydration — pushing a stale local list would overwrite real history on
+// GitHub with fewer wins — and we don't want that wait landing on the first
+// reveal after a deploy. A round takes at least 30s, so by the time anyone
+// loses, this is long done.
+void hydrateLeaderboard();
+
 export async function appendLeaderboard(win: LeaderboardWin): Promise<void> {
-  return withLock(LB_FILE, async () => {
-    let data: { wins: LeaderboardWin[] } = { wins: [] };
-    try { data = JSON.parse(await fsp.readFile(LB_FILE, 'utf8')); } catch {}
-    data.wins.push(win);
-    await fsp.writeFile(LB_FILE, JSON.stringify(data));
+  await hydrateLeaderboard();
+
+  const wins = await withLock(LB_FILE, async () => {
+    const merged = [...(await readLocalWins()), win];
+    await writeLocalWins(merged);
+    return merged;
   });
+
+  // Deliberately not awaited: the reveal shouldn't wait on — or fail because
+  // of — a GitHub round trip. The local write above has already happened.
+  void mirror(wins);
 }
 
 export async function loadLeaderboard(): Promise<{ wins: LeaderboardWin[] }> {
-  try { return JSON.parse(await fsp.readFile(LB_FILE, 'utf8')); }
-  catch { return { wins: [] }; }
+  await hydrateLeaderboard();
+  return { wins: await readLocalWins() };
 }
 
 // ── Cupboard ─────────────────────────────────────────────────────────────────

@@ -47,8 +47,30 @@ lobby ──(host starts, ≥2 online)──▶ picking ──(all picked)──
 
 Persisted files (see `lib/types.ts` for full interfaces):
 - `data/games/<CODE>.json` — one `Game` per game (players, straws, suggestions, chat, prize). Codes look like `CHOC-1234` (prefixes: CHOC/COCO/BEAN/WRAP).
-- `data/leaderboard.json` — append-only list of `LeaderboardWin` records (powers leaderboard + fairness).
+- `data/leaderboard.json` — append-only list of `LeaderboardWin` records (powers leaderboard + fairness). **Mirrored to GitHub — see below.**
 - `data/cupboard.json` — shared, global list of `CupboardItem` prizes (NOT per-game).
+
+### Durable leaderboard (`lib/leaderboardRemote.ts`)
+
+`data/` sits on the host's container disk, which is disposable — the win history
+was lost once already when a Railway deployment was removed. So the leaderboard
+(and only the leaderboard; games are 24h-ephemeral) has a second home:
+
+- **GitHub is the durable copy.** Every win is committed to `leaderboard.json`
+  on a data branch via the Contents API.
+- **`data/leaderboard.json` is a read cache.** On the first leaderboard read of
+  a process, `hydrateLeaderboard()` pulls from GitHub and unions it with
+  whatever is on disk (deduped on `game_code|timestamp|name`), so a fresh
+  deploy self-heals and an offline-recorded win still gets pushed up later.
+- Pushes are **fired without awaiting** (the reveal must not wait on GitHub) and
+  **serialised** through `mirrorQueue`, because the Contents API rejects
+  concurrent writes to the same file.
+- Every failure path is non-fatal: no token, GitHub down or rate-limited → the
+  game keeps working on local files, and only the off-host backup is lost.
+
+Config lives in `.env.example`. ⚠️ `GITHUB_DATA_BRANCH` must **not** be the
+branch Railway deploys from — each win is a commit, so pointing it at the deploy
+branch would restart the server mid-game.
 
 ## Project structure — where to operate
 

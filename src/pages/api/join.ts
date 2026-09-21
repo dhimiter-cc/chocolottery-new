@@ -52,7 +52,23 @@ export const POST: APIRoute = async ({ request }) => {
       return { game, result: resultData };
     }
 
-    // New player
+    // New player — but if someone with this exact name (case-insensitive) is
+    // already in the lobby, treat this as the same person joining from a new
+    // device/tab rather than minting a duplicate "ghost" player. Two real
+    // colleagues sharing a first name will collide here; the team already
+    // disambiguates that case in practice ("Ali.Jr", "Ali Ahmed OG").
+    const nameKey = name.toLowerCase();
+    const existingEntry = Object.entries(game.players).find(
+      ([, p]) => p.name.toLowerCase() === nameKey
+    );
+    if (existingEntry) {
+      const [existingToken, existingPlayer] = existingEntry;
+      existingPlayer.last_seen = Math.floor(Date.now() / 1000);
+      existingPlayer.name = name;
+      resultData = { token: existingToken, name, code: game.code };
+      return { game, result: resultData };
+    }
+
     const token = generateToken();
     game.players[token] = {
       name,

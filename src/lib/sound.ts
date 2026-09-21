@@ -101,8 +101,12 @@ function clapAt(ctx: AudioContext, t: number, vol: number) {
   bp.frequency.value = 1200 + Math.random() * 1600;
   bp.Q.value = 0.6;
   const g = ctx.createGain();
+  // exponentialRampToValueAtTime can't target exactly 0 (playApplause's
+  // attack envelope is 0 at prog=0, i.e. the very first clap) — floor it to
+  // the same silence epsilon used everywhere else in this file.
+  const peak = Math.max(0.0001, vol);
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(vol, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.002);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06 + Math.random() * 0.05);
   src.connect(bp);
   bp.connect(g);

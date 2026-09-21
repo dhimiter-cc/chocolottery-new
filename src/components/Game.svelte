@@ -108,8 +108,31 @@
   }
 
   async function handlePick(index: number) {
-    await post('/api/pick', { code, straw_index: index });
+    // A straw can be taken by someone else between this client's last poll
+    // and the click landing — the server is the real source of truth here,
+    // so a rejection needs its own feedback, not just the local pre-check.
+    const { ok, data } = await post('/api/pick', { code, straw_index: index });
+    if (!ok) showToast(data?.error === 'Straw already taken' ? "Someone beat you to that one" : 'Could not pick that straw');
     conn.refresh();
+  }
+
+  // Picking has no auto-timer, so if someone's genuinely AFK the host can
+  // force the round to finish instead of it hanging forever. Same arm/confirm
+  // pattern as restart — this randomly hands out the remaining straws.
+  let resolveArmed = $state(false);
+  let resolveTimer: ReturnType<typeof setTimeout> | null = null;
+  async function handleForceResolve() {
+    if (!resolveArmed) {
+      resolveArmed = true;
+      resolveTimer = setTimeout(() => { resolveArmed = false; resolveTimer = null; }, 4000);
+    } else {
+      if (resolveTimer) { clearTimeout(resolveTimer); resolveTimer = null; }
+      resolveArmed = false;
+      try {
+        await post('/api/resolve', { code });
+        conn.refresh();
+      } catch { actionError = 'Could not resolve'; }
+    }
   }
 
   // Give latecomers another 30s before the lobby auto-starts.
@@ -192,11 +215,6 @@
     phase === 'lobby' && lobbyDeadline != null ? Math.max(0, lobbyDeadline - nowTs) : null
   );
 
-  let pickingDeadline = $derived(gameState?.picking_deadline ?? null);
-  let timeLeft = $derived(
-    phase === 'picking' && pickingDeadline != null ? Math.max(0, pickingDeadline - nowTs) : null
-  );
-
   // Lobby countdown hit zero with enough players → any client fires the
   // idempotent auto-start. The in-flight guard stops this client from spamming
   // while the poll catches up; the server no-ops duplicate/early calls.
@@ -207,17 +225,6 @@
       post('/api/autostart', { code })
         .then(() => conn.refresh())
         .finally(() => { autoStarting = false; });
-    }
-  });
-
-  // Picking countdown hit zero → any client fires the idempotent resolve.
-  let resolving = $state(false);
-  $effect(() => {
-    if (phase === 'picking' && !countdownActive && timeLeft === 0 && !resolving) {
-      resolving = true;
-      post('/api/resolve', { code })
-        .then(() => conn.refresh())
-        .finally(() => { resolving = false; });
     }
   });
 
@@ -263,6 +270,7 @@
 
   // Fairness modal (rendered by <Fairness>, which fetches its own data)
   let showFairness = $state(false);
+
 
   // Chat drawer
   function openChatDrawer() { chatOpen = true; }
@@ -319,8 +327,10 @@
 
     {#if gameState}
       <div class="game-grid">
-        <!-- Snacks: left column on desktop -->
-        <section class="panel snacks-panel">
+        <!-- Snacks: left column on desktop. Dimmed during picking so
+             attention goes to the straws, not vote-chasing or cupboard
+             browsing — chat stays at full prominence next to it. -->
+        <section class="panel snacks-panel" class:dimmed={phase === 'picking'}>
           <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
         </section>
 
@@ -368,9 +378,19 @@
             </div>
           {:else if phase === 'picking'}
             <div class="cup-stage" data-phase="picking" class:countdown={countdownActive}>
-              <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} {timeLeft} />
+              <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} />
               <Countdown bind:this={countdownRef} onActiveChange={(a) => (countdownActive = a)} />
             </div>
+            {#if isHost}
+              <button
+                type="button"
+                class="restart-btn"
+                class:armed={resolveArmed}
+                onclick={handleForceResolve}
+              >
+                {resolveArmed ? 'Really assign the rest at random? Click again to confirm' : '⏭ someone’s AFK — resolve now'}
+              </button>
+            {/if}
           {:else if phase === 'reveal' || phase === 'done'}
             <div class="cup-stage" data-phase="reveal">
               <RevealPhase
@@ -451,4 +471,5 @@
   {#if showFairness}
     <Fairness onClose={() => (showFairness = false)} />
   {/if}
+
 {/if}

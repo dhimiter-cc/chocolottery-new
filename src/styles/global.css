@@ -155,8 +155,12 @@ h2 {
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary {
-  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
-  color: #fff;
+  /* White text on this gradient measures ~2.4:1 (needs 4.5:1) — dark text
+     passes at both ends, but only once the bottom stop is nudged up from
+     --accent-deep (#B6730A, 4.2:1) to #C17D0A (4.8:1); the hover gradient
+     below already clears 4.5:1 as-is. */
+  background: linear-gradient(180deg, var(--accent) 0%, #C17D0A 100%);
+  color: var(--text);
   border-color: rgba(0,0,0,0.08);
   font-weight: 600;
   box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 4px 14px rgba(232,152,23,0.35);
@@ -238,6 +242,30 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 
 .join-form .btn { margin-top: 4px; }
 
+/* Game codes are always uppercase — show them that way while typing so a
+   lowercase paste doesn't look like it was rejected. */
+.code-input {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.code-input::placeholder { letter-spacing: normal; text-transform: none; }
+
+.join-known { margin: -4px 0 0; font-size: 0.85rem; }
+.join-known strong { color: var(--text); }
+
+/* Inline text button, for affordances that shouldn't look like buttons. */
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-deep);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-btn:hover { color: var(--text); }
+
 /* === Game code stamp === */
 .stamp {
   display: inline-block;
@@ -305,6 +333,21 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .stage-panel  { grid-area: stage; overflow-y: auto; }
   .snacks-panel { grid-area: snacks; overflow-y: auto; }
   .chat-panel   { grid-area: chat; min-height: 0; overflow: hidden; }
+}
+
+/* Snacks/cupboard fade back during picking so the straws hold attention;
+   chat is deliberately untouched — it stays fully readable. */
+.snacks-panel {
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+.snacks-panel.dimmed {
+  opacity: 0.45;
+  filter: saturate(0.6);
+}
+.snacks-panel.dimmed:hover,
+.snacks-panel.dimmed:focus-within {
+  opacity: 0.85;
+  filter: none;
 }
 
 /* === Chat panel === */
@@ -385,6 +428,14 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   gap: 12px;
   margin-bottom: 12px;
   flex-wrap: wrap;
+}
+/* `.phase-info` can shrink to 0 (min-width:0, flex:1) which lets the browser
+   fit everything on one row by crushing the status text instead of wrapping
+   the action button — the status line reads as near-empty or overflows.
+   Force a real two-row stack once there isn't room for both. */
+@media (max-width: 560px) {
+  .phase-bar { flex-direction: column; align-items: stretch; }
+  .phase-actions { justify-content: flex-end; }
 }
 .phase-info {
   display: flex;
@@ -670,6 +721,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .snack.voted { border-color: var(--accent); background: var(--accent-soft); }
 
 .snack-vote {
+  /* Now a <button> for keyboard access. */
+  appearance: none;
+  -webkit-appearance: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -784,6 +838,15 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 
 .straw {
+  /* Now a <button> for keyboard access — strip the UA button chrome the
+     rest of this rule doesn't already override. Focus ring stays native
+     (visible, theme-agnostic) rather than styled away. */
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: center;
   width: 32px;
   background:
     linear-gradient(90deg, rgba(255,255,255,0.18) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.25) 100%),
@@ -1179,26 +1242,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .cup-stage.countdown .straws,
 .cup-stage.countdown .cup { opacity: 0.35; transition: opacity 0.3s; }
 
-/* === Excluded-from-round banner === */
-.excluded-banner {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: .6rem;
-  padding: 2rem;
-  background: rgba(10, 8, 20, 0.82);
-  backdrop-filter: blur(6px);
-  border-radius: inherit;
-  text-align: center;
-  animation: fade-in .35s ease;
-}
-.excluded-icon  { font-size: 2.8rem; line-height: 1; }
-.excluded-title { font-size: 1.15rem; font-weight: 700; color: #f4a261; }
-.excluded-body  { font-size: .85rem; color: #9090b0; max-width: 28rem; line-height: 1.6; }
-
 /* === Reveal build-up: stage charging glow === */
 .cup-stage.charging::after {
   content: '';
@@ -1314,17 +1357,22 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   line-height: 1;
   margin-bottom: 16px;
 }
+/* A rubber-stamp tag, not the generic rounded "New" pill — matches the
+   parchment/office-memo bit the copy is already playing (.stamp below is
+   the same idea, used for game codes). */
 .announce-badge {
   display: inline-block;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 3px 10px;
-  border-radius: 999px;
+  letter-spacing: 0.1em;
+  padding: 3px 12px;
+  border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--accent-deep);
-  border: 1px solid rgba(232,152,23,0.4);
+  border: 1px dashed rgba(232,152,23,0.55);
+  transform: rotate(-2deg);
   margin-bottom: 16px;
 }
 .announce-title {

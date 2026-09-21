@@ -31,14 +31,20 @@ import '../styles/global.css';
     <section class="panel">
       <h2>Join an existing round</h2>
       <p class="muted">Got a code? Drop in. No HR forms. No team-building exercises.</p>
-      <form id="join-form" class="join-form" style="margin-top: 14px;">
-        <label>Game code
-          <input type="text" id="join-code" placeholder="CHOC-1234" autocomplete="off" required>
+      <form id="join-form" class="join-form" style="margin-top: 14px;" novalidate>
+        <label for="join-code">Game code
+          <input type="text" id="join-code" class="code-input" placeholder="CHOC-1234"
+                 autocomplete="off" autocapitalize="characters" spellcheck="false"
+                 inputmode="text" maxlength="40">
         </label>
-        <label id="join-name-label">Your name
-          <input type="text" id="join-name" placeholder="your name" maxlength="30" autocomplete="off" required>
+        <label id="join-name-label" for="join-name">Your name
+          <input type="text" id="join-name" placeholder="your name" maxlength="30" autocomplete="off">
         </label>
-        <button type="submit" class="btn btn-primary">Join the game</button>
+        <p id="join-known-name" class="join-known muted" hidden>
+          Joining as <strong id="join-known-value"></strong> ·
+          <button type="button" id="join-change-name" class="link-btn">not you?</button>
+        </p>
+        <button type="submit" id="join-submit" class="btn btn-primary">Join the game</button>
       </form>
       <p id="join-error" class="error"></p>
     </section>
@@ -113,10 +119,145 @@ import '../styles/global.css';
 </div>
 
 <script>
-(function () {
-  const modal    = document.getElementById('create-modal');
-  const presets  = Array.from(modal.querySelectorAll('.timer-preset'));
-  const confirm  = document.getElementById('create-confirm');
+// Everything on this page is ONE module: if any top-level statement throws,
+// nothing registered after it ever runs. That is how the join form lost its
+// submit handler — an unguarded localStorage read (which throws in private
+// windows and wherever site data is blocked) ran before addEventListener was
+// reached, so the form fell back to a native GET submit and the page silently
+// reloaded with the code still in the URL. Looks exactly like "join is broken".
+//
+// Two rules keep that from coming back:
+//   1. storage goes through `store`, which can never throw;
+//   2. every feature registers inside `isolate()`, so one broken feature can't
+//      take the others down with it. Join is registered first.
+
+const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
+const ANNOUNCE_KEY        = 'choclottery_fairness_intro_v1';
+
+const store = {
+  get(key) { try { return localStorage.getItem(key); } catch { return null; } },
+  set(key, value) { try { localStorage.setItem(key, value); } catch { /* no storage, no problem */ } },
+};
+
+function isolate(name, fn) {
+  try { fn(); }
+  catch (err) { console.error('[landing] "' + name + '" failed to initialise:', err); }
+}
+
+// ── Join an existing round ───────────────────────────────────────────────────
+isolate('join', () => {
+  const form   = document.getElementById('join-form');
+  const codeEl = document.getElementById('join-code');
+  const nameEl = document.getElementById('join-name');
+  const nameLb = document.getElementById('join-name-label');
+  const errEl  = document.getElementById('join-error');
+  const btn    = document.getElementById('join-submit');
+  const label  = btn.textContent;
+
+  const CODE_RE  = /^(CHOC|COCO|BEAN|WRAP)-\d{4}$/;
+  const LOOSE_RE = /(CHOC|COCO|BEAN|WRAP)\W*(\d{4})/;
+
+  // Pull the code out of whatever got pasted: "choc-1234", "CHOC 1234",
+  // "choc1234", or the entire shared link (http://…/game/CHOC-1234).
+  function normaliseCode(raw) {
+    const upper = String(raw).toUpperCase();
+    const match = upper.match(LOOSE_RE);
+    return match ? match[1] + '-' + match[2] : upper.trim().replace(/\s+/g, '');
+  }
+
+  function setBusy(busy) {
+    btn.disabled    = busy;
+    btn.textContent = busy ? 'Joining…' : label;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errEl.textContent = '';
+
+    const code = normaliseCode(codeEl.value);
+    const name = nameEl.value.trim();
+    codeEl.value = code;  // show exactly what we're about to send
+
+    if (!code) {
+      errEl.textContent = 'Pop the game code in first.';
+      codeEl.focus();
+      return;
+    }
+    if (!CODE_RE.test(code)) {
+      errEl.textContent = /^\d{4}$/.test(code)
+        ? 'Almost — codes need the word at the front too, like CHOC-' + code + '.'
+        : 'That does not look like a game code. They look like CHOC-1234.';
+      codeEl.focus();
+      return;
+    }
+    if (!name) {
+      errEl.textContent = 'We need a name to put on the straw.';
+      nameLb.hidden = false;
+      nameEl.focus();
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const res  = await fetch('/api/join', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ code, name }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.error) {
+        errEl.textContent =
+          res.status === 404 ? 'No game with that code. Check it with whoever shared it.' :
+          res.status === 409 ? 'That round already started — ask the host to restart it.' :
+          data.error || 'Could not join that game.';
+        setBusy(false);
+        return;
+      }
+
+      store.set(REMEMBERED_NAME_KEY, name);
+      window.location.assign('/game/' + encodeURIComponent(data.code));
+    } catch {
+      errEl.textContent = 'Could not reach the server. Still on the wifi?';
+      setBusy(false);
+    }
+  });
+
+  // Tidy the field on paste and on the way out, so what the user sees is what
+  // we send.
+  codeEl.addEventListener('paste', (e) => {
+    const text = e.clipboardData && e.clipboardData.getData('text');
+    if (!text) return;
+    e.preventDefault();
+    codeEl.value = normaliseCode(text);
+  });
+  codeEl.addEventListener('blur', () => {
+    if (codeEl.value.trim()) codeEl.value = normaliseCode(codeEl.value);
+  });
+
+  // Skip asking for a name we already know — but always leave a way out, for
+  // the shared laptop in the kitchen.
+  const remembered = store.get(REMEMBERED_NAME_KEY) || '';
+  if (remembered) {
+    nameEl.value  = remembered;
+    nameLb.hidden = true;
+    document.getElementById('join-known-value').textContent = remembered;
+    document.getElementById('join-known-name').hidden = false;
+  }
+  document.getElementById('join-change-name').addEventListener('click', () => {
+    nameLb.hidden = false;
+    document.getElementById('join-known-name').hidden = true;
+    nameEl.value = '';
+    nameEl.focus();
+  });
+});
+
+// ── Start a new round ────────────────────────────────────────────────────────
+isolate('create', () => {
+  const modal   = document.getElementById('create-modal');
+  const presets = Array.from(modal.querySelectorAll('.timer-preset'));
+  const confirm = document.getElementById('create-confirm');
+  const label   = confirm.textContent;
   // Chosen duration in seconds; '' means "No timer". Prefilled to 2:00.
   let selected = '120';
 
@@ -132,54 +273,34 @@ import '../styles/global.css';
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
   confirm.addEventListener('click', async () => {
-    confirm.disabled = true;
+    confirm.disabled    = true;
+    confirm.textContent = 'Creating…';
     try {
-      const res = await fetch('/api/create', {
-        method: 'POST',
+      const res  = await fetch('/api/create', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timer_seconds: selected === '' ? null : Number(selected) }),
+        body:    JSON.stringify({ timer_seconds: selected === '' ? null : Number(selected) }),
       });
-      const data = await res.json();
-      if (data.code) window.location = '/game/' + encodeURIComponent(data.code);
-      else { alert('Could not create game'); confirm.disabled = false; }
-    } catch { alert('Could not create game'); confirm.disabled = false; }
+      const data = await res.json().catch(() => ({}));
+      if (data.code) {
+        window.location.assign('/game/' + encodeURIComponent(data.code));
+        return;
+      }
+      throw new Error(data.error || 'no code returned');
+    } catch {
+      alert('Could not create game. Try again in a moment.');
+      confirm.disabled    = false;
+      confirm.textContent = label;
+    }
   });
-})();
-
-const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
-const joinNameInput = document.getElementById('join-name');
-const rememberedName = localStorage.getItem(REMEMBERED_NAME_KEY) ?? '';
-joinNameInput.value = rememberedName;
-if (rememberedName) {
-  // Skip asking again — we already know who you are.
-  document.getElementById('join-name-label').hidden = true;
-  joinNameInput.required = false;
-}
-
-document.getElementById('join-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const code = document.getElementById('join-code').value.trim().toUpperCase();
-  const name = joinNameInput.value.trim();
-  const err = document.getElementById('join-error');
-  err.textContent = '';
-  try {
-    const res = await fetch('/api/join', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ code, name })
-    });
-    const data = await res.json();
-    if (data.error) { err.textContent = data.error; return; }
-    localStorage.setItem(REMEMBERED_NAME_KEY, name);
-    window.location = '/game/' + encodeURIComponent(data.code);
-  } catch { err.textContent = 'Join failed'; }
 });
 
-(function () {
-  const modal   = document.getElementById('fairness-modal');
-  const body    = document.getElementById('fairness-body');
-  const note    = document.getElementById('fairness-note');
-  let loaded    = false;
+// ── Fairness check + the feature announcement that links to it ──────────────────
+isolate('fairness', () => {
+  const modal = document.getElementById('fairness-modal');
+  const body  = document.getElementById('fairness-body');
+  const note  = document.getElementById('fairness-note');
+  let loaded  = false;
 
   async function openFairness() {
     modal.removeAttribute('hidden');
@@ -195,15 +316,15 @@ document.getElementById('join-form').addEventListener('submit', async (e) => {
     }
   }
 
+  function fmtMonth(m) {
+    if (!m) return '—';
+    return new Date(m + '-02').toLocaleDateString('en', { month: 'short', year: 'numeric' });
+  }
+
   function renderFairness(data) {
     if (!data.players || data.players.length === 0) {
       body.innerHTML = '<p class="muted center">No games played yet — nothing to check!</p>';
       return;
-    }
-
-    function fmtMonth(m) {
-      if (!m) return '—';
-      return new Date(m + '-02').toLocaleDateString('en', { month: 'short', year: 'numeric' });
     }
 
     const rows = data.players.map((p, i) => {
@@ -267,18 +388,19 @@ document.getElementById('join-form').addEventListener('submit', async (e) => {
       : '';
   }
 
-  document.getElementById('fairness-btn').addEventListener('click', openFairness);
-  document.getElementById('fairness-close').addEventListener('click', () => modal.setAttribute('hidden', ''));
-  modal.addEventListener('click', e => { if (e.target === modal) modal.setAttribute('hidden', ''); });
+  function closeFairness() { modal.setAttribute('hidden', ''); }
 
-  const ANNOUNCE_KEY  = 'choclottery_fairness_intro_v1';
+  document.getElementById('fairness-btn').addEventListener('click', openFairness);
+  document.getElementById('fairness-close').addEventListener('click', closeFairness);
+  modal.addEventListener('click', e => { if (e.target === modal) closeFairness(); });
+
   const announceModal = document.getElementById('announce-modal');
   const step1         = document.getElementById('announce-step-1');
   const step2         = document.getElementById('announce-step-2');
 
   function dismissAnnounce() {
     announceModal.setAttribute('hidden', '');
-    localStorage.setItem(ANNOUNCE_KEY, '1');
+    store.set(ANNOUNCE_KEY, '1');
   }
 
   document.getElementById('announce-continue').addEventListener('click', () => {
@@ -291,10 +413,17 @@ document.getElementById('join-form').addEventListener('submit', async (e) => {
     openFairness();
   });
 
-  if (!localStorage.getItem(ANNOUNCE_KEY)) {
-    announceModal.removeAttribute('hidden');
-  }
-})();
+  // The announcement sits on top of the join form, so let people out of it the
+  // ways they expect: backdrop click and Escape.
+  announceModal.addEventListener('click', e => { if (e.target === announceModal) dismissAnnounce(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!announceModal.hidden) dismissAnnounce();
+    else if (!modal.hidden) closeFairness();
+  });
+
+  if (!store.get(ANNOUNCE_KEY)) announceModal.removeAttribute('hidden');
+});
 </script>
 </body>
 </html>
