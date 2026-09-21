@@ -1,11 +1,13 @@
 # chocolate.lottery
 
-A multiplayer office party game. A group draws straws to decide who has to buy/bring a
-chocolate (the "victim"). One straw is secretly the longest (value `100`); whoever pulls
-it loses. Built as a real-time-ish web app where colleagues join a shared game by code,
-gather in a lobby, pick straws simultaneously, and watch the reveal. Includes snack
-suggestions + voting, a shared cupboard of prizes, in-game chat, a leaderboard, and a
-tongue-in-cheek "Fairness Check" that compares actual wins to statistically expected wins.
+A multiplayer office party game. A group draws straws to decide who gets the chocolate.
+One straw is secretly the longest (value `100`); **whoever pulls it wins** — they go on
+the leaderboard (`finalizePicking` in `lib/game.ts`) and the host hands them something
+from the cupboard (`GiveCard.svelte`). Built as a real-time-ish web app where colleagues
+join a shared game by code, gather in a lobby, pick straws simultaneously, and watch the
+reveal. Includes snack suggestions + voting, a shared cupboard of prizes, in-game chat, a
+leaderboard, and a tongue-in-cheek "Fairness Check" that compares actual wins to
+statistically expected wins.
 
 ## Tech stack
 

@@ -9,7 +9,9 @@
   import Countdown from './Countdown.svelte';
   import Fairness from './Fairness.svelte';
   import GiveCard from './GiveCard.svelte';
+  import GoldenTicket from './GoldenTicket.svelte';
   import Toaster from './Toaster.svelte';
+  import { PRIZE, isEventDay, isTeaseActive } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
   import { post } from '../lib/api.js';
   import { showToast } from '../lib/toast.svelte.js';
@@ -271,6 +273,50 @@
   // Fairness modal (rendered by <Fairness>, which fetches its own data)
   let showFairness = $state(false);
 
+  // ── Golden ticket (MOVION special edition) ────────────────────────────────
+  // Both flags are read once: the window only matters at page load, and nobody
+  // is going to have the tab open across midnight into the outing.
+  const ticketActive = isTeaseActive();
+  const ticketIsEventDay = isEventDay();
+
+  let ticketOpen = $state(false);
+  let ticketMode = $state<'tease' | 'payoff'>('tease');
+
+  let winnerName = $derived(
+    gameState?.players.find(p => p.token === gameState?.winner_token)?.name ?? ''
+  );
+
+  function openTicket() {
+    ticketMode = 'tease';
+    ticketOpen = true;
+  }
+
+  // On the day itself the ticket lands on the winner — but only once
+  // <RevealPhase> has finished its own ~4.1s sequence, so the two don't collide.
+  let payoffTimer: ReturnType<typeof setTimeout> | null = null;
+  let payoffFired = false;
+
+  $effect(() => {
+    const current = phase;
+    const hasWinner = !!gameState?.winner_token;
+    // A restart re-arms it for the next round.
+    if (current === 'lobby') payoffFired = false;
+    if (!ticketIsEventDay || payoffFired) return;
+    if (current !== 'reveal' && current !== 'done') return;
+    if (!hasWinner) return;
+
+    payoffFired = true;
+    payoffTimer = setTimeout(() => {
+      ticketMode = 'payoff';
+      ticketOpen = true;
+    }, 5200);
+  });
+
+  // Destroy-only cleanup: the effect above deliberately does not return one, or
+  // the phase flip from `reveal` to `done` would cancel the pending payoff.
+  $effect(() => () => {
+    if (payoffTimer) clearTimeout(payoffTimer);
+  });
 
   // Chat drawer
   function openChatDrawer() { chatOpen = true; }
@@ -319,6 +365,9 @@
         </p>
       </div>
       <div class="head-actions">
+        {#if ticketActive}
+          <button type="button" class="btn btn-ghost" onclick={openTicket}>🎟️ Golden Ticket</button>
+        {/if}
         <button type="button" class="btn btn-ghost" onclick={() => (showFairness = true)}>⚖️ Fairness</button>
         <a href="/leaderboard" class="btn btn-ghost">Leaderboard</a>
         <a href="/" class="btn btn-ghost">Home</a>
@@ -371,6 +420,15 @@
           </div>
 
           {#if phase === 'lobby'}
+            <!-- Anyone who opened a shared link lands straight here, having never
+                 seen the landing page's teaser. -->
+            {#if ticketActive}
+              <button type="button" class="gt-banner" onclick={openTicket}>
+                🎟️
+                <span>This week the winner takes home a {PRIZE.weightKg} kg Toblerone.</span>
+                <span class="gt-banner-tag">take a look</span>
+              </button>
+            {/if}
             <div class="cup-stage" data-phase="lobby">
               <LobbyPhase game={gameState} />
               <div class="straws"></div>
@@ -472,4 +530,14 @@
     <Fairness onClose={() => (showFairness = false)} />
   {/if}
 
+  <!-- Golden ticket: teaser on demand, payoff automatically on the day -->
+  {#if ticketActive && ticketOpen}
+    <GoldenTicket
+      mode={ticketMode}
+      {winnerName}
+      onClose={() => (ticketOpen = false)}
+      onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
+      onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
+    />
+  {/if}
 {/if}

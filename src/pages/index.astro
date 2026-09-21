@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import GoldenTicketIsland from '../components/GoldenTicketIsland.svelte';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +17,7 @@ import '../styles/global.css';
       <p class="tagline">One chocolate. Many victims. Pick the longest straw. Don't make it weird.</p>
     </div>
     <div class="head-actions">
+      <GoldenTicketIsland client:load />
       <button type="button" id="fairness-btn" class="btn btn-ghost">⚖️ Fairness</button>
       <a href="/leaderboard" class="btn btn-ghost">Leaderboard →</a>
     </div>
@@ -73,37 +75,9 @@ import '../styles/global.css';
   </div>
 </div>
 
-<!-- Feature announcement modal -->
-<div id="announce-modal" class="modal" hidden>
-  <div class="modal-card announce-card">
-    <div id="announce-step-1">
-      <div class="announce-emoji">⚖️</div>
-      <span class="announce-badge">New feature</span>
-      <h2 class="announce-title">Fairness Check is here</h2>
-      <p class="announce-body">Due to recent complaints, the chocolottery has introduced a Fairness Check.</p>
-      <p class="announce-body">It compares each person's actual wins against what chance would statistically predict — based on the real number of players in every game they played.</p>
-      <p class="announce-body">Click anyone's row to see their full game history and individual odds per game.</p>
-      <div class="announce-actions">
-        <span class="announce-step-indicator">1 of 2</span>
-        <button type="button" id="announce-continue" class="btn btn-primary">Continue →</button>
-      </div>
-    </div>
-    <div id="announce-step-2" hidden>
-      <div class="announce-emoji">📊</div>
-      <span class="announce-badge">Good to know</span>
-      <h2 class="announce-title">A heads up on the data</h2>
-      <p class="announce-body">To power this feature, the app now stores a bit more per game: the total number of participants and which players took part — not just who won.</p>
-      <p class="announce-body">Older games don't have this data, so they won't count towards expected win calculations. The first meaningful stats will show up after a few new games have been played.</p>
-      <div class="announce-actions">
-        <span class="announce-step-indicator">2 of 2</span>
-        <div class="announce-actions-right">
-          <button type="button" id="announce-skip" class="btn btn-ghost">Close</button>
-          <button type="button" id="announce-cta" class="btn btn-primary">Check it out ⚖️</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- The Fairness Check intro announcement used to live here. It has done its job,
+     and the golden-ticket teaser now owns the first-load moment — two modals
+     fighting over it would be one too many. See git history if it's ever needed. -->
 
 <!-- Fairness Check modal -->
 <div id="fairness-modal" class="modal" hidden>
@@ -132,7 +106,6 @@ import '../styles/global.css';
 //      take the others down with it. Join is registered first.
 
 const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
-const ANNOUNCE_KEY        = 'choclottery_fairness_intro_v1';
 
 const store = {
   get(key) { try { return localStorage.getItem(key); } catch { return null; } },
@@ -295,7 +268,7 @@ isolate('create', () => {
   });
 });
 
-// ── Fairness check + the feature announcement that links to it ──────────────────
+// ── Fairness check ──────────────────────────────────────────────────────────
 isolate('fairness', () => {
   const modal = document.getElementById('fairness-modal');
   const body  = document.getElementById('fairness-body');
@@ -394,35 +367,9 @@ isolate('fairness', () => {
   document.getElementById('fairness-close').addEventListener('click', closeFairness);
   modal.addEventListener('click', e => { if (e.target === modal) closeFairness(); });
 
-  const announceModal = document.getElementById('announce-modal');
-  const step1         = document.getElementById('announce-step-1');
-  const step2         = document.getElementById('announce-step-2');
-
-  function dismissAnnounce() {
-    announceModal.setAttribute('hidden', '');
-    store.set(ANNOUNCE_KEY, '1');
-  }
-
-  document.getElementById('announce-continue').addEventListener('click', () => {
-    step1.setAttribute('hidden', '');
-    step2.removeAttribute('hidden');
-  });
-  document.getElementById('announce-skip').addEventListener('click', dismissAnnounce);
-  document.getElementById('announce-cta').addEventListener('click', () => {
-    dismissAnnounce();
-    openFairness();
-  });
-
-  // The announcement sits on top of the join form, so let people out of it the
-  // ways they expect: backdrop click and Escape.
-  announceModal.addEventListener('click', e => { if (e.target === announceModal) dismissAnnounce(); });
   document.addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    if (!announceModal.hidden) dismissAnnounce();
-    else if (!modal.hidden) closeFairness();
+    if (e.key === 'Escape' && !modal.hidden) closeFairness();
   });
-
-  if (!store.get(ANNOUNCE_KEY)) announceModal.removeAttribute('hidden');
 });
 </script>
 </body>
