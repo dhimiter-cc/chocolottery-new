@@ -138,7 +138,7 @@ export async function pushRemoteWins(wins: LeaderboardWin[]): Promise<boolean> {
     const content = Buffer.from(JSON.stringify({ wins }, null, 2) + '\n', 'utf8').toString('base64');
     const latest  = wins[wins.length - 1];
     const message = latest
-      ? `🍫 ${latest.name} owes chocolate (${latest.game_code}) — ${wins.length} total`
+      ? `🍫 ${latest.name} wins chocolate (${latest.game_code}) — ${wins.length} total`
       : `chocolottery: leaderboard sync — ${wins.length} wins`;
 
     for (let attempt = 0; attempt < 2; attempt++) {

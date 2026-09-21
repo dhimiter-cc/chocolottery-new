@@ -103,11 +103,15 @@
 
   // The scale drawing uses a 1 unit = 1 cm viewBox, so the bar is drawn straight
   // from the real measurements and can never drift out of sync with the copy.
-  // The silhouette occupies x 17-71 (fingertip to fingertip), so the bar starts
-  // clear of it and the viewBox ends just past whichever is wider.
-  const BAR_X = 94;
-  const barMidX = BAR_X + PRIZE.lengthCm / 2;
-  const viewW = BAR_X + PRIZE.lengthCm + 18;
+  // The figure holds the bar across its chest, so the bar is centred on the
+  // figure's own centre line and the measurement is called out to the side —
+  // a dimension line under a held bar would cross the torso.
+  const PERSON_X = 46;   // centre line of the silhouette
+  const BAR_Y = 62;      // top of the bar: chest height, level with the hands
+  const barX = PERSON_X - PRIZE.lengthCm / 2;
+  const barMidY = BAR_Y + PRIZE.thicknessCm / 2;
+  const labelX = barX + PRIZE.lengthCm + 36;
+  const viewW = labelX + 30;
 
   let showTeaser = $derived(mode === 'tease' && stage === 'tease');
 </script>
@@ -198,23 +202,35 @@
           <svg
             viewBox="0 0 {viewW} 206"
             role="img"
-            aria-label="A {PRIZE.lengthCm} centimetre bar shown next to a {PRIZE.personCm} centimetre tall person"
+            aria-label="A person {PRIZE.personCm} centimetres tall holding the {PRIZE.lengthCm} centimetre bar across their chest"
           >
             <line x1="8" y1="182" x2={viewW - 8} y2="182" class="gt-ground" />
-            <!-- person: feet on the ground (y=182), top of head at y=8 -->
+            <!-- Figure at real human proportions on the 1 unit = 1 cm grid:
+                 head 8-30, shoulders 38, hips 94, feet 182 — so the legs are
+                 90 of the 174, which is what stops it reading as a blob. -->
             <g class="gt-person">
-              <circle cx="44" cy="22" r="14" />
-              <path d="M44 37 C27 37 22 50 21 66 L17 112 L27 112 L31 78 L31 182 L40 182 L40 126 L48 126 L48 182 L57 182 L57 78 L61 112 L71 112 L67 66 C66 50 61 37 44 37 Z" />
+              <circle cx={PERSON_X} cy="19" r="11" />
+              <path d="M42 27 L50 27 L50 40 L42 40 Z" />
+              <path d="M33 38 Q46 34 59 38 L57 94 L35 94 Z" />
+              <path d="M34 92 L44 92 L43 182 L35 182 Z" />
+              <path d="M48 92 L58 92 L57 182 L49 182 Z" />
+              <path d="M27 40 L33 40 L31 70 L25 70 Z" />
+              <path d="M59 40 L65 40 L67 70 L61 70 Z" />
             </g>
-            <!-- bar: real length and real depth, at chest height, same units -->
-            <!-- No wordmark on this one: at 11 units tall it renders as an
+            <!-- The bar at its real length and depth, held across the chest.
+                 No wordmark on this one: at 11 units tall it renders as an
                  illegible smudge, and the 3D bar above already carries it. -->
             <g class="gt-scale-bar">
-              <rect x={BAR_X} y="92" width={PRIZE.lengthCm} height={PRIZE.thicknessCm} rx="2" />
+              <rect x={barX} y={BAR_Y} width={PRIZE.lengthCm} height={PRIZE.thicknessCm} rx="2" />
             </g>
-            <line x1={BAR_X} y1="114" x2={BAR_X + PRIZE.lengthCm} y2="114" class="gt-dim" />
-            <text x={barMidX} y="130" class="gt-scale-note">{PRIZE.lengthCm} cm</text>
-            <text x="44" y="200" class="gt-scale-note">{PRIZE.personCm} cm</text>
+            <!-- Hands over the bar, so it reads as gripped rather than floating -->
+            <g class="gt-person">
+              <circle cx="28" cy={barMidY} r="5" />
+              <circle cx="64" cy={barMidY} r="5" />
+            </g>
+            <line x1={barX + PRIZE.lengthCm + 4} y1={barMidY} x2={labelX - 20} y2={barMidY} class="gt-dim" />
+            <text x={labelX} y={barMidY + 4} class="gt-scale-note">{PRIZE.lengthCm} cm</text>
+            <text x={PERSON_X} y="200" class="gt-scale-note">{PRIZE.personCm} cm</text>
           </svg>
         </div>
 
