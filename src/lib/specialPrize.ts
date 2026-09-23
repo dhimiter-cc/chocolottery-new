@@ -11,7 +11,7 @@ export const EVENT_DATE = '2026-09-25';
 /** First day the teaser is shown. Before this, the feature is invisible. */
 export const TEASE_FROM = '2026-09-21';
 
-/** localStorage flag: the teaser auto-opens once per browser, then stays quiet. */
+/** localStorage key: the teaser auto-opens once per browser per day. */
 export const STORAGE_KEY = 'chocolottery_golden_ticket_v1';
 
 // Measurements are the manufacturer's for the XXL personalised bar
@@ -48,4 +48,16 @@ export function isTeaseActive(now: Date = new Date()): boolean {
 /** The day itself — gates the post-reveal payoff. */
 export function isEventDay(now: Date = new Date()): boolean {
   return localDate(now) === EVENT_DATE;
+}
+
+/** Has this browser already auto-opened the teaser today? Stores the date rather
+ *  than a plain flag, so the reminder comes back each new day instead of only once
+ *  for the whole tease window. */
+export function hasSeenTeaserToday(now: Date = new Date()): boolean {
+  try { return localStorage.getItem(STORAGE_KEY) === localDate(now); } catch { return false; }
+}
+
+/** Marks today as seen — call the moment the teaser auto-opens, not on close. */
+export function markTeaserSeenToday(now: Date = new Date()): void {
+  try { localStorage.setItem(STORAGE_KEY, localDate(now)); } catch { /* no storage, no problem */ }
 }

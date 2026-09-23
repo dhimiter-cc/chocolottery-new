@@ -7,33 +7,24 @@
   // the header's stacking context on its own.
   import EffectsCanvas from './EffectsCanvas.svelte';
   import GoldenTicket from './GoldenTicket.svelte';
-  import { STORAGE_KEY, isTeaseActive } from '../lib/specialPrize.js';
-
-  // Same rule as the landing page's own `store` helper: reading localStorage
-  // throws in private windows and wherever site data is blocked, and a throw here
-  // would take the header button down with it.
-  function seen(): boolean {
-    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
-  }
-  function markSeen() {
-    try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* no storage, no problem */ }
-  }
+  import { hasSeenTeaserToday, markTeaserSeenToday, isTeaseActive } from '../lib/specialPrize.js';
 
   const active = isTeaseActive();
 
   // client:load, so this only ever evaluates in the browser — the first visit of
-  // the window opens the teaser, and after that it lives behind the header button.
+  // each day opens the teaser, and after that it lives behind the header button.
   // Marked seen the moment it auto-opens, not on close: someone who watches the
-  // reveal and then navigates away has seen it, and shouldn't be shown it again.
-  const autoOpen = active && !seen();
-  if (autoOpen) markSeen();
+  // reveal and then navigates away has seen it, and shouldn't be shown it again
+  // today.
+  const autoOpen = active && !hasSeenTeaserToday();
+  if (autoOpen) markTeaserSeenToday();
 
   let open = $state(autoOpen);
   let effectsCanvas: ReturnType<typeof EffectsCanvas> | null = $state(null);
 
   function close() {
     open = false;
-    markSeen();
+    markTeaserSeenToday();
   }
 </script>
 

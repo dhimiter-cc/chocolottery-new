@@ -11,7 +11,7 @@
   import GiveCard from './GiveCard.svelte';
   import GoldenTicket from './GoldenTicket.svelte';
   import Toaster from './Toaster.svelte';
-  import { PRIZE, isEventDay, isTeaseActive } from '../lib/specialPrize.js';
+  import { PRIZE, hasSeenTeaserToday, markTeaserSeenToday, isEventDay, isTeaseActive } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
   import { post } from '../lib/api.js';
   import { showToast } from '../lib/toast.svelte.js';
@@ -290,6 +290,21 @@
     ticketMode = 'tease';
     ticketOpen = true;
   }
+
+  // Anyone who opens a shared game link never sees the landing page's own
+  // auto-open (GoldenTicketIsland) — so the game room shows it once itself,
+  // right after joining. Same once-per-day gate, marked seen the moment it
+  // auto-opens rather than on close.
+  let teaseAutoFired = false;
+  $effect(() => {
+    if (!joined || !ticketActive || teaseAutoFired) return;
+    teaseAutoFired = true;
+    if (!hasSeenTeaserToday()) {
+      markTeaserSeenToday();
+      ticketMode = 'tease';
+      ticketOpen = true;
+    }
+  });
 
   // On the day itself the ticket lands on the winner — but only once
   // <RevealPhase> has finished its own ~4.1s sequence, so the two don't collide.

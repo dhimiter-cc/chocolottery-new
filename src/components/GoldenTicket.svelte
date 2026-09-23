@@ -135,7 +135,7 @@
       <span class="announce-badge">Special edition</span>
       <h2 class="announce-title">This Friday, the straw is worth more</h2>
       <p class="announce-body">
-        We're celebrating the MOVION rebrand, and Dhimiter Wonka is not handing out a
+        We're celebrating the MOVION rebrand, and Wonka is not handing out a
         normal bar of chocolate.
       </p>
       <p class="announce-body">
