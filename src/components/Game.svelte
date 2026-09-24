@@ -120,7 +120,7 @@
     // and the click landing — the server is the real source of truth here,
     // so a rejection needs its own feedback, not just the local pre-check.
     const { ok, data } = await post('/api/pick', { code, straw_index: index });
-    if (!ok) showToast(data?.error === 'Straw already taken' ? "Someone beat you to that one" : 'Could not pick that straw');
+    if (!ok) showToast(data?.error === 'Straw already taken' ? "Someone beat you to that one" : 'Could not pick that one');
     conn.refresh();
   }
 

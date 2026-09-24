@@ -279,7 +279,10 @@ isolate('create', () => {
       });
       const data = await res.json().catch(() => ({}));
       if (data.code) {
-        window.location.assign('/game/' + encodeURIComponent(data.code));
+        // Straight into the event layout for now (no header, no snacks or
+        // cupboard; the QR then carries it to every phone). Temporary: drop
+        // the ?event once the event is over.
+        window.location.assign('/game/' + encodeURIComponent(data.code) + '?event');
         return;
       }
       throw new Error(data.error || 'no code returned');

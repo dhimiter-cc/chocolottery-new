@@ -13,7 +13,7 @@
     { text: '2', freq: 494, dur: 700 },
     { text: '1', freq: 554, dur: 700 },
     { text: 'GO!', freq: 880, dur: 700, big: true },
-    { text: 'Pick your straw', freq: 0, dur: 900, small: true },
+    { text: 'Pick your chocolate', freq: 0, dur: 900, small: true },
   ];
 
   let stepIndex = $state(-1);
