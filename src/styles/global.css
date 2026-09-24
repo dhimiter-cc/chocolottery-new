@@ -1,26 +1,44 @@
-/* Chocolate Lottery — light + warm, with a dark "stage" for the straws */
+/* Chocolate Lottery — the wrapper. The app is a wrapped chocolate bar:
+   aubergine wrapper paper as the ground, gold foil rationed to what matters
+   (the name, the one action, winners), silver foil at the ends, cocoa ink.
+   Not a MOVION identity — a side game with its own packaging. */
+
+/* Self-hosted: Archivo's width axis gives the extended wrapper lettering,
+   Doto the inkjet dot-matrix of a lot code. */
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/doto';
 
 :root {
-  /* Page surface */
-  --bg:           #FAF6EE;
-  --bg-soft:      #FFFBF2;
-  --panel:        #FFFFFF;
-  --panel-2:      #FBF6EA;
-  --border:       #E8DFCB;
-  --border-soft:  #F2EAD6;
-  --text:         #2A1F12;
-  --text-mute:    #6B5C45;
-  --text-dim:     #A89978;
+  color-scheme: dark;
 
-  /* Brand */
-  --accent:       #E89817;
-  --accent-deep:  #B6730A;
-  --accent-2:     #FF8A4C;
-  --accent-soft:  rgba(232, 152, 23, 0.12);
+  /* Page surface: wrapper paper, darkest to lightest */
+  --bg:           #16051D;
+  --bg-soft:      #22092C;
+  --panel:        #1E0827;
+  --panel-2:      #2A0F35;
+  --border:       rgba(243, 207, 110, 0.18);
+  --border-soft:  rgba(243, 207, 110, 0.09);
+  --border-hover: rgba(243, 207, 110, 0.38);
+  --text:         #F3E7CE;
+  --text-mute:    #C8B6A0;
+  --text-dim:     #9A8497;
 
-  --indigo:       #6366F1;
-  --green:        #0F9D6E;
-  --red:          #DC2A2A;
+  /* Foil: gold is rationed; amber is the working accent */
+  --gold:         #F3CF6E;
+  --gold-deep:    #D9A43A;
+  --gold-shade:   #A8781F;
+  --accent:       #E8A93A;
+  --accent-deep:  #F3CF6E;   /* "deep" = the legible one; on dark that's the lighter gold */
+  --accent-2:     #D9901E;
+  --accent-soft:  rgba(232, 169, 58, 0.14);
+  --on-gold:      #2A0B35;   /* ink printed on the foil */
+  --cocoa:        #3A1D0D;
+  --cream:        #EFE2C8;   /* the back of the wrapper */
+  --silver:       #C9CED4;
+
+  --indigo:       #8B8CF6;
+  --green:        #3FBF8C;
+  --red:          #F0625A;
 
   /* Dark stage for straws */
   --stage:        #1A1410;
@@ -40,10 +58,11 @@
   --radius:    10px;
   --radius-lg: 16px;
 
-  --shadow-1: 0 1px 2px rgba(58, 38, 12, 0.06), 0 6px 16px rgba(58, 38, 12, 0.06);
-  --shadow-2: 0 10px 30px -8px rgba(58, 38, 12, 0.18), 0 30px 60px -20px rgba(58, 38, 12, 0.2);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.22);
+  --shadow-2: 0 10px 30px -8px rgba(0, 0, 0, 0.5), 0 30px 60px -20px rgba(0, 0, 0, 0.55);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-dot:  'Doto Variable', ui-monospace, monospace;
   --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -63,11 +82,16 @@ html, body {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(900px 500px at 90% -10%, rgba(232,152,23,0.18), transparent 60%),
-    radial-gradient(800px 500px at -10% 110%, rgba(99,102,241,0.10), transparent 60%),
+    radial-gradient(1100px 560px at 50% -12%, rgba(232, 169, 58, 0.10), transparent 62%),
     var(--bg);
   padding: 32px 20px;
 }
+
+/* Browser surfaces carry the wrapper too. */
+::selection { background: var(--gold); color: var(--on-gold); }
+html { scrollbar-color: rgba(243, 207, 110, 0.35) transparent; caret-color: var(--gold); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+a { color: var(--gold); text-underline-offset: 3px; }
 
 .parchment {
   max-width: 1600px;
@@ -85,14 +109,13 @@ body {
 }
 
 .title {
-  font-weight: 800;
   margin: 0;
   font-size: 2.4rem;
-  letter-spacing: -0.025em;
-  background: linear-gradient(180deg, #3D2B12 0%, #7A5320 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--gold);
 }
 .title.small { font-size: 1.4rem; }
 
@@ -150,7 +173,7 @@ h2 {
   transition: background 0.15s, border-color 0.15s, transform 0.05s, color 0.15s, box-shadow 0.15s;
   user-select: none;
 }
-.btn:hover { background: var(--bg-soft); border-color: #DACBA5; }
+.btn:hover { background: var(--bg-soft); border-color: var(--border-hover); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -159,13 +182,14 @@ h2 {
      passes at both ends, but only once the bottom stop is nudged up from
      --accent-deep (#B6730A, 4.2:1) to #C17D0A (4.8:1); the hover gradient
      below already clears 4.5:1 as-is. */
-  background: linear-gradient(180deg, var(--accent) 0%, #C17D0A 100%);
-  color: var(--text);
-  border-color: rgba(0,0,0,0.08);
-  font-weight: 600;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 4px 14px rgba(232,152,23,0.35);
+  /* Flat gold foil with ink printed on it; no gloss. */
+  background: var(--gold);
+  color: var(--on-gold);
+  border-color: transparent;
+  font-weight: 700;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 16px rgba(0, 0, 0, 0.35);
 }
-.btn-primary:hover { filter: brightness(1.04); background: linear-gradient(180deg, #F0A726 0%, #C5800F 100%); }
+.btn-primary:hover { background: #F7DA8A; }
 .btn-primary.big { font-size: 1rem; padding: 12px 22px; }
 
 .btn-ghost {
@@ -173,7 +197,7 @@ h2 {
   border: 1px solid var(--border);
   color: var(--text-mute);
 }
-.btn-ghost:hover { color: var(--text); border-color: #DACBA5; background: var(--bg-soft); }
+.btn-ghost:hover { color: var(--text); border-color: var(--border-hover); background: var(--bg-soft); }
 .btn-ghost.active { color: var(--accent-deep); background: var(--accent-soft); border-color: var(--accent); }
 
 .btn-danger {
@@ -235,7 +259,7 @@ input[type=text], input[type=number] {
 input[type=text]:focus, input[type=number]:focus {
   outline: none;
   border-color: var(--accent);
-  background: #fff;
+  background: var(--panel-2);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 input[type=text]::placeholder, input[type=number]::placeholder { color: var(--text-dim); }
@@ -653,7 +677,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 .quick-pick-chip:hover {
   border-color: var(--accent);
-  background: linear-gradient(180deg, #fff 0%, #FFF5E0 100%);
+  background: var(--panel-2);
   color: var(--accent-deep);
   box-shadow: 0 2px 8px rgba(232,152,23,0.25);
   transform: translateY(-1px);
@@ -1296,7 +1320,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(40, 28, 12, 0.45);
+  background: rgba(10, 2, 16, 0.6);
   backdrop-filter: blur(6px);
   display: grid;
   place-items: center;
@@ -1339,7 +1363,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   font-family: var(--font-mono);
   transition: all 0.15s;
 }
-.chip:hover { color: var(--text); border-color: #DACBA5; }
+.chip:hover { color: var(--text); border-color: var(--border-hover); }
 .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); }
 
 .leaderboard-panel { padding: 0; overflow: hidden; }
@@ -2168,12 +2192,12 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 
 .cb { display: block; width: 100%; height: auto; overflow: visible; }
 .cb text { text-anchor: middle; }
-.cb-wordmark { font: italic 900 31px "Arial Black", "Helvetica Neue", system-ui, sans-serif; letter-spacing: -1px; }
-.cb-small  { font: 600 8.5px Georgia, "Times New Roman", serif; letter-spacing: 2.6px; }
+.cb-wordmark { font: italic 900 30px var(--font-sans); font-stretch: 125%; letter-spacing: -1px; }
+.cb-small  { font: 700 8px var(--font-sans); font-stretch: 112%; letter-spacing: 2.4px; }
 .cb-strong { font-size: 11px; font-weight: 700; letter-spacing: 2.2px; }
-.cb-number { font: 700 58px Georgia, "Times New Roman", serif; letter-spacing: -1px; }
+.cb-number { font: 900 54px var(--font-sans); font-stretch: 118%; letter-spacing: -2px; }
 .cb-no     { font-size: 20px; letter-spacing: 0; }
-.cb-tiny   { font: 600 6.8px Georgia, "Times New Roman", serif; letter-spacing: 1.8px; }
+.cb-tiny   { font: 700 6.4px var(--font-sans); font-stretch: 112%; letter-spacing: 1.6px; }
 .cb-name   { font: 800 12px var(--font-sans); fill: #2A0B35; letter-spacing: 0.4px; }
 .cb-shadow { fill: rgba(0, 0, 0, 0.5); }
 
@@ -2616,4 +2640,432 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .prize-mini .gt-bar, .prize-mini .gt-face-1::after { animation: none; }
   .prize-mini .gt-bar { transform: rotateX(-16deg) rotateY(-28deg); }
   .bar-slot { transition: none; }
+}
+
+/* === Homepage: the wrapper ===================================================
+   The first screen is the front of a wrapped bar (foil ends, aubergine
+   sleeve, gold foil blocking); scrolling turns it over to the back (facts
+   label and the lot codes of past rounds). Gold is rationed: the name, the
+   tear strip, winners. Motion is one moment only: the strip ripping off. */
+.wrapper-page { padding: 0; background: var(--bg); }
+
+.bar-front {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100svh;
+}
+.foil-end { display: block; width: 100%; height: clamp(26px, 5.5vh, 56px); }
+.foil-end-b { transform: scaleY(-1); }
+
+.sleeve {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(84px, 13vh, 132px) clamp(28px, 6vw, 96px);
+  /* Uncoated wrapper paper: lit from the left, falling away to the right,
+     with a print grain so it reads as paper rather than a screen. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, #1E0726 0%, #3B1549 22%, #2E0F3A 58%, #170420 100%);
+  box-shadow: inset 0 14px 22px -14px rgba(0, 0, 0, 0.7), inset 0 -14px 22px -14px rgba(0, 0, 0, 0.7);
+}
+/* The double gold rule printed round the sleeve, as on the bars in the game. */
+.sleeve-rules {
+  position: absolute;
+  inset: clamp(12px, 2vw, 22px);
+  border: 1.5px solid rgba(243, 207, 110, 0.7);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.sleeve-rules::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 0.75px solid rgba(243, 207, 110, 0.4);
+  border-radius: 2px;
+}
+
+/* Packaging micro-copy and navigation, printed in the sleeve's corners. */
+.pack-corner {
+  /* No z-index: a corner must not become a stacking context, because the
+     golden-ticket modal lives inside the top-right one and has to cover the
+     whole page. DOM order already paints corners above the sleeve rules. */
+  position: absolute;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(243, 231, 206, 0.62);
+}
+.pack-corner-tl { top: clamp(30px, 4vw, 44px); left: clamp(30px, 4.4vw, 50px); }
+.pack-corner-tr {
+  top: clamp(24px, 3.6vw, 38px);
+  right: clamp(30px, 4.4vw, 50px);
+  /* Holds the ticket button AND its modal: none of the micro-copy styling
+     may leak into the modal's text. */
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text);
+}
+.pack-corner-bl { bottom: clamp(30px, 4vw, 44px); left: clamp(30px, 4.4vw, 50px); }
+.pack-corner-br { bottom: clamp(30px, 4vw, 44px); right: clamp(30px, 4.4vw, 50px); text-align: right; }
+.pack-link {
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(243, 207, 110, 0.35);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: none;
+  text-transform: inherit;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.pack-link:hover { color: var(--gold); border-color: var(--gold); }
+.pack-corner-tr .btn { font-size: 0.8rem; padding: 6px 12px; }
+
+.front-core {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1180px;
+  text-align: center;
+}
+.wordmark {
+  margin: 0;
+  font-size: clamp(3rem, 7.4vw, 6rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: var(--gold);
+  /* Foil blocked into paper: a soft, offset drop into the sleeve. */
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  text-wrap: balance;
+}
+.wm-dot { color: var(--accent-2); }
+.front-claim {
+  max-width: 36ch;
+  margin: 22px 0 44px;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.45;
+  color: var(--text);
+}
+
+/* --- The tear strip: the page's one action ---------------------------------- */
+.tear { width: min(760px, 100%); }
+.tear-strip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  padding: 20px 20px 20px 28px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 12px 26px -6px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
+}
+.tear-strip:hover { transform: translateY(-2px) rotate(-0.35deg); box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.55); }
+.tear-strip:active { transform: translateY(0); }
+.tear-strip:focus-visible { outline: 3px solid var(--cream); outline-offset: 4px; }
+/* Perforations: where the strip will tear. */
+.tear-perf {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 7px;
+  border-top: 2px dashed rgba(42, 11, 53, 0.34);
+  pointer-events: none;
+}
+.tear-perf-b { top: auto; bottom: 7px; }
+.tear-label { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+.tear-verb {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+.tear-action {
+  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.tear-tab {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 3px;
+  background: var(--gold-deep);
+  box-shadow: inset 0 0 0 1.5px rgba(42, 11, 53, 0.25);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tear-strip:hover .tear-tab { transform: translateX(5px); }
+
+/* Ripped off in seven frames, right to left from the tab: stop-motion, the
+   same grammar as the bars unwrapping in the game. */
+.tear.is-tearing .tear-strip { animation: strip-rip 0.56s steps(7, end) forwards; pointer-events: none; }
+@keyframes strip-rip {
+  0%   { clip-path: inset(0 0 0 0); transform: none; }
+  30%  { clip-path: inset(0 0 0 22%); transform: translate(6px, -3px) rotate(-1.2deg); }
+  65%  { clip-path: inset(0 0 0 64%); transform: translate(18px, -8px) rotate(-3deg); }
+  100% { clip-path: inset(0 0 0 100%); transform: translate(34px, -14px) rotate(-5deg); }
+}
+.tear.is-open .tear-strip { display: none; }
+
+/* Under the strip: the back of the wrapper paper. */
+.tear-inside {
+  position: relative;
+  padding: 22px 24px 16px;
+  border-radius: 3px;
+  background: var(--cream);
+  color: var(--cocoa);
+  text-align: left;
+  box-shadow: 0 12px 26px -6px rgba(0, 0, 0, 0.5);
+  animation: inside-land 0.32s steps(3, end);
+}
+/* What's left of the perforation along the top edge. */
+.tear-inside::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 7px;
+  border-top: 2px dashed rgba(58, 29, 13, 0.3);
+}
+@keyframes inside-land {
+  from { transform: translateY(-4px); opacity: 0.6; }
+  to   { transform: none; opacity: 1; }
+}
+.inside-q { margin: 6px 0 14px; font-size: 1rem; font-weight: 600; }
+.inside-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.tear-inside .timer-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.tear-inside .timer-preset {
+  padding: 9px 14px;
+  border: 1.5px solid rgba(58, 29, 13, 0.35);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--cocoa);
+  font: 700 0.9rem var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tear-inside .timer-preset:hover { border-color: var(--cocoa); }
+.tear-inside .timer-preset.active { background: var(--cocoa); border-color: var(--cocoa); color: var(--cream); }
+.tear-inside .timer-preset:focus-visible { outline: 2px solid #2E0F3A; outline-offset: 2px; }
+.open-round.btn-primary {
+  padding: 12px 22px;
+  border-radius: 3px;
+  background: #2E0F3A;
+  color: var(--gold);
+  font-size: 1rem;
+  font-stretch: 115%;
+  box-shadow: 0 6px 14px rgba(46, 15, 58, 0.3);
+}
+.open-round.btn-primary:hover { background: #3B1549; }
+.open-round.btn-primary:focus-visible { outline: 2px solid #2E0F3A; outline-offset: 3px; }
+.inside-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 0; }
+.inside-foot .error { margin: 0; color: #A3261E; }
+.inside-foot .link-btn { margin-left: auto; color: var(--cocoa); font-size: 0.85rem; }
+
+/* --- The back of the wrapper --------------------------------------------- */
+.bar-back {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  align-items: start;
+  gap: clamp(32px, 5vw, 72px);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(56px, 9vw, 112px) clamp(20px, 5vw, 64px) 40px;
+}
+
+/* A nutrition-facts label, printed in cocoa on the cream back of the paper. */
+.facts {
+  padding: 16px 18px 14px;
+  border: 2px solid var(--cocoa);
+  border-radius: 2px;
+  background: var(--cream);
+  color: var(--cocoa);
+  font-variant-numeric: tabular-nums;
+}
+.facts-title {
+  margin: 0;
+  font-size: 2.35rem;
+  font-weight: 900;
+  font-stretch: 112%;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--cocoa);
+}
+.facts-serving {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--cocoa);
+  font-size: 0.9rem;
+}
+.facts-rule { border-top: 1px solid var(--cocoa); }
+.facts-rule-heavy { border-top-width: 9px; }
+.facts-amount { margin: 6px 0 2px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; }
+.facts-list { margin: 0; }
+.facts-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-top: 1px solid rgba(58, 29, 13, 0.55);
+  font-size: 0.95rem;
+}
+.facts-row dt { font-weight: 500; }
+.facts-row dd { margin: 0; font-weight: 800; text-align: right; }
+.facts-row-major { border-top-width: 3px; border-top-color: var(--cocoa); }
+.facts-row-major dt { font-weight: 800; }
+.facts-pct { margin-left: 6px; font-weight: 600; font-size: 0.85rem; }
+.facts-foot { margin: 8px 0 0; font-size: 0.76rem; line-height: 1.45; }
+.facts-link { color: var(--cocoa); font-weight: 700; }
+
+.lots-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 18px; }
+.lots-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-weight: 900;
+  font-stretch: 118%;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.lots-all {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gold);
+  text-decoration: none;
+}
+.lots-all:hover { text-decoration: underline; }
+.lots-empty { margin: 0; padding: 28px 0; color: var(--text-mute); }
+
+.lot-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+/* Each past round is a wrapper band with its lot stamp. */
+.lot {
+  display: grid;
+  grid-template-columns: 9.5rem 5.2rem minmax(0, 1fr) 5.5rem minmax(0, 10rem);
+  align-items: center;
+  gap: 18px;
+  padding: 14px 20px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2A0F35 0%, #230C2D 100%);
+  box-shadow: inset 0 1px 0 rgba(243, 207, 110, 0.22), inset 0 -1px 0 rgba(243, 207, 110, 0.12);
+}
+.lot p { margin: 0; }
+/* Inkjet dot-matrix, as printed on the flap of every bar. */
+.lot-code {
+  font-family: var(--font-dot);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--silver);
+}
+.lot-stamp {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-dot);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-dim);
+}
+.lot-main { min-width: 0; }
+.lot-winner {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-stretch: 112%;
+  color: var(--gold);
+}
+.lot-others {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.82rem;
+  color: var(--text-mute);
+}
+.lot-odds { font-size: 0.9rem; font-variant-numeric: tabular-nums; color: var(--text-mute); white-space: nowrap; }
+.lot-odds strong { font-size: 1.15rem; font-weight: 800; color: var(--text); }
+.lot-prize {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: right;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.back-foot { padding: 32px 20px 48px; text-align: center; font-size: 0.8rem; color: var(--text-dim); }
+.back-foot p { margin: 0; }
+
+@media (max-width: 900px) {
+  .bar-back { grid-template-columns: 1fr; }
+  .facts { max-width: 420px; }
+}
+@media (max-width: 720px) {
+  .wm-line { display: block; }
+  .wordmark { font-size: clamp(2.6rem, 14.5vw, 4.4rem); font-stretch: 108%; }
+  .sleeve { padding: 96px 26px 104px; }
+  /* Micro-copy corners only: the top-right one holds the ticket modal. */
+  .pack-corner:not(.pack-corner-tr) { font-size: 0.62rem; letter-spacing: 0.16em; gap: 14px; }
+  .pack-corner-bl { display: none; }
+  /* Nav and the ticket button stack in the top-left instead of colliding. */
+  .pack-corner-tr { top: 62px; right: auto; left: clamp(30px, 4.4vw, 50px); }
+  .sleeve { padding-top: 116px; }
+  .pack-corner-br { left: clamp(30px, 4.4vw, 50px); text-align: center; justify-content: center; }
+  .tear-strip { padding: 16px 14px 16px 18px; }
+  .tear-tab { width: 44px; height: 44px; }
+  .lot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "code stamp" "main odds" "prize prize";
+    gap: 6px 14px;
+    padding: 12px 16px;
+  }
+  .lot-code { grid-area: code; }
+  .lot-stamp { grid-area: stamp; flex-direction: row; gap: 8px; }
+  .lot-main { grid-area: main; }
+  .lot-odds { grid-area: odds; }
+  .lot-prize { grid-area: prize; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tear.is-tearing .tear-strip, .tear-inside { animation: none; }
+  .tear-strip, .tear-tab { transition: none; }
 }

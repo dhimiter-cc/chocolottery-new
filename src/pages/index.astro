@@ -1,6 +1,93 @@
 ---
 import '../styles/global.css';
 import GoldenTicketIsland from '../components/GoldenTicketIsland.svelte';
+import { loadLeaderboard } from '../lib/game.js';
+import { isEventDay } from '../lib/specialPrize.js';
+import { seeded } from '../lib/bars.js';
+import type { LeaderboardWin } from '../lib/types.js';
+
+// The homepage is a wrapped chocolate bar: the first screen is the front of
+// the wrapper, with one tear strip to open a round; scrolling turns it over to
+// the back, where the facts panel and the lot codes of past rounds are printed.
+
+const { wins } = await loadLeaderboard();
+const eventDay = isEventDay();
+
+// ── The back of the wrapper: figures from the real win history ─────────────
+const rounds = wins.length;
+const tracked = wins.filter((w) => (w.participants ?? 0) > 0);
+const servings = tracked.reduce((n, w) => n + (w.participants ?? 0), 0);
+const people = new Set<string>();
+for (const w of wins) {
+  if (w.name) people.add(w.name.trim().toLowerCase());
+  for (const n of w.player_names ?? []) people.add(n.trim().toLowerCase());
+}
+const winCounts = new Map<string, number>();
+for (const w of wins) if (w.name) winCounts.set(w.name, (winCounts.get(w.name) ?? 0) + 1);
+const luckiest = [...winCounts.entries()].sort((a, b) => b[1] - a[1])[0] ?? null;
+const biggest = tracked.reduce((m, w) => Math.max(m, w.participants ?? 0), 0);
+const avgOdds = tracked.length ? servings / tracked.length : 0;
+
+const recent: LeaderboardWin[] = [...wins].sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0)).slice(0, 8);
+
+// Printed the way a lot stamp is: in the office's own time zone, whatever
+// zone the server runs in.
+const TZ = 'Europe/Amsterdam';
+// Three-letter months, like a real lot stamp (en-GB's "short" gives "SEPT").
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const stampDate = (ts: number) => {
+  const parts = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'numeric', timeZone: TZ }).formatToParts(new Date(ts * 1000));
+  const day = parts.find((p) => p.type === 'day')?.value ?? '';
+  const month = Number(parts.find((p) => p.type === 'month')?.value ?? 1);
+  return `${day} ${MONTHS[month - 1]}`;
+};
+const stampTime = (ts: number) =>
+  new Date(ts * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+
+function ago(ts: number): string {
+  const s = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+  if (s < 3600) return `${Math.max(1, Math.round(s / 60))} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  const d = Math.round(s / 86400);
+  return d === 1 ? 'yesterday' : `${d} days ago`;
+}
+
+function others(w: LeaderboardWin): string {
+  const rest = (w.player_names ?? []).filter((n) => n !== w.name);
+  if (!rest.length) return '';
+  const shown = rest.slice(0, 3).join(', ');
+  return rest.length > 3 ? `${shown} +${rest.length - 3}` : shown;
+}
+
+// ── The foil ends: crinkled silver, drawn as low-poly facets ────────────────
+// Seeded, so every visit shows the same sheet of foil.
+function foil(seed: number, w = 1600, h = 56) {
+  const r = seeded(seed);
+  const cols = 40, rows = 3;
+  const cw = w / cols, rh = h / rows;
+  const v: [number, number][][] = [];
+  for (let j = 0; j <= rows; j++) {
+    v.push([]);
+    for (let i = 0; i <= cols; i++) {
+      const edge = j === 0 || j === rows;
+      v[j].push([i * cw + (i && i < cols ? (r() - 0.5) * cw * 0.8 : 0), j * rh + (edge ? 0 : (r() - 0.5) * rh * 0.7)]);
+    }
+  }
+  const tris: { d: string; l: number }[] = [];
+  const pt = ([x, y]: [number, number]) => `${x.toFixed(1)},${y.toFixed(1)}`;
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      const a = v[j][i], b = v[j][i + 1], c = v[j + 1][i + 1], d = v[j + 1][i];
+      tris.push({ d: `${pt(a)} ${pt(b)} ${pt(c)}`, l: 62 + r() * 30 });
+      tris.push({ d: `${pt(a)} ${pt(c)} ${pt(d)}`, l: 58 + r() * 32 });
+    }
+  }
+  return { w, h, tris };
+}
+const foilTop = foil(1709);
+const foilBottom = foil(4231);
+
+const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -8,246 +95,214 @@ import GoldenTicketIsland from '../components/GoldenTicketIsland.svelte';
 <meta charset="UTF-8">
 <title>Chocolate Lottery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#16051D">
 </head>
-<body>
-<div class="parchment">
-  <header class="masthead">
-    <div>
-      <h1 class="title">chocolate.lottery</h1>
-      <p class="tagline">One chocolate. Many victims. Pick the longest straw. Don't make it weird.</p>
-    </div>
-    <div class="head-actions">
+<body class="wrapper-page">
+
+<!-- ═══ The front of the wrapper ═══════════════════════════════════════════ -->
+<section class="bar-front" aria-labelledby="wordmark">
+  <svg class="foil-end" viewBox={`0 0 ${foilTop.w} ${foilTop.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    {foilTop.tris.map((t) => <polygon points={t.d} fill={`hsl(270 6% ${t.l}%)`} />)}
+  </svg>
+
+  <div class="sleeve">
+    <div class="sleeve-rules" aria-hidden="true"></div>
+
+    <nav class="pack-corner pack-corner-tl" aria-label="Site">
+      <a href="/leaderboard" class="pack-link">Leaderboard</a>
+      <button type="button" id="fairness-btn" class="pack-link">Fairness check</button>
+    </nav>
+    <div class="pack-corner pack-corner-tr">
       <GoldenTicketIsland client:load />
-      <button type="button" id="fairness-btn" class="btn btn-ghost">⚖️ Fairness</button>
-      <a href="/leaderboard" class="btn btn-ghost">Leaderboard →</a>
     </div>
-  </header>
 
-  <main class="landing-grid">
-    <section class="panel">
-      <h2>Start a new round</h2>
-      <p class="muted">Open a new game. Share the code. Watch productivity plummet.</p>
-      <button id="create-btn" class="btn btn-primary big" style="margin-top: 14px;">Create a game</button>
-    </section>
+    <div class="front-core">
+      <h1 id="wordmark" class="wordmark">
+        <span class="wm-line">chocolate<span class="wm-dot">.</span></span><span class="wm-line">lottery</span>
+      </h1>
+      <p class="front-claim">One chocolate. Many victims. Whoever finds the golden ticket takes it home.</p>
 
-    <section class="panel">
-      <h2>Join an existing round</h2>
-      <p class="muted">Got a code? Drop in. No HR forms. No team-building exercises.</p>
-      <form id="join-form" class="join-form" style="margin-top: 14px;" novalidate>
-        <label for="join-code">Game code
-          <input type="text" id="join-code" class="code-input" placeholder="CHOC-1234"
-                 autocomplete="off" autocapitalize="characters" spellcheck="false"
-                 inputmode="text" maxlength="40">
-        </label>
-        <label id="join-name-label" for="join-name">Your name
-          <input type="text" id="join-name" placeholder="your name" maxlength="30" autocomplete="off">
-        </label>
-        <p id="join-known-name" class="join-known muted" hidden>
-          Joining as <strong id="join-known-value"></strong> ·
-          <button type="button" id="join-change-name" class="link-btn">not you?</button>
-        </p>
-        <button type="submit" id="join-submit" class="btn btn-primary">Join the game</button>
-      </form>
-      <p id="join-error" class="error"></p>
-    </section>
-  </main>
+      <div class="tear" id="tear">
+        <button type="button" class="tear-strip" id="create-btn" aria-expanded="false" aria-controls="tear-inside">
+          <span class="tear-perf" aria-hidden="true"></span>
+          <span class="tear-label">
+            <span class="tear-verb">Pull to</span>
+            <span class="tear-action">{actionLabel}</span>
+          </span>
+          <span class="tear-tab" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="tear-perf tear-perf-b" aria-hidden="true"></span>
+        </button>
 
-  <footer class="foot">
-    <a href="/leaderboard">The Chocolate Industrial Complex 🏭</a>
-  </footer>
-</div>
-
-<!-- Create game modal: pick the picking-timer duration -->
-<div id="create-modal" class="modal" hidden>
-  <div class="modal-card">
-    <h2>Start a new round</h2>
-    <p class="muted">How long should we wait for people to join before the round auto-starts? You can add 30 seconds in the lobby if stragglers are still trickling in.</p>
-    <div class="timer-presets" role="radiogroup" aria-label="Lobby wait timer">
-      <button type="button" class="btn btn-ghost timer-preset" data-seconds="60">1:00</button>
-      <button type="button" class="btn btn-ghost timer-preset" data-seconds="120">2:00</button>
-      <button type="button" class="btn btn-ghost timer-preset" data-seconds="300">5:00</button>
-      <button type="button" class="btn btn-ghost timer-preset" data-seconds="">No timer</button>
+        <!-- Under the strip: the inside of the wrapper, where the round's one
+             setting lives. -->
+        <div class="tear-inside" id="tear-inside" hidden>
+          <p class="inside-q" id="timer-q">How long do people get to join before it starts itself?</p>
+          <div class="inside-row">
+            <div class="timer-presets" role="radiogroup" aria-labelledby="timer-q">
+              <button type="button" class="timer-preset" role="radio" data-seconds="60">1 min</button>
+              <button type="button" class="timer-preset" role="radio" data-seconds="120">2 min</button>
+              <button type="button" class="timer-preset" role="radio" data-seconds="300">5 min</button>
+              <button type="button" class="timer-preset" role="radio" data-seconds="">No timer</button>
+            </div>
+            <button type="button" id="create-confirm" class="btn btn-primary open-round">Open the round</button>
+          </div>
+          <p class="inside-foot">
+            <span id="create-error" class="error" role="alert"></span>
+            <button type="button" id="create-cancel" class="link-btn">Wrap it back up</button>
+          </p>
+        </div>
+      </div>
     </div>
-    <div class="announce-actions" style="margin-top:22px;">
-      <button type="button" id="create-cancel" class="btn btn-ghost">Cancel</button>
-      <button type="button" id="create-confirm" class="btn btn-primary">Create game</button>
-    </div>
+
+    <p class="pack-corner pack-corner-bl" aria-hidden="true">Net wt. 1 bar · Serves the whole office</p>
+    <p class="pack-corner pack-corner-br" aria-hidden="true">Best drawn before the afternoon slump</p>
   </div>
-</div>
 
-<!-- The Fairness Check intro announcement used to live here. It has done its job,
-     and the golden-ticket teaser now owns the first-load moment — two modals
-     fighting over it would be one too many. See git history if it's ever needed. -->
+  <svg class="foil-end foil-end-b" viewBox={`0 0 ${foilBottom.w} ${foilBottom.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    {foilBottom.tris.map((t) => <polygon points={t.d} fill={`hsl(270 6% ${t.l}%)`} />)}
+  </svg>
+</section>
+
+<!-- ═══ The back of the wrapper ════════════════════════════════════════════ -->
+<main class="bar-back">
+  <section class="facts" aria-labelledby="facts-title">
+    <h2 id="facts-title" class="facts-title">Draw facts</h2>
+    <p class="facts-serving">Servings per office <strong>{people.size} colleagues</strong></p>
+    <div class="facts-rule facts-rule-heavy"></div>
+    <p class="facts-amount">Amount per history</p>
+    <dl class="facts-list">
+      <div class="facts-row facts-row-major"><dt>Rounds drawn</dt><dd>{rounds}</dd></div>
+      <div class="facts-row"><dt>Seats at the table</dt><dd>{servings}</dd></div>
+      <div class="facts-row"><dt>Biggest round</dt><dd>{biggest ? `${biggest} players` : '—'}</dd></div>
+      <div class="facts-row"><dt>Typical odds</dt><dd>{avgOdds ? `1 in ${avgOdds.toFixed(1)}` : '—'}</dd></div>
+      <div class="facts-row facts-row-major">
+        <dt>Luckiest</dt>
+        <dd>{luckiest ? <>{luckiest[0]} <span class="facts-pct">{Math.round((luckiest[1] / rounds) * 100)}%*</span></> : '—'}</dd>
+      </div>
+      <div class="facts-row"><dt>Last draw</dt><dd>{recent[0] ? ago(recent[0].timestamp) : '—'}</dd></div>
+    </dl>
+    <div class="facts-rule facts-rule-heavy"></div>
+    <p class="facts-foot">* Share of all wins. Suspicious? <button type="button" class="link-btn facts-link" data-open-fairness>Run the fairness check</button>.</p>
+  </section>
+
+  <section class="lots" aria-labelledby="lots-title">
+    <div class="lots-head">
+      <h2 id="lots-title" class="lots-title">Recent rounds</h2>
+      <a href="/leaderboard" class="lots-all">Full leaderboard
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    {recent.length === 0 ? (
+      <p class="lots-empty">No rounds drawn yet. Pull the strip above and start the first one.</p>
+    ) : (
+      <ol class="lot-list">
+        {recent.map((w) => (
+          <li class="lot">
+            <p class="lot-code" aria-label={`Game ${w.game_code}`}>{w.game_code}</p>
+            <p class="lot-stamp">
+              <span>{stampDate(w.timestamp)}</span>
+              <span>{stampTime(w.timestamp)}</span>
+            </p>
+            <div class="lot-main">
+              <p class="lot-winner">{w.name}</p>
+              <p class="lot-others">{others(w) ? `beat ${others(w)}` : 'played alone, somehow'}</p>
+            </div>
+            <p class="lot-odds">{w.participants ? <>1 in <strong>{w.participants}</strong></> : '—'}</p>
+            <p class="lot-prize">{w.prize_snack ?? 'House chocolate'}</p>
+          </li>
+        ))}
+      </ol>
+    )}
+  </section>
+</main>
+
+<footer class="back-foot">
+  <p>Packed in the office kitchen. No HR forms were harmed.</p>
+</footer>
 
 <!-- Fairness Check modal -->
 <div id="fairness-modal" class="modal" hidden>
   <div class="modal-card fairness-modal-card">
     <div class="section-head" style="margin-bottom:16px;">
-      <h2>⚖️ Fairness Check</h2>
-      <button type="button" id="fairness-close" class="btn btn-ghost" style="padding:4px 10px;">✕</button>
+      <h2>Fairness check</h2>
+      <button type="button" id="fairness-close" class="btn btn-ghost" style="padding:4px 10px;" aria-label="Close">✕</button>
     </div>
-    <p class="muted">Actual wins vs. statistically expected wins — based on how many players were in each game.</p>
+    <p class="muted">Actual wins vs. statistically expected wins, based on how many players were in each game.</p>
     <div id="fairness-body" style="margin-top:16px;"><p class="muted center">Loading…</p></div>
     <p id="fairness-note" class="muted" style="font-size:0.8rem;margin-top:14px;"></p>
   </div>
 </div>
 
 <script>
-// Everything on this page is ONE module: if any top-level statement throws,
-// nothing registered after it ever runs. That is how the join form lost its
-// submit handler — an unguarded localStorage read (which throws in private
-// windows and wherever site data is blocked) ran before addEventListener was
-// reached, so the form fell back to a native GET submit and the page silently
-// reloaded with the code still in the URL. Looks exactly like "join is broken".
-//
-// Two rules keep that from coming back:
-//   1. storage goes through `store`, which can never throw;
-//   2. every feature registers inside `isolate()`, so one broken feature can't
-//      take the others down with it. Join is registered first.
+// One module; each feature registers inside `isolate()` so one broken feature
+// can't take the others down with it (an unguarded throw at the top level used
+// to kill every handler registered after it).
 
-const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
-
-const store = {
-  get(key) { try { return localStorage.getItem(key); } catch { return null; } },
-  set(key, value) { try { localStorage.setItem(key, value); } catch { /* no storage, no problem */ } },
-};
-
-function isolate(name, fn) {
+function isolate(name: string, fn: () => void) {
   try { fn(); }
   catch (err) { console.error('[landing] "' + name + '" failed to initialise:', err); }
 }
 
-// ── Join an existing round ───────────────────────────────────────────────────
-isolate('join', () => {
-  const form   = document.getElementById('join-form');
-  const codeEl = document.getElementById('join-code');
-  const nameEl = document.getElementById('join-name');
-  const nameLb = document.getElementById('join-name-label');
-  const errEl  = document.getElementById('join-error');
-  const btn    = document.getElementById('join-submit');
-  const label  = btn.textContent;
+const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
-  const CODE_RE  = /^(CHOC|COCO|BEAN|WRAP)-\d{4}$/;
-  const LOOSE_RE = /(CHOC|COCO|BEAN|WRAP)\W*(\d{4})/;
-
-  // Pull the code out of whatever got pasted: "choc-1234", "CHOC 1234",
-  // "choc1234", or the entire shared link (http://…/game/CHOC-1234).
-  function normaliseCode(raw) {
-    const upper = String(raw).toUpperCase();
-    const match = upper.match(LOOSE_RE);
-    return match ? match[1] + '-' + match[2] : upper.trim().replace(/\s+/g, '');
-  }
-
-  function setBusy(busy) {
-    btn.disabled    = busy;
-    btn.textContent = busy ? 'Joining…' : label;
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errEl.textContent = '';
-
-    const code = normaliseCode(codeEl.value);
-    const name = nameEl.value.trim();
-    codeEl.value = code;  // show exactly what we're about to send
-
-    if (!code) {
-      errEl.textContent = 'Pop the game code in first.';
-      codeEl.focus();
-      return;
-    }
-    if (!CODE_RE.test(code)) {
-      errEl.textContent = /^\d{4}$/.test(code)
-        ? 'Almost — codes need the word at the front too, like CHOC-' + code + '.'
-        : 'That does not look like a game code. They look like CHOC-1234.';
-      codeEl.focus();
-      return;
-    }
-    if (!name) {
-      errEl.textContent = 'We need a name to put on the straw.';
-      nameLb.hidden = false;
-      nameEl.focus();
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const res  = await fetch('/api/join', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ code, name }),
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || data.error) {
-        errEl.textContent =
-          res.status === 404 ? 'No game with that code. Check it with whoever shared it.' :
-          res.status === 409 ? 'That round already started — ask the host to restart it.' :
-          data.error || 'Could not join that game.';
-        setBusy(false);
-        return;
-      }
-
-      store.set(REMEMBERED_NAME_KEY, name);
-      window.location.assign('/game/' + encodeURIComponent(data.code));
-    } catch {
-      errEl.textContent = 'Could not reach the server. Still on the wifi?';
-      setBusy(false);
-    }
-  });
-
-  // Tidy the field on paste and on the way out, so what the user sees is what
-  // we send.
-  codeEl.addEventListener('paste', (e) => {
-    const text = e.clipboardData && e.clipboardData.getData('text');
-    if (!text) return;
-    e.preventDefault();
-    codeEl.value = normaliseCode(text);
-  });
-  codeEl.addEventListener('blur', () => {
-    if (codeEl.value.trim()) codeEl.value = normaliseCode(codeEl.value);
-  });
-
-  // Skip asking for a name we already know — but always leave a way out, for
-  // the shared laptop in the kitchen.
-  const remembered = store.get(REMEMBERED_NAME_KEY) || '';
-  if (remembered) {
-    nameEl.value  = remembered;
-    nameLb.hidden = true;
-    document.getElementById('join-known-value').textContent = remembered;
-    document.getElementById('join-known-name').hidden = false;
-  }
-  document.getElementById('join-change-name').addEventListener('click', () => {
-    nameLb.hidden = false;
-    document.getElementById('join-known-name').hidden = true;
-    nameEl.value = '';
-    nameEl.focus();
-  });
-});
-
-// ── Start a new round ────────────────────────────────────────────────────────
+// ── Start a round: the tear strip ───────────────────────────────────────────
 isolate('create', () => {
-  const modal   = document.getElementById('create-modal');
-  const presets = Array.from(modal.querySelectorAll('.timer-preset'));
-  const confirm = document.getElementById('create-confirm');
+  const tear    = document.getElementById('tear')!;
+  const strip   = document.getElementById('create-btn') as HTMLButtonElement;
+  const inside  = document.getElementById('tear-inside')!;
+  const presets = Array.from(inside.querySelectorAll<HTMLButtonElement>('.timer-preset'));
+  const confirm = document.getElementById('create-confirm') as HTMLButtonElement;
+  const cancel  = document.getElementById('create-cancel')!;
+  const errEl   = document.getElementById('create-error')!;
   const label   = confirm.textContent;
-  // Chosen duration in seconds; '' means "No timer". Prefilled to 2:00.
+  // Seconds; '' means "No timer". Two minutes suits a room scanning a QR.
   let selected = '120';
 
   function highlight() {
-    presets.forEach(b => b.classList.toggle('active', b.dataset.seconds === selected));
+    presets.forEach((b) => {
+      const on = b.dataset.seconds === selected;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', String(on));
+    });
   }
-  presets.forEach(b => b.addEventListener('click', () => { selected = b.dataset.seconds; highlight(); }));
+  presets.forEach((b) => b.addEventListener('click', () => { selected = b.dataset.seconds ?? ''; highlight(); }));
   highlight();
 
-  function closeModal() { modal.setAttribute('hidden', ''); }
-  document.getElementById('create-btn').addEventListener('click', () => modal.removeAttribute('hidden'));
-  document.getElementById('create-cancel').addEventListener('click', closeModal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  // The strip rips off in stop-motion frames (CSS), and the inside of the
+  // wrapper is what's left behind.
+  function open() {
+    if (tear.classList.contains('is-open')) return;
+    strip.setAttribute('aria-expanded', 'true');
+    tear.classList.add('is-tearing');
+    window.setTimeout(() => {
+      tear.classList.remove('is-tearing');
+      tear.classList.add('is-open');
+      inside.hidden = false;
+      presets.find((b) => b.dataset.seconds === selected)?.focus();
+    }, reducedMotion ? 0 : 560);
+  }
+
+  function close() {
+    tear.classList.remove('is-open');
+    inside.hidden = true;
+    strip.setAttribute('aria-expanded', 'false');
+    errEl.textContent = '';
+    strip.focus();
+  }
+
+  strip.addEventListener('click', open);
+  cancel.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && tear.classList.contains('is-open')) close();
+  });
 
   confirm.addEventListener('click', async () => {
-    confirm.disabled    = true;
-    confirm.textContent = 'Creating…';
+    confirm.disabled = true;
+    confirm.textContent = 'Opening…';
+    errEl.textContent = '';
     try {
       const res  = await fetch('/api/create', {
         method:  'POST',
@@ -261,8 +316,8 @@ isolate('create', () => {
       }
       throw new Error(data.error || 'no code returned');
     } catch {
-      alert('Could not create game. Try again in a moment.');
-      confirm.disabled    = false;
+      errEl.textContent = 'Could not open a round. Check the wifi and try again.';
+      confirm.disabled = false;
       confirm.textContent = label;
     }
   });
@@ -270,9 +325,9 @@ isolate('create', () => {
 
 // ── Fairness check ──────────────────────────────────────────────────────────
 isolate('fairness', () => {
-  const modal = document.getElementById('fairness-modal');
-  const body  = document.getElementById('fairness-body');
-  const note  = document.getElementById('fairness-note');
+  const modal = document.getElementById('fairness-modal')!;
+  const body  = document.getElementById('fairness-body')!;
+  const note  = document.getElementById('fairness-note')!;
   let loaded  = false;
 
   async function openFairness() {
@@ -289,30 +344,34 @@ isolate('fairness', () => {
     }
   }
 
-  function fmtMonth(m) {
+  function fmtMonth(m: string) {
     if (!m) return '—';
     return new Date(m + '-02').toLocaleDateString('en', { month: 'short', year: 'numeric' });
   }
 
-  function renderFairness(data) {
+  function esc(s: string) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  }
+
+  function renderFairness(data: any) {
     if (!data.players || data.players.length === 0) {
-      body.innerHTML = '<p class="muted center">No games played yet — nothing to check!</p>';
+      body.innerHTML = '<p class="muted center">No games played yet, so nothing to check.</p>';
       return;
     }
 
-    const rows = data.players.map((p, i) => {
+    const rows = data.players.map((p: any, i: number) => {
       const expected = p.expected_wins !== null ? p.expected_wins.toFixed(1) : '—';
       const score    = p.luck_score    !== null ? p.luck_score.toFixed(2)    : '—';
       const verdict  = p.verdict
-        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${p.verdict.emoji} ${p.verdict.label}</span>`
+        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${p.verdict.emoji} ${esc(p.verdict.label)}</span>`
         : '<span class="fairness-verdict fairness-none">—</span>';
 
-      const gameRows = (p.games || []).map(g => `
+      const gameRows = (p.games || []).map((g: any) => `
         <div class="fg-row">
           <span class="fg-month">${fmtMonth(g.month)}</span>
-          <span class="fg-players">👥 ${g.participants} players</span>
+          <span class="fg-players">${g.participants} players</span>
           <span class="fg-chance">1 in ${g.participants} &nbsp;·&nbsp; ${g.chance_pct}% chance</span>
-          <span class="fg-result ${g.won ? 'fg-won' : 'fg-lost'}">${g.won ? '🍫 Won' : '✗ Lost'}</span>
+          <span class="fg-result ${g.won ? 'fg-won' : 'fg-lost'}">${g.won ? 'Won' : 'Lost'}</span>
         </div>`).join('');
 
       const detail = p.games && p.games.length
@@ -321,7 +380,7 @@ isolate('fairness', () => {
 
       return `
         <tr class="fairness-row" data-idx="${i}">
-          <td><span class="fg-chevron">▸</span> ${p.name}</td>
+          <td><span class="fg-chevron">▸</span> ${esc(p.name)}</td>
           <td class="tc">${p.actual_wins}</td>
           <td class="tc">${expected}</td>
           <td class="tc">${score}</td>
@@ -338,16 +397,16 @@ isolate('fairness', () => {
           <th>Name<span class="th-sub">click a row to see game history</span></th>
           <th>Wins<span class="th-sub">times you've won</span></th>
           <th>Expected<span class="th-sub">wins chance predicts, based on how many players were in each game you played</span></th>
-          <th>Luck score<span class="th-sub">your wins ÷ expected — 1.0 means perfectly average</span></th>
+          <th>Luck score<span class="th-sub">your wins ÷ expected; 1.0 means perfectly average</span></th>
           <th>Verdict<span class="th-sub">our completely unbiased assessment</span></th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
 
-    body.querySelectorAll('.fairness-row').forEach(row => {
+    body.querySelectorAll<HTMLElement>('.fairness-row').forEach((row) => {
       row.addEventListener('click', () => {
-        const detail  = document.getElementById('fg-detail-' + row.dataset.idx);
-        const chevron = row.querySelector('.fg-chevron');
+        const detail  = document.getElementById('fg-detail-' + row.dataset.idx)!;
+        const chevron = row.querySelector('.fg-chevron')!;
         const opening = detail.hidden;
         detail.hidden = !opening;
         chevron.textContent = opening ? '▾' : '▸';
@@ -363,11 +422,11 @@ isolate('fairness', () => {
 
   function closeFairness() { modal.setAttribute('hidden', ''); }
 
-  document.getElementById('fairness-btn').addEventListener('click', openFairness);
-  document.getElementById('fairness-close').addEventListener('click', closeFairness);
-  modal.addEventListener('click', e => { if (e.target === modal) closeFairness(); });
-
-  document.addEventListener('keydown', e => {
+  document.getElementById('fairness-btn')!.addEventListener('click', openFairness);
+  document.querySelectorAll('[data-open-fairness]').forEach((b) => b.addEventListener('click', openFairness));
+  document.getElementById('fairness-close')!.addEventListener('click', closeFairness);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeFairness(); });
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !modal.hidden) closeFairness();
   });
 });
