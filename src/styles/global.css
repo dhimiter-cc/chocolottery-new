@@ -2124,37 +2124,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 
 .gt-actions { margin-top: 20px; }
 
-/* Lobby banner for anyone who lands straight in a game via a shared link. */
-.gt-banner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  border: 1px dashed rgba(232, 185, 35, 0.55);
-  background: linear-gradient(100deg, rgba(247, 224, 138, 0.22), rgba(232, 185, 35, 0.1));
-  color: var(--accent-deep);
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-.gt-banner:hover {
-  border-color: var(--accent);
-  background: linear-gradient(100deg, rgba(247, 224, 138, 0.34), rgba(232, 185, 35, 0.16));
-}
-.gt-banner-tag {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.7;
-}
-
 @media (max-width: 560px) {
   .gt-stage { height: 220px; --gt-side: 76px; --gt-len: 252px; }
   .gt-face-1  { padding: 3px 12px; }
@@ -2165,7 +2134,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .gt-scale svg { height: 156px; }
   .gt-reveal-body { padding: 0 16px; }
   .gt-headline { font-size: 1.1rem; }
-  .gt-banner-tag { display: none; }
 }
 
 /* The reveal is a 1.6s spin into a flash — exactly what this query is for.
@@ -2402,7 +2370,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .event-layout .game-grid { display: flex; flex: 1; flex-direction: column; min-height: 0; }
   .event-layout .stage-panel { flex: 1; min-height: 0; padding: 10px; overflow: hidden; }
   .event-layout .phase-bar { margin-bottom: 8px; }
-  .event-layout .gt-banner { margin-bottom: 8px; }
   .event-layout .cup-stage { flex: 1; min-height: 0; }
   .event-layout .cup-stage.bar-stage { overflow: hidden; overflow: clip; }
   .event-layout .cup-stage.bar-stage.shelf-overflow,
@@ -2623,9 +2590,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
     linear-gradient(90deg, #2A0E35, var(--cb-plum-deep));
   color: var(--cb-cream);
   text-align: left;
-  cursor: pointer;
 }
-.prize-strip:focus-visible { outline: 2px solid var(--cb-gold); outline-offset: 2px; }
 .prize-mini {
   --s: 0.55;
   display: block;
@@ -3110,9 +3075,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   /* Micro-copy corners only: the top-right one holds the ticket modal. */
   .pack-corner:not(.pack-corner-tr) { font-size: 0.62rem; letter-spacing: 0.16em; gap: 14px; }
   .pack-corner-bl { display: none; }
-  /* Nav and the ticket button stack in the top-left instead of colliding. */
-  .pack-corner-tr { top: 62px; right: auto; left: clamp(30px, 4.4vw, 50px); }
-  .sleeve { padding-top: 116px; }
   .pack-corner-br { left: clamp(30px, 4.4vw, 50px); text-align: center; justify-content: center; }
   .tear { --strip-h: 84px; }
   .tear-strip { padding: 0 14px 0 18px; }

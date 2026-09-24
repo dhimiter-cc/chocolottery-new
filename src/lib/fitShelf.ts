@@ -122,9 +122,9 @@ export function fitShelf(count: number): Attachment<HTMLElement> {
     const ro = new ResizeObserver(() => fit());
     ro.observe(stage);
     for (let node: HTMLElement | null = shelf; node && node !== stage; node = node.parentElement) {
-      const parent = node.parentElement;
+      const parent: HTMLElement | null = node.parentElement;
       if (!parent) break;
-      for (const k of parent.children) if (k !== node) ro.observe(k);
+      for (const k of Array.from(parent.children)) if (k !== node) ro.observe(k);
     }
     wide.addEventListener('change', fit);
     fit();

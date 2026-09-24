@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import GoldenTicketIsland from '../components/GoldenTicketIsland.svelte';
 import { loadLeaderboard } from '../lib/game.js';
 import { isEventDay } from '../lib/specialPrize.js';
 import type { LeaderboardWin } from '../lib/types.js';
@@ -81,9 +80,6 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
       <a href="/leaderboard" class="pack-link">Leaderboard</a>
       <button type="button" id="fairness-btn" class="pack-link">Fairness check</button>
     </nav>
-    <div class="pack-corner pack-corner-tr">
-      <GoldenTicketIsland client:load />
-    </div>
 
     <div class="front-core">
       <h1 id="wordmark" class="wordmark">
