@@ -267,18 +267,6 @@
         "André"
       ],
       "prize_snack": "Banana bread"
-    },
-    {
-      "name": "Geo",
-      "game_code": "BEAN-4564",
-      "timestamp": 1790275586,
-      "month": "2026-09",
-      "participants": 2,
-      "player_names": [
-        "Dhim 2",
-        "Geo"
-      ],
-      "prize_snack": null
     }
   ]
 }
