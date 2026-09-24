@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
+  import JoinQR from './JoinQR.svelte';
 
-  let { game }: { game: GameStateResponse } = $props();
+  // `joinUrl` is only passed on the host's screen: the QR sits beside the room
+  // so people can scan it off the wall.
+  let { game, joinUrl = '' }: { game: GameStateResponse; joinUrl?: string } = $props();
 
   function avatarColor(name: string): string {
     let h = 0;
@@ -15,8 +18,10 @@
   }
 </script>
 
-<div class="stage-overlay lobby">
-  <div class="overlay-headline">In the room</div>
+<div class="stage-overlay lobby" class:lobby-with-qr={!!joinUrl}>
+  {#if joinUrl}<JoinQR url={joinUrl} />{/if}
+  <div class="lobby-room">
+  <div class="overlay-headline">In the room{joinUrl ? ` · ${game.players.length}` : ''}</div>
   <div class="lobby-players">
     {#each game.players as player (player.token)}
       <div
@@ -35,4 +40,5 @@
   {#if game.players.length === 0}
     <div class="overlay-sub">Waiting for someone — anyone — to show up.</div>
   {/if}
+  </div>
 </div>

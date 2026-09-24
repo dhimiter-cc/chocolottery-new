@@ -1827,13 +1827,18 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .gt-close:hover { background: rgba(255, 255, 255, 0.18); }
 
 /* --- The stage ----------------------------------------------------------- */
-.gt-stage {
+/* Prism geometry, shared by the reveal and the host's prize strip (which
+   scales the whole thing down rather than resizing it — the face lettering is
+   sized in rem and would not follow). */
+.gt-stage,
+.prize-mini {
   --gt-side:    116px;
   --gt-len:     400px;
   --gt-apothem: calc(var(--gt-side) * 0.28868);
   --gt-cap-h:   calc(var(--gt-side) * 0.86603);
   --gt-cap-off: calc(var(--gt-side) * 0.14434);
-
+}
+.gt-stage {
   position: relative;
   height: 260px;
   display: grid;
@@ -2340,6 +2345,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 @media (min-width: 1100px) {
   .cup-stage.bar-stage { min-height: 0; overflow-y: auto; }
 }
+/* The 3-2-1 pops to 118% of its box; on a scrollable stage a full-bleed box
+   would flash scrollbars at the peak. 80% × 1.18 still fits. */
+.cup-stage.bar-stage .countdown-overlay { inset: 10%; }
 /* Scoped under .cup-stage so it outranks .dense/.denser further down. */
 .cup-stage .bar-shelf.fitted {
   grid-template-columns: repeat(auto-fill, var(--bar-w));
@@ -2478,10 +2486,103 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 .style-toggle button[aria-pressed="true"] { background: var(--cb-plum); color: var(--cb-gold); }
 
+/* --- Host screen: join QR + prize strip ------------------------------------ */
+.stage-overlay.lobby-with-qr {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 24px 48px;
+  overflow-y: auto;
+}
+.lobby-room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 760px;
+}
+/* Only beside the QR does the room claim the remaining width; in the plain
+   (column) overlay a flex-basis would stretch it vertically instead. */
+.lobby-with-qr .lobby-room { flex: 1 1 280px; }
+.join-qr {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.join-qr-code {
+  /* Big enough to scan from the back of a room, bounded by the stage height. */
+  width: clamp(150px, min(24vw, 44vh), 380px);
+  aspect-ratio: 1;
+  padding: 10px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(243, 207, 110, 0.35), 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+.join-qr-code :where(svg) { display: block; width: 100%; height: 100%; }
+.join-qr-label { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.02em; color: var(--cb-gold); }
+.join-qr-url { font: 600 0.78rem var(--font-mono); color: rgba(243, 231, 206, 0.7); }
+
+.prize-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 20px 12px;
+  border: 1px solid rgba(243, 207, 110, 0.35);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse at 22% 50%, rgba(232, 185, 35, 0.22), transparent 60%),
+    linear-gradient(90deg, #2A0E35, var(--cb-plum-deep));
+  color: var(--cb-cream);
+  text-align: left;
+  cursor: pointer;
+}
+.prize-strip:focus-visible { outline: 2px solid var(--cb-gold); outline-offset: 2px; }
+.prize-mini {
+  --s: 0.55;
+  display: block;
+  flex: none;
+  width: calc(400px * var(--s));
+  height: calc(116px * var(--s) + 14px);
+}
+/* Always lit: no blacked-out silhouette here, the reveal is the modal's job. */
+.prize-mini .gt-scene {
+  transform: scale(var(--s));
+  transform-origin: 0 0;
+  filter: brightness(1) drop-shadow(0 10px 20px rgba(232, 185, 35, 0.35));
+  transition: none;
+}
+.prize-mini .gt-bar { animation: gt-float 6s ease-in-out infinite; }
+/* The sheen sweeps across now and then instead of once. */
+.prize-mini .gt-face-1::after { animation: prize-sheen 7s ease-out 1s infinite; }
+@keyframes prize-sheen {
+  0%   { transform: translateX(-130%); }
+  18%  { transform: translateX(130%); }
+  100% { transform: translateX(130%); }
+}
+.prize-copy { display: flex; flex-direction: column; gap: 2px; }
+.prize-kicker {
+  font: 600 0.68rem var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(243, 231, 206, 0.6);
+}
+.prize-title { font-size: clamp(1.05rem, 1.8vw, 1.5rem); font-weight: 800; line-height: 1.15; color: var(--cb-gold); }
+.prize-sub { font-size: 0.85rem; color: rgba(243, 231, 206, 0.75); }
+@media (max-width: 560px) {
+  .prize-strip { gap: 12px; padding: 8px 12px; }
+  .prize-mini { --s: 0.36; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cb-boil, .cb-ticket, .unwrap-bar.waiting { animation: none; }
   .cb-scrap { display: none; }
   .unwrap-bar, .unwrap-meter span { transition: none; }
   .bar-reveal-ticket { animation-duration: 0.01s; }
+  .prize-mini .gt-bar, .prize-mini .gt-face-1::after { animation: none; }
+  .prize-mini .gt-bar { transform: rotateX(-16deg) rotateY(-28deg); }
   .bar-slot { transition: none; }
 }

@@ -13,6 +13,7 @@
   import Fairness from './Fairness.svelte';
   import GiveCard from './GiveCard.svelte';
   import GoldenTicket from './GoldenTicket.svelte';
+  import PrizeStrip from './PrizeStrip.svelte';
   import Toaster from './Toaster.svelte';
   import { PRIZE, hasSeenTeaserToday, markTeaserSeenToday, isEventDay, isTeaseActive, hasEventPreviewParam } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
@@ -171,6 +172,10 @@
       } catch {}
     }
   }
+
+  // For the host's QR code. Browser-only, so it's filled in after mount.
+  let joinUrl = $state('');
+  $effect(() => { joinUrl = `${window.location.origin}/game/${code}`; });
 
   function copyShareUrl() {
     const url = `${window.location.origin}/game/${code}`;
@@ -471,10 +476,16 @@
             {/if}
           </div>
 
+          <!-- The prize, on the host's screen only, for the whole round. The
+               phones get the plain text banner in the lobby instead. -->
+          {#if ticketActive && isHost}
+            <PrizeStrip {style} onOpen={openTicket} />
+          {/if}
+
           {#if phase === 'lobby'}
             <!-- Anyone who opened a shared link lands straight here, having never
                  seen the landing page's teaser. -->
-            {#if ticketActive}
+            {#if ticketActive && !isHost}
               <button type="button" class="gt-banner" onclick={openTicket}>
                 🎟️
                 <span>This week the winner takes home a {PRIZE.weightKg} kg Toblerone.</span>
@@ -482,7 +493,7 @@
               </button>
             {/if}
             <div class="cup-stage" class:bar-stage={bars} data-phase="lobby">
-              <LobbyPhase game={gameState} />
+              <LobbyPhase game={gameState} joinUrl={isHost ? joinUrl : ''} />
               <div class="straws"></div>
               <div class="cup"></div>
             </div>
