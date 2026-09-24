@@ -12,8 +12,9 @@
 // off the DOM, and the stage only turns scrollable (`shelf-overflow`) when even
 // the smallest bar can't fit.
 //
-// Narrow screens scroll anyway, so there the density classes from
-// shelfDensity() keep deciding and this steps aside.
+// A stage only has a fixed height on the desktop layout or in the event layout
+// (a phone's whole screen is the stage there). Anywhere else the page scrolls,
+// the density classes from shelfDensity() decide, and this steps aside.
 import type { Attachment } from 'svelte/attachments';
 
 const GAP = 12;
@@ -78,8 +79,10 @@ export function fitShelf(count: number): Attachment<HTMLElement> {
     const wide = window.matchMedia('(min-width: 1100px)');
     let applied = -1;
 
+    const fixedStage = () => wide.matches || !!stage.closest('.event-layout');
+
     const fit = () => {
-      if (!wide.matches) {
+      if (!fixedStage()) {
         shelf.classList.remove('fitted');
         stage.classList.remove('shelf-overflow');
         applied = -1;

@@ -180,9 +180,14 @@
     }
   }
 
-  // For the host's QR code. Browser-only, so it's filled in after mount.
+  // For the host's QR code. Browser-only, so it's filled in after mount. When
+  // the host's screen is in the event layout, the QR carries it along, so
+  // phones scanning it land in the same full-screen view without anyone
+  // typing a query string.
   let joinUrl = $state('');
-  $effect(() => { joinUrl = `${window.location.origin}/game/${code}`; });
+  $effect(() => {
+    joinUrl = `${window.location.origin}/game/${code}${eventLayout ? '?event' : ''}`;
+  });
 
   function copyShareUrl() {
     const url = `${window.location.origin}/game/${code}`;

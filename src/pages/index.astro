@@ -3,7 +3,6 @@ import '../styles/global.css';
 import GoldenTicketIsland from '../components/GoldenTicketIsland.svelte';
 import { loadLeaderboard } from '../lib/game.js';
 import { isEventDay } from '../lib/specialPrize.js';
-import { seeded } from '../lib/bars.js';
 import type { LeaderboardWin } from '../lib/types.js';
 
 // The homepage is a wrapped chocolate bar: the first screen is the front of
@@ -59,34 +58,6 @@ function others(w: LeaderboardWin): string {
   return rest.length > 3 ? `${shown} +${rest.length - 3}` : shown;
 }
 
-// ── The foil ends: crinkled silver, drawn as low-poly facets ────────────────
-// Seeded, so every visit shows the same sheet of foil.
-function foil(seed: number, w = 1600, h = 56) {
-  const r = seeded(seed);
-  const cols = 40, rows = 3;
-  const cw = w / cols, rh = h / rows;
-  const v: [number, number][][] = [];
-  for (let j = 0; j <= rows; j++) {
-    v.push([]);
-    for (let i = 0; i <= cols; i++) {
-      const edge = j === 0 || j === rows;
-      v[j].push([i * cw + (i && i < cols ? (r() - 0.5) * cw * 0.8 : 0), j * rh + (edge ? 0 : (r() - 0.5) * rh * 0.7)]);
-    }
-  }
-  const tris: { d: string; l: number }[] = [];
-  const pt = ([x, y]: [number, number]) => `${x.toFixed(1)},${y.toFixed(1)}`;
-  for (let j = 0; j < rows; j++) {
-    for (let i = 0; i < cols; i++) {
-      const a = v[j][i], b = v[j][i + 1], c = v[j + 1][i + 1], d = v[j + 1][i];
-      tris.push({ d: `${pt(a)} ${pt(b)} ${pt(c)}`, l: 62 + r() * 30 });
-      tris.push({ d: `${pt(a)} ${pt(c)} ${pt(d)}`, l: 58 + r() * 32 });
-    }
-  }
-  return { w, h, tris };
-}
-const foilTop = foil(1709);
-const foilBottom = foil(4231);
-
 const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 ---
 <!DOCTYPE html>
@@ -101,9 +72,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 
 <!-- ═══ The front of the wrapper ═══════════════════════════════════════════ -->
 <section class="bar-front" aria-labelledby="wordmark">
-  <svg class="foil-end" viewBox={`0 0 ${foilTop.w} ${foilTop.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    {foilTop.tris.map((t) => <polygon points={t.d} fill={`hsl(270 6% ${t.l}%)`} />)}
-  </svg>
+  <div class="foil-end" aria-hidden="true"></div>
 
   <div class="sleeve">
     <div class="sleeve-rules" aria-hidden="true"></div>
@@ -126,8 +95,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
         <button type="button" class="tear-strip" id="create-btn" aria-expanded="false" aria-controls="tear-inside">
           <span class="tear-perf" aria-hidden="true"></span>
           <span class="tear-label">
-            <span class="tear-verb">Pull to</span>
-            <span class="tear-action">{actionLabel}</span>
+            <span class="tear-verb">Pull to</span> <span class="tear-action">{actionLabel.toLowerCase()}</span>
           </span>
           <span class="tear-tab" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -137,7 +105,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 
         <!-- Under the strip: the inside of the wrapper, where the round's one
              setting lives. -->
-        <div class="tear-inside" id="tear-inside" hidden>
+        <div class="tear-inside" id="tear-inside" inert>
           <p class="inside-q" id="timer-q">How long do people get to join before it starts itself?</p>
           <div class="inside-row">
             <div class="timer-presets" role="radiogroup" aria-labelledby="timer-q">
@@ -160,9 +128,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
     <p class="pack-corner pack-corner-br" aria-hidden="true">Best drawn before the afternoon slump</p>
   </div>
 
-  <svg class="foil-end foil-end-b" viewBox={`0 0 ${foilBottom.w} ${foilBottom.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    {foilBottom.tris.map((t) => <polygon points={t.d} fill={`hsl(270 6% ${t.l}%)`} />)}
-  </svg>
+  <div class="foil-end foil-end-b" aria-hidden="true"></div>
 </section>
 
 <!-- ═══ The back of the wrapper ════════════════════════════════════════════ -->
@@ -228,7 +194,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
   <div class="modal-card fairness-modal-card">
     <div class="section-head" style="margin-bottom:16px;">
       <h2>Fairness check</h2>
-      <button type="button" id="fairness-close" class="btn btn-ghost" style="padding:4px 10px;" aria-label="Close">✕</button>
+      <button type="button" id="fairness-close" class="btn btn-ghost icon-btn" aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
     </div>
     <p class="muted">Actual wins vs. statistically expected wins, based on how many players were in each game.</p>
     <div id="fairness-body" style="margin-top:16px;"><p class="muted center">Loading…</p></div>
@@ -276,18 +242,20 @@ isolate('create', () => {
   function open() {
     if (tear.classList.contains('is-open')) return;
     strip.setAttribute('aria-expanded', 'true');
+    // The cream inside is laid out from page load (invisible, inert), so the
+    // page never moves; the rip uncovers exactly the strip's footprint of it.
     tear.classList.add('is-tearing');
     window.setTimeout(() => {
       tear.classList.remove('is-tearing');
       tear.classList.add('is-open');
-      inside.hidden = false;
+      inside.inert = false;
       presets.find((b) => b.dataset.seconds === selected)?.focus();
     }, reducedMotion ? 0 : 560);
   }
 
   function close() {
     tear.classList.remove('is-open');
-    inside.hidden = true;
+    inside.inert = true;
     strip.setAttribute('aria-expanded', 'false');
     errEl.textContent = '';
     strip.focus();
@@ -363,7 +331,7 @@ isolate('fairness', () => {
       const expected = p.expected_wins !== null ? p.expected_wins.toFixed(1) : '—';
       const score    = p.luck_score    !== null ? p.luck_score.toFixed(2)    : '—';
       const verdict  = p.verdict
-        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${p.verdict.emoji} ${esc(p.verdict.label)}</span>`
+        ? `<span class="fairness-verdict fairness-${p.verdict.class}">${esc(p.verdict.label)}</span>`
         : '<span class="fairness-verdict fairness-none">—</span>';
 
       const gameRows = (p.games || []).map((g: any) => `
@@ -380,7 +348,7 @@ isolate('fairness', () => {
 
       return `
         <tr class="fairness-row" data-idx="${i}">
-          <td><span class="fg-chevron">▸</span> ${esc(p.name)}</td>
+          <td><span class="fg-chevron"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span> ${esc(p.name)}</td>
           <td class="tc">${p.actual_wins}</td>
           <td class="tc">${expected}</td>
           <td class="tc">${score}</td>
@@ -406,10 +374,8 @@ isolate('fairness', () => {
     body.querySelectorAll<HTMLElement>('.fairness-row').forEach((row) => {
       row.addEventListener('click', () => {
         const detail  = document.getElementById('fg-detail-' + row.dataset.idx)!;
-        const chevron = row.querySelector('.fg-chevron')!;
         const opening = detail.hidden;
         detail.hidden = !opening;
-        chevron.textContent = opening ? '▾' : '▸';
         row.classList.toggle('fairness-row-open', opening);
       });
     });

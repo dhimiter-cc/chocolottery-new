@@ -314,7 +314,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   color: var(--text-mute);
   font-size: 0.9rem;
 }
-.foot a { color: var(--text-mute); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.foot a { display: inline-flex; align-items: center; gap: 6px; color: var(--text-mute); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .foot a:hover { color: var(--text); }
 
 /* === GAME PAGE === */
@@ -341,9 +341,12 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 /* === Unified game grid === */
 .game-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0, …) and min-width: 0 so no panel's content can force the column
+     wider than a 360px phone (it did, by 16px: sideways scroll). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
+.game-grid > * { min-width: 0; }
 @media (min-width: 1100px) {
   .game-room  { height: calc(100vh - 64px); }
   .game-grid {
@@ -1360,7 +1363,8 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   border: 1px solid var(--border);
   text-decoration: none;
   color: var(--text-mute);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: 600;
   transition: all 0.15s;
 }
 .chip:hover { color: var(--text); border-color: var(--border-hover); }
@@ -2381,6 +2385,32 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 @media (max-width: 1099px) {
   .cup-stage.bar-stage { overflow-x: hidden; overflow-x: clip; }
 }
+
+/* Event layout on a phone (the view the QR opens): the screen IS the stage.
+   No page scroll: the room fits the viewport, the stage takes everything the
+   phase bar leaves, bars are fitted to it (fitShelf), and chat is the floating
+   bubble. Only a stage whose content can't fit even at the smallest bar size
+   scrolls, inside itself. */
+@media (max-width: 1099px) {
+  body:has(.event-layout) { padding: 0; }
+  .event-layout.game-room {
+    height: 100dvh;
+    min-height: 0;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .event-layout .game-grid { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+  .event-layout .stage-panel { flex: 1; min-height: 0; padding: 10px; overflow: hidden; }
+  .event-layout .phase-bar { margin-bottom: 8px; }
+  .event-layout .gt-banner { margin-bottom: 8px; }
+  .event-layout .cup-stage { flex: 1; min-height: 0; }
+  .event-layout .cup-stage.bar-stage { overflow: hidden; overflow: clip; }
+  .event-layout .cup-stage.bar-stage.shelf-overflow,
+  .event-layout .cup-stage[data-phase="reveal"] { overflow-y: auto; }
+  .event-layout .stage-overlay.lobby { overflow-y: auto; }
+  .event-layout .style-row { margin-top: 8px; font-size: 0.78rem; }
+  .event-layout .restart-btn { margin-top: 6px; }
+}
 /* The 3-2-1 pops to 118% of its box; on a scrollable stage a full-bleed box
    would flash scrollbars at the peak. 80% × 1.18 still fits. */
 .cup-stage.bar-stage .countdown-overlay { inset: 10%; }
@@ -2654,7 +2684,23 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   grid-template-rows: auto 1fr auto;
   min-height: 100svh;
 }
-.foil-end { display: block; width: 100%; height: clamp(26px, 5.5vh, 56px); }
+.foil-end {
+  /* The foil crimp at each end of the bar, as flat print: parallel crimp
+     ridges in two silvers, and a serrated cut where it meets the paper. */
+  position: relative;
+  z-index: 2;
+  height: clamp(26px, 5.5vh, 56px);
+  background: repeating-linear-gradient(90deg, #DADDE2 0 3px, #B3B9C0 3px 5px, #C9CED4 5px 8px);
+}
+.foil-end::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 7px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0 L7 7 L14 0 Z' fill='%23B3B9C0'/%3E%3C/svg%3E") repeat-x;
+}
 .foil-end-b { transform: scaleY(-1); }
 
 .sleeve {
@@ -2662,7 +2708,8 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(84px, 13vh, 132px) clamp(28px, 6vw, 96px);
+  /* Sides run the tear strip right up to the gold rules. */
+  padding: clamp(84px, 13vh, 132px) calc(clamp(12px, 2vw, 22px) + 22px);
   /* Uncoated wrapper paper: lit from the left, falling away to the right,
      with a print grain so it reads as paper rather than a screen. */
   background:
@@ -2738,7 +2785,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 1180px;
   text-align: center;
 }
 .wordmark {
@@ -2763,14 +2809,19 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 
 /* --- The tear strip: the page's one action ---------------------------------- */
-.tear { width: min(760px, 100%); }
+/* Strip and the paper under it share one cell, and the paper is laid out from
+   the start (invisible, inert): the cell is already its full height, so the
+   page doesn't move when the rip begins. */
+.tear { --strip-h: 92px; display: grid; width: 100%; }
+.tear > * { grid-area: 1 / 1; align-self: start; }
+.tear-strip { z-index: 1; height: var(--strip-h); }
 .tear-strip {
   position: relative;
   display: flex;
   align-items: center;
   gap: 18px;
   width: 100%;
-  padding: 20px 20px 20px 28px;
+  padding: 0 20px 0 28px;
   border: 0;
   border-radius: 3px;
   background: var(--gold);
@@ -2794,22 +2845,17 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   pointer-events: none;
 }
 .tear-perf-b { top: auto; bottom: 7px; }
-.tear-label { display: flex; flex: 1; flex-direction: column; gap: 2px; }
-.tear-verb {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  opacity: 0.72;
-}
-.tear-action {
-  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
-  font-weight: 900;
+.tear-label {
+  flex: 1;
+  font-size: clamp(1.25rem, 2.6vw, 1.9rem);
   font-stretch: 125%;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
+/* One line, one voice: the verb is the same face, just lighter. */
+.tear-verb { font-weight: 500; }
+.tear-action { font-weight: 900; white-space: nowrap; }
 .tear-tab {
   display: grid;
   flex: none;
@@ -2823,14 +2869,29 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 .tear-strip:hover .tear-tab { transform: translateX(5px); }
 
-/* Ripped off in seven frames, right to left from the tab: stop-motion, the
-   same grammar as the bars unwrapping in the game. */
+/* Ripped off from the tab end in seven frames: stop-motion, the same grammar
+   as the bars unwrapping in the game. Each frame cuts back a step and leaves a
+   ragged paper edge, and the cream inside shows through what's gone. */
 .tear.is-tearing .tear-strip { animation: strip-rip 0.56s steps(7, end) forwards; pointer-events: none; }
 @keyframes strip-rip {
-  0%   { clip-path: inset(0 0 0 0); transform: none; }
-  30%  { clip-path: inset(0 0 0 22%); transform: translate(6px, -3px) rotate(-1.2deg); }
-  65%  { clip-path: inset(0 0 0 64%); transform: translate(18px, -8px) rotate(-3deg); }
-  100% { clip-path: inset(0 0 0 100%); transform: translate(34px, -14px) rotate(-5deg); }
+  from { clip-path: inset(0 0 0 0); }
+  to   { clip-path: inset(0 100% 0 0); }
+}
+.tear-strip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='16'%3E%3Cpath d='M10 0 L0 4 L7 8 L1 12 L10 16 Z' fill='%23EFE2C8'/%3E%3C/svg%3E") repeat-y;
+  opacity: 0;
+  pointer-events: none;
+}
+.tear.is-tearing .tear-strip::after { opacity: 1; animation: rip-edge 0.56s steps(7, end) forwards; }
+@keyframes rip-edge {
+  from { right: 0; }
+  to   { right: 100%; }
 }
 .tear.is-open .tear-strip { display: none; }
 
@@ -2843,8 +2904,15 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   color: var(--cocoa);
   text-align: left;
   box-shadow: 0 12px 26px -6px rgba(0, 0, 0, 0.5);
-  animation: inside-land 0.32s steps(3, end);
+  visibility: hidden;
 }
+.tear.is-tearing .tear-inside,
+.tear.is-open .tear-inside { visibility: visible; }
+/* Mid-rip only the strip's footprint of the paper shows; the rest (timer
+   buttons included) arrives with the open state. */
+.tear.is-tearing .tear-inside { clip-path: inset(0 0 calc(100% - var(--strip-h)) 0); box-shadow: none; }
+/* ...and it's bare paper: the controls print on it once the strip is gone. */
+.tear.is-tearing .tear-inside > * { visibility: hidden; }
 /* What's left of the perforation along the top edge. */
 .tear-inside::before {
   content: '';
@@ -2853,10 +2921,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   right: 10px;
   top: 7px;
   border-top: 2px dashed rgba(58, 29, 13, 0.3);
-}
-@keyframes inside-land {
-  from { transform: translateY(-4px); opacity: 0.6; }
-  to   { transform: none; opacity: 1; }
 }
 .inside-q { margin: 6px 0 14px; font-size: 1rem; font-weight: 600; }
 .inside-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
@@ -3050,7 +3114,8 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .pack-corner-tr { top: 62px; right: auto; left: clamp(30px, 4.4vw, 50px); }
   .sleeve { padding-top: 116px; }
   .pack-corner-br { left: clamp(30px, 4.4vw, 50px); text-align: center; justify-content: center; }
-  .tear-strip { padding: 16px 14px 16px 18px; }
+  .tear { --strip-h: 84px; }
+  .tear-strip { padding: 0 14px 0 18px; }
   .tear-tab { width: 44px; height: 44px; }
   .lot {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -3066,6 +3131,12 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tear.is-tearing .tear-strip, .tear-inside { animation: none; }
+  .tear.is-tearing .tear-strip { animation: none; }
   .tear-strip, .tear-tab { transition: none; }
 }
+
+/* Drawn icons (leaderboard arrows, fairness modal). */
+.ico { flex: none; }
+.icon-btn { display: inline-grid; place-items: center; padding: 6px; }
+.fg-chevron { display: inline-flex; vertical-align: -2px; transition: transform 0.15s; }
+.fairness-row-open .fg-chevron { transform: rotate(90deg); }

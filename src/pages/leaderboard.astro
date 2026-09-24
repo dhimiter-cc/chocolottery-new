@@ -60,16 +60,17 @@ const title = selectedMonth ? fmtMonth(selectedMonth) : 'All Time';
   <header class="masthead">
     <div>
       <h1 class="title">leaderboard</h1>
-      <p class="tagline">The Chocolate Industrial Complex 🏭</p>
+      <p class="tagline">The Chocolate Industrial Complex</p>
     </div>
-    <a href="/" class="btn btn-ghost">← Back</a>
+    <a href="/" class="btn btn-ghost"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back</a>
   </header>
 
   <div class="month-nav">
     <a class:list={['btn', 'btn-ghost', { active: !selectedMonth }]} href="/leaderboard">All time</a>
-    {prevMonth && <a class="btn btn-ghost" href={`/leaderboard?month=${prevMonth}`}>← {fmtMonth(prevMonth)}</a>}
-    <span class="current-month">{title}</span>
-    {nextMonth && <a class="btn btn-ghost" href={`/leaderboard?month=${nextMonth}`}>{fmtMonth(nextMonth)} →</a>}
+    {prevMonth && <a class="btn btn-ghost" href={`/leaderboard?month=${prevMonth}`}><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> {fmtMonth(prevMonth)}</a>}
+    {/* The "All time" button already says so when no month is picked. */}
+    {selectedMonth && <span class="current-month">{title}</span>}
+    {nextMonth && <a class="btn btn-ghost" href={`/leaderboard?month=${nextMonth}`}>{fmtMonth(nextMonth)} <svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>}
   </div>
 
   {months.length > 1 && (
@@ -96,7 +97,7 @@ const title = selectedMonth ? fmtMonth(selectedMonth) : 'All Time';
         <tbody>
           {counts.map((c, i) => (
             <tr class:list={[{ 'top-rank': i === 0 }]}>
-              <td class="rank">{i + 1}{i === 0 ? ' 👑' : ''}</td>
+              <td class="rank">{i + 1}</td>
               <td>{c.name}</td>
               <td><strong>{c.wins}</strong></td>
               {!selectedMonth && (
@@ -114,7 +115,7 @@ const title = selectedMonth ? fmtMonth(selectedMonth) : 'All Time';
   </main>
 
   <footer class="foot">
-    <a href="/">← Back to the lottery</a>
+    <a href="/"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Back to the lottery</a>
   </footer>
 </div>
 </body>

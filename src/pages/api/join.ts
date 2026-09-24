@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import {
   withGame,
   generateToken,
+  isOnline,
   getPlayerToken,
   setPlayerCookie,
 } from '../../lib/game.js';
@@ -52,21 +53,35 @@ export const POST: APIRoute = async ({ request }) => {
       return { game, result: resultData };
     }
 
-    // New player — but if someone with this exact name (case-insensitive) is
-    // already in the lobby, treat this as the same person joining from a new
-    // device/tab rather than minting a duplicate "ghost" player. Two real
-    // colleagues sharing a first name will collide here; the team already
-    // disambiguates that case in practice ("Ali.Jr", "Ali Ahmed OG").
+    // New device, but a name already in the lobby. If that player has gone
+    // quiet (closed the tab, phone locked) this is them coming back on a new
+    // device, so hand them their seat instead of minting a ghost player.
+    //
+    // Never when that player is the host, and never while they're still
+    // online: then it's a second person with the same name, e.g. someone
+    // scanning the QR on the wall and typing the host's name. Merging used to
+    // hand them the host's identity, host controls and all. They get a
+    // numbered name instead ("Ali 2").
     const nameKey = name.toLowerCase();
     const existingEntry = Object.entries(game.players).find(
       ([, p]) => p.name.toLowerCase() === nameKey
     );
     if (existingEntry) {
       const [existingToken, existingPlayer] = existingEntry;
-      existingPlayer.last_seen = Math.floor(Date.now() / 1000);
-      existingPlayer.name = name;
-      resultData = { token: existingToken, name, code: game.code };
-      return { game, result: resultData };
+      const now = Math.floor(Date.now() / 1000);
+      const reclaimable = existingToken !== game.creator_token && !isOnline(existingPlayer, now);
+      if (reclaimable) {
+        existingPlayer.last_seen = now;
+        existingPlayer.name = name;
+        resultData = { token: existingToken, name, code: game.code };
+        return { game, result: resultData };
+      }
+      const taken = new Set(Object.values(game.players).map((p) => p.name.toLowerCase()));
+      for (let n = 2; n < 100; n++) {
+        const suffix = ` ${n}`;
+        const candidate = name.slice(0, 30 - suffix.length) + suffix;
+        if (!taken.has(candidate.toLowerCase())) { name = candidate; break; }
+      }
     }
 
     const token = generateToken();
