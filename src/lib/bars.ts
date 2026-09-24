@@ -11,6 +11,10 @@ import type { GameStyle } from './types.js';
 /** New games start in this style. The host can flip it from the lobby. */
 export const DEFAULT_STYLE: GameStyle = 'bars';
 
+/** New games: the host runs the screen and isn't in the draw. The host can
+ *  opt back in from the lobby ("I'm playing too"). */
+export const DEFAULT_HOST_PLAYS = false;
+
 /** Steps from sealed (0) to open (UNWRAP_STEPS). Paper tears on 1–4, the foil
  *  on 5–7, and the last step shows what's inside. The server only reveals a
  *  bar's contents once its holder reaches this number. */

@@ -159,6 +159,13 @@
     conn.refresh();
   }
 
+  // Is the host in the draw? Off by default: the host runs the screen.
+  async function handleHostPlays(next: boolean) {
+    const { ok, data } = await post('/api/style', { code, host_plays: next });
+    if (!ok) showToast(data?.error ?? 'Could not switch');
+    conn.refresh();
+  }
+
   async function handleRestart() {
     if (!restartArmed) {
       restartArmed = true;
@@ -265,10 +272,9 @@
     const onlineCount = gameState.players.filter(p => p.online).length;
     if (phase === 'lobby') {
       if (!isHost) {
-        const host = gameState.players.find(p => p.token === gameState!.creator_token);
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Waiting for more.`
-          : `${onlineCount} ready. Waiting for ${host?.name ?? 'the host'} to start.`;
+          : `${onlineCount} ready. Waiting for ${gameState.host?.name ?? 'the host'} to start.`;
       } else {
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Send the link to your colleagues.`
@@ -278,6 +284,7 @@
       const pickedCount = gameState.players.filter(p => p.picked).length;
       const remaining = gameState.players.length - pickedCount;
       if (remaining === 0) phaseDetailText = '🥁 The drumroll, please…';
+      else if (hostOnly) phaseDetailText = `${remaining} still to pick.`;
       else if (gameState.my_straw == null) phaseDetailText = '';
       else phaseDetailText = `Locked in. Waiting for ${remaining} more brave soul${remaining === 1 ? '' : 's'}.`;
     } else if (phase === 'unwrapping') {
@@ -292,6 +299,9 @@
   });
 
   let phaseDetail = $derived(phaseDetailText);
+
+  // This screen is the host's and the host isn't in the draw.
+  let hostOnly = $derived(isHost && !(gameState?.host_plays ?? true));
 
   let showGiveCard = $derived((phase === 'reveal' || phase === 'done') && (isHost || !!gameState?.prize_given_id));
 
@@ -504,6 +514,14 @@
                   <button type="button" aria-pressed={style === 'straws'} onclick={() => handleStyle('straws')}>🥤 Straws</button>
                   <button type="button" aria-pressed={bars} onclick={() => handleStyle('bars')}>🍫 Chocolate bars</button>
                 </div>
+                <label class="host-plays">
+                  <input
+                    type="checkbox"
+                    checked={gameState.host_plays}
+                    onchange={(e) => handleHostPlays(e.currentTarget.checked)}
+                  />
+                  I'm playing too
+                </label>
               </div>
             {:else if bars}
               <p class="style-row">This round: 🍫 chocolate bars. One has a golden ticket inside.</p>

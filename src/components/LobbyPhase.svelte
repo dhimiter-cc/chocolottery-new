@@ -40,5 +40,9 @@
   {#if game.players.length === 0}
     <div class="overlay-sub">Waiting for someone — anyone — to show up.</div>
   {/if}
+  <!-- A host who only oversees isn't in the room list (or the draw). -->
+  {#if game.host && !game.host_plays}
+    <div class="lobby-host">Hosted by {game.host.is_me ? 'you' : game.host.name} · not in the draw</div>
+  {/if}
   </div>
 </div>

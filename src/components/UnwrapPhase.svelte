@@ -120,6 +120,11 @@
     })
   );
 
+  // A plain number for the {@attach} below. Passing `bars.length` directly
+  // would make the attachment depend on `bars` — a new array every poll — so
+  // it would tear down and refit twice a second, and the board would flicker.
+  let barCount = $derived(bars.length);
+
   let wrapped = $derived(bars.filter(b => !b.opened));
   let lead = $derived(Math.max(0, ...wrapped.map(b => b.step)));
 
@@ -149,8 +154,7 @@
     </button>
   {/if}
 
-  <!-- reserve: headline (+ the "Unwrap my bar" button); label: meter, name, status -->
-  <div class="bar-shelf board {shelfDensity(bars.length)}" {@attach fitShelf(bars.length, hasBar ? 100 : 44, 46)}>
+  <div class="bar-shelf board {shelfDensity(barCount)}" {@attach fitShelf(barCount)}>
     {#each bars as b (b.i)}
       <div
         class="board-tile"

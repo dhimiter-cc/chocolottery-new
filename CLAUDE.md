@@ -78,6 +78,7 @@ lobby ──(host starts, ≥2 online)──▶ picking ──(all picked)──
 
 - A player is identified by a `player_token` **cookie** (random hex, `getPlayerToken`/`setPlayerCookies` in `lib/game.ts`). No accounts.
 - The **host/creator** is the first joiner (`creator_token`). Host-only actions: start, restart, edit cupboard, mark prize given.
+- By default the host **only oversees** (`host_plays: false` on new games, lobby switch "I'm playing too"): they stay in `game.players` for identity and chat, but get no straw/bar and can't win. Anything that counts the draw goes through `drawEntries()`; `sanitiseState` leaves the host out of `players` and reports them in `host` instead, so client counts need no special-casing. Games without the field are treated as `host_plays: true`.
 - **"Online"** = `last_seen` within `ONLINE_THRESHOLD` (30s). Games older than `GAME_TTL` (24h) are cleaned up lazily.
 
 Persisted files (see `lib/types.ts` for full interfaces):

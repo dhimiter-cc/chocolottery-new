@@ -29,8 +29,12 @@
   let pickInFlight = $state(false);
   let remaining = $derived(game.players.filter(p => !p.picked).length);
 
+  // The host's screen when the host only oversees: same shelf, nothing to tap.
+  let spectating = $derived(game.is_host && !game.host_plays);
+
   let phaseText = $derived.by(() => {
     if (remaining === 0) return 'Handing out the bars…';
+    if (spectating) return `${remaining} still choosing. One of these bars has the golden ticket.`;
     if (game.my_straw == null) return quip;
     return `Got yours. Waiting for ${remaining} more.`;
   });
@@ -42,7 +46,7 @@
   }
 
   async function pick(i: number) {
-    if (locked || pickInFlight || game.my_straw != null) return;
+    if (spectating || locked || pickInFlight || game.my_straw != null) return;
     if (holder(i)) {
       showToast('Someone beat you to that one');
       return;
@@ -55,8 +59,7 @@
 
 <p class="bar-phase-text">{phaseText}</p>
 
-<!-- reserve: the quip line above; label: the button's own padding -->
-<div class="bar-shelf {shelfDensity(barCount)}" {@attach fitShelf(barCount, 40, 8)}>
+<div class="bar-shelf {shelfDensity(barCount)}" {@attach fitShelf(barCount)}>
   {#each Array.from({ length: barCount }, (_, i) => i) as i (i)}
     {@const p = holder(i)}
     {@const mine = game.my_straw === i}
@@ -65,7 +68,7 @@
       class="bar-slot"
       class:taken={!!p}
       class:mine
-      disabled={locked || (!!p && !mine) || (game.my_straw != null && !mine)}
+      disabled={spectating || locked || (!!p && !mine) || (game.my_straw != null && !mine)}
       aria-pressed={mine}
       aria-label={p ? `Bar ${i + 1}, taken by ${p.is_me ? 'you' : p.name}` : `Bar ${i + 1}`}
       onclick={() => pick(i)}

@@ -27,8 +27,12 @@
   let remaining = $derived(total - pickedCount);
   let allPicked = $derived(remaining === 0);
 
+  // The host's screen when the host only oversees: same cup, nothing to draw.
+  let spectating = $derived(game.is_host && !game.host_plays);
+
   let phaseText = $derived.by(() => {
     if (allPicked) return '🥁 The drumroll, please…';
+    if (spectating) return `${remaining} still to draw.`;
     if (game.my_straw == null) return quip;
     return `Locked in. Waiting for ${remaining} more brave soul${remaining === 1 ? '' : 's'}.`;
   });
@@ -46,7 +50,7 @@
   }
 
   async function handleStrawClick(i: number) {
-    if (locked) return;
+    if (locked || spectating) return;
     if (pickInFlight) return;
     if (game.my_straw != null) return;
     if (isTaken(i)) {
@@ -75,7 +79,7 @@
   {#each Array.from({ length: strawCount }, (_, i) => i) as i}
     {@const taken = isTaken(i)}
     {@const mine = isMine(i)}
-    {@const disabled = game.my_straw !== null || locked}
+    {@const disabled = game.my_straw !== null || locked || spectating}
     {@const player = getStrawPlayer(i)}
     {@const picking = justPicked.has(i)}
 

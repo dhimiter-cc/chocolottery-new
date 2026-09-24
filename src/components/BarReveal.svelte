@@ -44,6 +44,7 @@
   let message = $derived.by(() => {
     if (!winner) return '';
     if (iWon) return "It was in yours. Walk slowly. Don't apologise.";
+    if (game.host?.is_me && !game.host_plays) return 'Time to hand over the prize.';
     return me ? "Pretend you're happy for them. That's professionalism." : '';
   });
 

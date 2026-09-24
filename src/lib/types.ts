@@ -40,6 +40,10 @@ export interface Game {
   picking_deadline: number | null;
   /** Absent on games created before bar mode existed — those are straws. */
   style?: GameStyle;
+  /** Does the host get a straw/bar? False = the host only oversees (runs the
+   *  screen on the wall) and can never win. Absent on older games = true,
+   *  which is how the game always worked before. */
+  host_plays?: boolean;
 }
 export interface LeaderboardWin {
   name: string; game_code: string; timestamp: number; month: string;
@@ -70,4 +74,9 @@ export interface GameStateResponse {
   lobby_deadline: number | null;
   picking_deadline: number | null;
   style: GameStyle;
+  host_plays: boolean;
+  /** The host, reported separately. When the host doesn't play they are left
+   *  out of `players` entirely, so every count and grid on every screen is
+   *  about the people in the draw. */
+  host: { name: string; online: boolean; is_me: boolean } | null;
 }

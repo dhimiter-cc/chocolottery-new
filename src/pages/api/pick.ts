@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import {
   withGame,
   afterAllPicked,
+  drawEntries,
+  hostPlays,
   appendLeaderboard,
   getPlayerToken,
 } from '../../lib/game.js';
@@ -31,6 +33,9 @@ export const POST: APIRoute = async ({ request }) => {
     if (!game.players[token]) {
       return { result: { error: 'Not in game', code: 403 }, noWrite: true };
     }
+    if (!hostPlays(game) && token === game.creator_token) {
+      return { result: { error: 'The host only oversees this round', code: 403 }, noWrite: true };
+    }
     if (game.players[token].straw_index !== null) {
       return { result: { error: 'Already picked', code: 409 }, noWrite: true };
     }
@@ -53,14 +58,11 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Auto-pick: if exactly one player is left unpicked, there is only one straw
     // they could possibly take — assign it for them so the round resolves at once.
-    const unpicked = Object.entries(game.players).filter(
-      ([, p]) => p.straw_index === null
-    );
+    const draw = drawEntries(game);
+    const unpicked = draw.filter(([, p]) => p.straw_index === null);
     if (unpicked.length === 1) {
       const taken = new Set(
-        Object.values(game.players)
-          .map((p) => p.straw_index)
-          .filter((idx) => idx !== null)
+        draw.map(([, p]) => p.straw_index).filter((idx) => idx !== null)
       );
       for (let i = 0; i < game.straws.length; i++) {
         if (!taken.has(i)) {
@@ -71,9 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Check if all players have picked
-    const allPicked = Object.values(game.players).every(
-      (p) => p.straw_index !== null
-    );
+    const allPicked = draw.every(([, p]) => p.straw_index !== null);
 
     if (allPicked) {
       winRecord = afterAllPicked(game);

@@ -2340,10 +2340,22 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .bar-shelf { grid-template-columns: repeat(auto-fit, minmax(92px, 124px)); }
 }
 /* Desktop: fitShelf (lib/fitShelf.ts) picks the bar width that fills the
-   stage. The stage then has to keep its flexed height rather than grow with
-   the shelf, or the measurement would chase its own tail. */
+   stage. The stage keeps its flexed height rather than growing with the shelf,
+   and CLIPS rather than scrolls: a scrollbar would steal width, trigger a
+   refit, disappear, and start over — visible flicker on the wall. Clipping
+   also swallows the transient overflow of flying scraps and the countdown pop.
+   Only when even the smallest bars can't fit does fitShelf add
+   .shelf-overflow and let it scroll, so no one's bar is ever cut off. */
 @media (min-width: 1100px) {
-  .cup-stage.bar-stage { min-height: 0; overflow-y: auto; }
+  .cup-stage.bar-stage { min-height: 0; overflow: hidden; overflow: clip; }
+  .cup-stage.bar-stage.shelf-overflow { overflow-y: auto; }
+  /* The reveal has no fitted shelf; on a short laptop screen it scrolls. */
+  .cup-stage.bar-stage[data-phase="reveal"] { overflow-y: auto; }
+}
+/* Phones and tablets: the stage grows with the shelf and the page scrolls, but
+   scraps flung off a bar must not widen the page sideways. */
+@media (max-width: 1099px) {
+  .cup-stage.bar-stage { overflow-x: hidden; overflow-x: clip; }
 }
 /* The 3-2-1 pops to 118% of its box; on a scrollable stage a full-bleed box
    would flash scrollbars at the peak. 80% × 1.18 still fits. */
@@ -2410,6 +2422,11 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   color: var(--cb-cream);
 }
 .board-status {
+  /* One line at every width, like .board-name: fitShelf measures a tile's
+     text height once and assumes it doesn't change as the bars resize. */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font: 600 0.64rem var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2485,6 +2502,15 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   cursor: pointer;
 }
 .style-toggle button[aria-pressed="true"] { background: var(--cb-plum); color: var(--cb-gold); }
+.host-plays { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.host-plays input { accent-color: var(--cb-plum); }
+.lobby-host {
+  margin-top: 14px;
+  font: 600 0.72rem var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 230, 160, 0.5);
+}
 
 /* --- Host screen: join QR + prize strip ------------------------------------ */
 .stage-overlay.lobby-with-qr {
@@ -2493,6 +2519,11 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   align-content: center;
   gap: 24px 48px;
   overflow-y: auto;
+}
+/* Same rule as the bar stage: on the wall, clip rather than scroll, or a new
+   avatar's 115% arrival pop can flash a scrollbar when the room is full. */
+@media (min-width: 1100px) {
+  .stage-overlay.lobby-with-qr { overflow: hidden; overflow: clip; }
 }
 .lobby-room {
   display: flex;

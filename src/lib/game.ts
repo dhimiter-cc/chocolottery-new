@@ -6,7 +6,7 @@ import { withLock } from './lock.js';
 import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
 import { UNWRAP_STEPS } from './bars.js';
 import type {
-  Game, GameStyle, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack,
+  Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack,
   PublicPlayer, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
@@ -113,6 +113,18 @@ export function gameStyle(game: Game): GameStyle {
   return game.style ?? 'straws';
 }
 
+export function hostPlays(game: Game): boolean {
+  return game.host_plays ?? true;
+}
+
+/** The players in the draw: everyone, minus the host when the host only
+ *  oversees. Anything that counts the draw — the two needed to start, straws
+ *  dealt, who's still unpicked, the win record — goes through this. */
+export function drawEntries(game: Game): [string, Player][] {
+  const skip = hostPlays(game) ? null : game.creator_token;
+  return Object.entries(game.players).filter(([t]) => t !== skip);
+}
+
 export function isOnline(player: { last_seen: number }, now = Math.floor(Date.now() / 1000)): boolean {
   return (now - player.last_seen) <= ONLINE_THRESHOLD;
 }
@@ -140,18 +152,21 @@ export function pickPrizeSnack(game: Game): PrizeSnack | null {
 // (so the host can't start a round nobody's actually in), but the draw itself
 // includes every player in the lobby, online or not — a connection blip at the
 // exact moment Start is clicked shouldn't silently cut someone from a round
-// they already joined. Shared by the host's manual start and the lobby timer's
-// auto-start.
+// they already joined. "Players" here means the draw (drawEntries): a host who
+// only oversees neither counts towards the two nor gets a straw.
+//
+// Shared by the host's manual start and the lobby timer's auto-start.
 export function beginPicking(game: Game): boolean {
   const now = Math.floor(Date.now() / 1000);
-  const onlineCount = Object.values(game.players).filter(p => isOnline(p, now)).length;
+  const draw = drawEntries(game);
+  const onlineCount = draw.filter(([, p]) => isOnline(p, now)).length;
   if (onlineCount < 2) return false;
 
   for (const t of Object.keys(game.players)) {
     game.players[t].straw_index = null;
     game.players[t].unwrap = 0;
   }
-  game.straws = generateStraws(Object.keys(game.players).length);
+  game.straws = generateStraws(draw.length);
   game.state = 'picking';
   game.winner_token = null;
   game.lobby_deadline = null;
@@ -165,16 +180,15 @@ export function beginPicking(game: Game): boolean {
 // so this is the only way a round with a truly AFK player ever finishes.
 export function assignRemainingStraws(game: Game): void {
   if (!Array.isArray(game.straws)) return;
-  const taken = new Set(
-    Object.values(game.players).map(p => p.straw_index).filter(i => i !== null)
-  );
+  const draw = drawEntries(game).map(([, p]) => p);
+  const taken = new Set(draw.map(p => p.straw_index).filter(i => i !== null));
   const free: number[] = [];
   for (let i = 0; i < game.straws.length; i++) if (!taken.has(i)) free.push(i);
   for (let i = free.length - 1; i > 0; i--) {
     const j = randomInt(i + 1);
     [free[i], free[j]] = [free[j], free[i]];
   }
-  for (const p of Object.values(game.players)) {
+  for (const p of draw) {
     if (p.straw_index === null && free.length) p.straw_index = free.pop()!;
   }
 }
@@ -184,8 +198,9 @@ export function assignRemainingStraws(game: Game): void {
 // append (outside the game lock). Shared by pick.ts and resolve.ts.
 export function finalizePicking(game: Game): LeaderboardWin | null {
   let winnerToken: string | null = null;
-  for (const [t, p] of Object.entries(game.players)) {
-    if (Array.isArray(game.straws) && game.straws[p.straw_index!] === 100) {
+  const draw = drawEntries(game);
+  for (const [t, p] of draw) {
+    if (p.straw_index !== null && Array.isArray(game.straws) && game.straws[p.straw_index] === 100) {
       winnerToken = t;
       break;
     }
@@ -201,8 +216,10 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
     game_code: game.code,
     timestamp: Math.floor(Date.now() / 1000),
     month: new Date().toISOString().slice(0, 7),
-    participants: Object.keys(game.players).length,
-    player_names: Object.values(game.players).map(p => p.name),
+    // The draw only: a host who oversees had no chance, so they mustn't
+    // dilute anyone's expected wins in the fairness check.
+    participants: draw.length,
+    player_names: draw.map(([, p]) => p.name),
     prize_snack: game.prize_snack?.text ?? null,
   };
 }
@@ -214,14 +231,14 @@ export function afterAllPicked(game: Game): LeaderboardWin | null {
   if (gameStyle(game) !== 'bars') return finalizePicking(game);
   game.state = 'unwrapping';
   game.picking_deadline = null;
-  for (const p of Object.values(game.players)) p.unwrap = 0;
+  for (const [, p] of drawEntries(game)) p.unwrap = 0;
   return null;
 }
 
 // Host escape hatch for bar mode: tear every bar open at once. Needed when
 // whoever holds the golden bar has wandered off.
 export function openAllBars(game: Game): LeaderboardWin | null {
-  for (const p of Object.values(game.players)) p.unwrap = UNWRAP_STEPS;
+  for (const [, p] of drawEntries(game)) p.unwrap = UNWRAP_STEPS;
   return finalizePicking(game);
 }
 
@@ -347,9 +364,16 @@ export function cupboardPublic(): { id: string; name: string; stock: number }[] 
 }
 
 // ── State sanitisation ────────────────────────────────────────────────────────
+function hostInfo(game: Game, myToken: string | null, now: number): GameStateResponse['host'] {
+  const t = game.creator_token;
+  const p = t ? game.players[t] : null;
+  if (!t || !p) return null;
+  return { name: p.name, online: isOnline(p, now), is_me: t === myToken };
+}
+
 export function sanitiseState(game: Game, myToken: string | null): GameStateResponse {
   const now = Math.floor(Date.now() / 1000);
-  const players: PublicPlayer[] = Object.entries(game.players ?? {}).map(([token, p]) => ({
+  const players: PublicPlayer[] = drawEntries(game).map(([token, p]) => ({
     token,
     name:        p.name,
     online:      isOnline(p, now),
@@ -426,6 +450,8 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     lobby_deadline:   game.lobby_deadline ?? null,
     picking_deadline: game.picking_deadline ?? null,
     style:            gameStyle(game),
+    host_plays:       hostPlays(game),
+    host:             hostInfo(game, myToken, now),
   };
 }
 
