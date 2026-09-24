@@ -50,6 +50,12 @@ export function isEventDay(now: Date = new Date()): boolean {
   return localDate(now) === EVENT_DATE;
 }
 
+/** `?event` on a game link previews the event-day layout on any other day.
+ *  Browser-only — call it after mount, never while server-rendering. */
+export function hasEventPreviewParam(): boolean {
+  try { return new URLSearchParams(window.location.search).has('event'); } catch { return false; }
+}
+
 /** Has this browser already auto-opened the teaser today? Stores the date rather
  *  than a plain flag, so the reminder comes back each new day instead of only once
  *  for the whole tease window. */

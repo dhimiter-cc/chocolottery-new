@@ -4,8 +4,9 @@ import path from 'node:path';
 import { randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
 import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
+import { UNWRAP_STEPS } from './bars.js';
 import type {
-  Game, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack,
+  Game, GameStyle, GameStateResponse, CupboardItem, LeaderboardWin, PrizeSnack,
   PublicPlayer, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
@@ -107,6 +108,11 @@ export function generateStraws(n: number): number[] {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+/** Games saved before bar mode existed have no `style` — they were straws. */
+export function gameStyle(game: Game): GameStyle {
+  return game.style ?? 'straws';
+}
+
 export function isOnline(player: { last_seen: number }, now = Math.floor(Date.now() / 1000)): boolean {
   return (now - player.last_seen) <= ONLINE_THRESHOLD;
 }
@@ -141,7 +147,10 @@ export function beginPicking(game: Game): boolean {
   const onlineCount = Object.values(game.players).filter(p => isOnline(p, now)).length;
   if (onlineCount < 2) return false;
 
-  for (const t of Object.keys(game.players)) game.players[t].straw_index = null;
+  for (const t of Object.keys(game.players)) {
+    game.players[t].straw_index = null;
+    game.players[t].unwrap = 0;
+  }
   game.straws = generateStraws(Object.keys(game.players).length);
   game.state = 'picking';
   game.winner_token = null;
@@ -196,6 +205,24 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
     player_names: Object.values(game.players).map(p => p.name),
     prize_snack: game.prize_snack?.text ?? null,
   };
+}
+
+// Everyone holds a straw/bar. Straws resolve on the spot; bars go on to the
+// unwrapping phase, where the round only ends once the golden bar is opened.
+// Shared by pick.ts (last pick) and resolve.ts (host force).
+export function afterAllPicked(game: Game): LeaderboardWin | null {
+  if (gameStyle(game) !== 'bars') return finalizePicking(game);
+  game.state = 'unwrapping';
+  game.picking_deadline = null;
+  for (const p of Object.values(game.players)) p.unwrap = 0;
+  return null;
+}
+
+// Host escape hatch for bar mode: tear every bar open at once. Needed when
+// whoever holds the golden bar has wandered off.
+export function openAllBars(game: Game): LeaderboardWin | null {
+  for (const p of Object.values(game.players)) p.unwrap = UNWRAP_STEPS;
+  return finalizePicking(game);
 }
 
 // ── Leaderboard ──────────────────────────────────────────────────────────────
@@ -329,13 +356,27 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     picked:      p.straw_index != null,
     straw_index: p.straw_index ?? null,
     is_me:       token === myToken,
+    unwrap:      p.unwrap ?? 0,
   }));
 
+  // Straw values stay hidden until the reveal. While bars are being unwrapped,
+  // a bar's contents show up the moment its holder has it fully open — which,
+  // in practice, is always plain chocolate: opening the golden one ends the
+  // unwrapping phase in the same write.
   let strawsOut: (number | null)[] | null = null;
   if (Array.isArray(game.straws)) {
-    strawsOut = (game.state === 'reveal' || game.state === 'done')
-      ? game.straws
-      : game.straws.map(() => null);
+    if (game.state === 'reveal' || game.state === 'done') {
+      strawsOut = game.straws;
+    } else if (game.state === 'unwrapping') {
+      const opened = new Set(
+        Object.values(game.players)
+          .filter(p => p.straw_index !== null && (p.unwrap ?? 0) >= UNWRAP_STEPS)
+          .map(p => p.straw_index)
+      );
+      strawsOut = game.straws.map((v, i) => (opened.has(i) ? v : null));
+    } else {
+      strawsOut = game.straws.map(() => null);
+    }
   }
 
   const myStraw = myToken ? (game.players[myToken]?.straw_index ?? null) : null;
@@ -384,6 +425,7 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     timer_seconds:    game.timer_seconds ?? null,
     lobby_deadline:   game.lobby_deadline ?? null,
     picking_deadline: game.picking_deadline ?? null,
+    style:            gameStyle(game),
   };
 }
 

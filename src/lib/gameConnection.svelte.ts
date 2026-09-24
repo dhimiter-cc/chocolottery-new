@@ -5,7 +5,9 @@
 //  - ETag/If-None-Match: a 304 from /api/state means "unchanged", so we skip the
 //    JSON parse and the assignment entirely — no needless re-render.
 //  - Adaptive cadence: poll every 1s only while `picking` (where snappiness
-//    matters); back off to 3s in lobby/reveal/done.
+//    matters); back off to 3s in lobby/reveal/done. `unwrapping` goes faster
+//    still — the host's board is a live view of everyone's torn wrappers, and
+//    the golden bar's opening has to reach every screen at almost once.
 //  - Visibility-aware: when the tab is hidden we stop polling and beating; on
 //    return we fire both immediately so the player is marked online again.
 
@@ -13,6 +15,7 @@ import { untrack } from 'svelte';
 import type { GameStateResponse } from './types.js';
 import { post } from './api.js';
 
+const POLL_LIVE = 500;  // unwrapping
 const POLL_FAST = 1000; // picking
 const POLL_SLOW = 3000; // lobby / reveal / done
 const HEARTBEAT_MS = 5000;
@@ -63,7 +66,10 @@ export class GameConnection {
 
   #scheduleNext() {
     if (this.#stopped) return;
-    const delay = untrack(() => this.state?.state === 'picking' ? POLL_FAST : POLL_SLOW);
+    const delay = untrack(() => {
+      const phase = this.state?.state;
+      return phase === 'unwrapping' ? POLL_LIVE : phase === 'picking' ? POLL_FAST : POLL_SLOW;
+    });
     this.#pollTimer = setTimeout(async () => {
       if (!document.hidden) await this.#fetchState();
       this.#scheduleNext();

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import {
   withGame,
-  finalizePicking,
+  afterAllPicked,
   appendLeaderboard,
   getPlayerToken,
 } from '../../lib/game.js';
@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
 
     if (allPicked) {
-      winRecord = finalizePicking(game);
+      winRecord = afterAllPicked(game);
     }
 
     return { game, result: { ok: true } };

@@ -27,13 +27,46 @@ npm start        # node server.js  (production; serves dist/server/entry.mjs on 
 
 `server.js` is the production entry point; it wraps the built middleware `handler` in a plain `http` server.
 
+## Two styles: straws and chocolate bars
+
+Each game has a `style` (`lib/bars.ts`, `DEFAULT_STYLE` for new games; the host
+flips it in the lobby via `POST /api/style`). **Both share the same draw**:
+`game.straws` holds one `100` among random values. In straw mode that's the
+longest straw; in bar mode it's the MOVION bar with the golden ticket inside.
+Games saved before `style` existed read as `'straws'` (`gameStyle()`).
+
+Bar mode adds an **`unwrapping`** phase between picking and reveal. Every
+player's own bar goes full screen on their device (`UnwrapStage.svelte`,
+swipe/drag to tear it open in `UNWRAP_STEPS` stop-motion frames); the host's
+screen shows the live board of everyone's progress (`UnwrapPhase.svelte`).
+Progress goes to `POST /api/unwrap` (forward-only, idempotent). A bar's
+contents are only revealed once its holder reaches the last step, and opening
+the golden one calls `finalizePicking` in the same write, so the round ends
+for everyone on their next poll (500ms while unwrapping). The host's
+"resolve" button opens every bar at once if the ticket holder is AFK.
+
+The bar is one SVG (`ChocolateBar.svelte`) drawn per step from seeded
+randomness, so every device shows the same frame. Dev-only workbench:
+`/dev/bars`.
+
+Rounds can be big (tested with 41 players). On the desktop layout the bars are
+sized to the stage (`lib/fitShelf.ts`), elsewhere by head count
+(`shelfDensity()`); either way the stage must never clip the shelf, or players
+can't reach their bar.
+
+**Event-day layout** (`eventLayout` in `Game.svelte`): on `EVENT_DATE`, or with
+`?event` on a game link, the header nav, snack votes and cupboard are hidden and
+the stage takes their space; the game code moves onto the stage bar.
+
 ## Game lifecycle (state machine)
 
 `game.state` moves through four phases. The whole UI keys off this value.
 
 ```
 lobby ──(host starts, ≥2 online)──▶ picking ──(all picked)──▶ reveal ─▶ done
-  ▲                                                                        │
+  ▲                                    │                        ▲          │
+  │                          (bar mode)└──▶ unwrapping ─────────┘          │
+  │                                   (golden bar opened / host opens all) │
   └──────────────────────────(host restarts)──────────────────────────────┘
 ```
 
@@ -94,7 +127,9 @@ src/
 │       ├── vote.ts            # POST → toggle vote on a suggestion
 │       ├── chat.ts            # POST → add chat message (rate-limited, keeps last 100)
 │       ├── cupboard.ts        # GET/POST → add/update/remove/give/ungive cupboard items (host)
-│       └── fairness.ts        # GET  → computes expected vs actual wins + luck verdicts
+│       ├── fairness.ts        # GET  → computes expected vs actual wins + luck verdicts
+│       ├── unwrap.ts          # POST → bar mode: record unwrap step; last step reveals contents
+│       └── style.ts           # POST → host sets straws/bars for the next round (lobby only)
 ├── components/
 │   ├── Game.svelte           # ★ Root island. Owns gameState, polling loop, sound effects,
 │   │                         #   countdown, phase routing, join modal, fairness modal.
@@ -104,10 +139,17 @@ src/
 │   ├── Snacks.svelte         # Suggestions + voting + cupboard entry point
 │   ├── Chat.svelte           # In-game chat drawer
 │   ├── Cupboard.svelte       # Host prize-stock editor modal
-│   └── EffectsCanvas.svelte  # Confetti / tears / sparkles canvas
+│   ├── EffectsCanvas.svelte  # Confetti / tears / sparkles canvas
+│   ├── ChocolateBar.svelte   # Bar mode: the MOVION bar SVG at any unwrap step
+│   ├── BarPicking.svelte     # Bar mode picking shelf (twin of PickingPhase)
+│   ├── UnwrapPhase.svelte    # Bar mode: host board + per-player scratch view + sync
+│   ├── UnwrapStage.svelte    # Full-screen swipe-to-unwrap view of your own bar
+│   ├── BoardBar.svelte       # Board tile that plays missed frames at 12fps
+│   └── BarReveal.svelte      # Bar mode reveal: ticket lifts out, name, confetti
 ├── lib/
 │   ├── game.ts               # ★ Core: load/save games, withGame(), sanitiseState(),
 │   │                         #   straw/code/token generators, leaderboard, cupboard, cookies
+│   ├── bars.ts               # Bar mode constants (DEFAULT_STYLE, UNWRAP_STEPS), PRNG
 │   ├── lock.ts               # withLock(): per-file async mutex (serialises writes)
 │   └── types.ts              # All shared interfaces (Game, GameStateResponse, etc.)
 └── styles/global.css         # All visual styling

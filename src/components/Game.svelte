@@ -3,6 +3,9 @@
   import LobbyPhase from './LobbyPhase.svelte';
   import PickingPhase from './PickingPhase.svelte';
   import RevealPhase from './RevealPhase.svelte';
+  import BarPicking from './BarPicking.svelte';
+  import UnwrapPhase from './UnwrapPhase.svelte';
+  import BarReveal from './BarReveal.svelte';
   import Snacks from './Snacks.svelte';
   import Chat from './Chat.svelte';
   import Cupboard from './Cupboard.svelte';
@@ -11,11 +14,13 @@
   import GiveCard from './GiveCard.svelte';
   import GoldenTicket from './GoldenTicket.svelte';
   import Toaster from './Toaster.svelte';
-  import { PRIZE, hasSeenTeaserToday, markTeaserSeenToday, isEventDay, isTeaseActive } from '../lib/specialPrize.js';
+  import { PRIZE, hasSeenTeaserToday, markTeaserSeenToday, isEventDay, isTeaseActive, hasEventPreviewParam } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
+  import { UNWRAP_STEPS } from '../lib/bars.js';
   import { post } from '../lib/api.js';
   import { showToast } from '../lib/toast.svelte.js';
   import { GameConnection } from '../lib/gameConnection.svelte.js';
+  import type { GameStyle } from '../lib/types.js';
 
   let {
     code,
@@ -145,6 +150,14 @@
     } catch { actionError = 'Could not add time'; }
   }
 
+  // Straws or chocolate bars for the next round. Lobby-only on the server too.
+  async function handleStyle(next: GameStyle) {
+    if (next === style) return;
+    const { ok, data } = await post('/api/style', { code, style: next });
+    if (!ok) showToast(data?.error ?? 'Could not switch');
+    conn.refresh();
+  }
+
   async function handleRestart() {
     if (!restartArmed) {
       restartArmed = true;
@@ -170,6 +183,8 @@
 
   // ── Derived state ─────────────────────────────────────────────────────────
   let phase = $derived(gameState?.state ?? 'lobby');
+  let style = $derived<GameStyle>(gameState?.style ?? 'straws');
+  let bars = $derived(style === 'bars');
   let isHost = $derived(gameState?.is_host ?? false);
   let inGame = $derived(gameState?.in_game ?? false);
   let showRestartBtn = $derived(isHost && inGame && phase !== 'lobby');
@@ -260,9 +275,14 @@
       if (remaining === 0) phaseDetailText = '🥁 The drumroll, please…';
       else if (gameState.my_straw == null) phaseDetailText = '';
       else phaseDetailText = `Locked in. Waiting for ${remaining} more brave soul${remaining === 1 ? '' : 's'}.`;
+    } else if (phase === 'unwrapping') {
+      const wrapped = gameState.players.filter(p => p.unwrap < UNWRAP_STEPS).length;
+      phaseDetailText = `${wrapped} bar${wrapped === 1 ? '' : 's'} still wrapped.`;
     } else if (phase === 'reveal' || phase === 'done') {
       const winner = gameState.players.find(p => p.token === gameState!.winner_token);
-      phaseDetailText = winner ? `🍫 ${winner.name} wins.` : 'Round over.';
+      phaseDetailText = winner
+        ? (bars ? `🎟️ ${winner.name} found the golden ticket.` : `🍫 ${winner.name} wins.`)
+        : 'Round over.';
     }
   });
 
@@ -278,6 +298,14 @@
   // is going to have the tab open across midnight into the outing.
   const ticketActive = isTeaseActive();
   const ticketIsEventDay = isEventDay();
+
+  // Event-day layout: the room on the wall only needs the game. No nav header,
+  // no snack votes or cupboard — the stage takes their space; the game code
+  // moves onto the stage bar so the join link can still be copied. On the day
+  // it's on from the first render; `?event` previews it on any other day, set
+  // after mount so the server-rendered markup never disagrees with hydration.
+  let eventLayout = $state(ticketIsEventDay);
+  $effect(() => { if (hasEventPreviewParam()) eventLayout = true; });
 
   let ticketOpen = $state(false);
   let ticketMode = $state<'tease' | 'payoff'>('tease');
@@ -368,7 +396,8 @@
 
 <!-- Main game layout -->
 {#if joined}
-  <div class="parchment game-room">
+  <div class="parchment game-room" class:event-layout={eventLayout}>
+    {#if !eventLayout}
     <header class="game-head">
       <div>
         <h1 class="title small">chocolate.lottery</h1>
@@ -388,15 +417,18 @@
         <a href="/" class="btn btn-ghost">Home</a>
       </div>
     </header>
+    {/if}
 
     {#if gameState}
       <div class="game-grid">
         <!-- Snacks: left column on desktop. Dimmed during picking so
              attention goes to the straws, not vote-chasing or cupboard
              browsing — chat stays at full prominence next to it. -->
-        <section class="panel snacks-panel" class:dimmed={phase === 'picking'}>
-          <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
-        </section>
+        {#if !eventLayout}
+          <section class="panel snacks-panel" class:dimmed={phase === 'picking' || phase === 'unwrapping'}>
+            <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
+          </section>
+        {/if}
 
         <!-- Chat: right column on desktop, bottom drawer on mobile -->
         <section class="panel chat-panel" class:drawer-open={chatOpen} hidden={!inGame || undefined}>
@@ -407,6 +439,11 @@
         <section class="panel stage-panel">
           <div class="phase-bar">
             <div class="phase-info">
+              {#if eventLayout}
+                <button type="button" class="stamp stamp-btn" title="Click to copy share link" onclick={copyShareUrl}>
+                  {copied ? '✓ Copied!' : code}
+                </button>
+              {/if}
               <span class="phase-pill {phase}">{phase.charAt(0).toUpperCase() + phase.slice(1)}</span>
               <span class="phase-detail">{phaseDetail}</span>
               {#if lobbyTimeLeft != null}
@@ -444,14 +481,29 @@
                 <span class="gt-banner-tag">take a look</span>
               </button>
             {/if}
-            <div class="cup-stage" data-phase="lobby">
+            <div class="cup-stage" class:bar-stage={bars} data-phase="lobby">
               <LobbyPhase game={gameState} />
               <div class="straws"></div>
               <div class="cup"></div>
             </div>
+            {#if isHost}
+              <div class="style-row">
+                <span>Play with</span>
+                <div class="style-toggle" role="group" aria-label="Game style">
+                  <button type="button" aria-pressed={style === 'straws'} onclick={() => handleStyle('straws')}>🥤 Straws</button>
+                  <button type="button" aria-pressed={bars} onclick={() => handleStyle('bars')}>🍫 Chocolate bars</button>
+                </div>
+              </div>
+            {:else if bars}
+              <p class="style-row">This round: 🍫 chocolate bars. One has a golden ticket inside.</p>
+            {/if}
           {:else if phase === 'picking'}
-            <div class="cup-stage" data-phase="picking" class:countdown={countdownActive}>
-              <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} />
+            <div class="cup-stage" class:bar-stage={bars} data-phase="picking" class:countdown={countdownActive}>
+              {#if bars}
+                <BarPicking game={gameState} onPick={handlePick} locked={countdownActive} />
+              {:else}
+                <PickingPhase game={gameState} onPick={handlePick} locked={countdownActive} />
+              {/if}
               <Countdown bind:this={countdownRef} onActiveChange={(a) => (countdownActive = a)} />
             </div>
             {#if isHost}
@@ -464,6 +516,30 @@
                 {resolveArmed ? 'Really assign the rest at random? Click again to confirm' : '⏭ someone’s AFK — resolve now'}
               </button>
             {/if}
+          {:else if phase === 'unwrapping'}
+            <div class="cup-stage bar-stage" data-phase="unwrapping">
+              <UnwrapPhase game={gameState} {code} onRefresh={() => conn.refresh()} />
+            </div>
+            {#if isHost}
+              <button
+                type="button"
+                class="restart-btn"
+                class:armed={resolveArmed}
+                onclick={handleForceResolve}
+              >
+                {resolveArmed ? 'Tear every bar open now? Click again to confirm' : '⏭ someone’s AFK — open all the bars'}
+              </button>
+            {/if}
+          {:else if (phase === 'reveal' || phase === 'done') && bars}
+            <div class="cup-stage bar-stage" data-phase="reveal">
+              <BarReveal
+                game={gameState}
+                {sounds}
+                onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
+                onFireSparkles={() => effectsCanvas?.fireSparkles()}
+                onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
+              />
+            </div>
           {:else if phase === 'reveal' || phase === 'done'}
             <div class="cup-stage" data-phase="reveal">
               <RevealPhase
@@ -480,7 +556,7 @@
           {#if actionError}<p class="error" style="margin: 10px 0 0;">{actionError}</p>{/if}
 
           <!-- Prize snack card -->
-          {#if gameState.prize_snack && (phase === 'reveal' || phase === 'done')}
+          {#if !eventLayout && gameState.prize_snack && (phase === 'reveal' || phase === 'done')}
             <div class="prize-card">
               <div class="prize-label">🍫 Prize snack</div>
               <div class="prize-text">{gameState.prize_snack.text}</div>
@@ -493,7 +569,7 @@
           {/if}
 
           <!-- Give card (post-reveal, host) -->
-          {#if showGiveCard}
+          {#if showGiveCard && !eventLayout}
             <GiveCard game={gameState} {code} {isHost} onRefresh={() => conn.refresh()} />
           {/if}
 
@@ -549,6 +625,7 @@
   {#if ticketActive && ticketOpen}
     <GoldenTicket
       mode={ticketMode}
+      {style}
       {winnerName}
       onClose={() => (ticketOpen = false)}
       onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}

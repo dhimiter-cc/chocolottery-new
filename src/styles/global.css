@@ -310,7 +310,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   gap: 12px;
   flex-wrap: wrap;
 }
-.head-actions { display: flex; gap: 8px; }
+.head-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .game-section { animation: fade-in 0.25s ease-out; display: flex; flex-direction: column; gap: 16px; }
 
@@ -333,6 +333,18 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .stage-panel  { grid-area: stage; overflow-y: auto; }
   .snacks-panel { grid-area: snacks; overflow-y: auto; }
   .chat-panel   { grid-area: chat; min-height: 0; overflow: hidden; }
+}
+
+/* Event-day layout (Game.svelte `eventLayout`): no header, no snacks column.
+   The stage takes the freed width and its 720px cap comes off, so forty bars
+   get the whole screen on the wall. Chat keeps its column. */
+.event-layout .cup-stage { max-width: none; }
+.stamp-btn { font-size: 0.82rem; cursor: pointer; }
+@media (min-width: 1100px) {
+  .event-layout .game-grid {
+    grid-template-columns: 1fr 280px;
+    grid-template-areas: "stage chat";
+  }
 }
 
 /* Snacks/cupboard fade back during picking so the straws hold attention;
@@ -2136,4 +2148,340 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .gt-stage.gt-lit .gt-face-1::after { animation: none; }
   .gt-reveal-body { transition: none; }
   .gt-reveal-body.gt-shown .gt-ticket { animation: none; }
+}
+
+/* === Chocolate bars — MOVION wrapper =========================================
+   The straws' twin (lib/bars.ts). One SVG (ChocolateBar.svelte) drawn at nine
+   unwrap steps. Everything that moves here moves in steps() — it's meant to
+   read as stop-motion, so nothing tweens between two frames of the bar. */
+:root {
+  --cb-plum:      #2E0F3A;   /* wrapper, sampled from the ticket's lettering */
+  --cb-plum-deep: #16051D;
+  --cb-gold:      #F3CF6E;
+  --cb-cream:     #F3E7CE;
+}
+
+.cb { display: block; width: 100%; height: auto; overflow: visible; }
+.cb text { text-anchor: middle; }
+.cb-wordmark { font: italic 900 31px "Arial Black", "Helvetica Neue", system-ui, sans-serif; letter-spacing: -1px; }
+.cb-small  { font: 600 8.5px Georgia, "Times New Roman", serif; letter-spacing: 2.6px; }
+.cb-strong { font-size: 11px; font-weight: 700; letter-spacing: 2.2px; }
+.cb-number { font: 700 58px Georgia, "Times New Roman", serif; letter-spacing: -1px; }
+.cb-no     { font-size: 20px; letter-spacing: 0; }
+.cb-tiny   { font: 600 6.8px Georgia, "Times New Roman", serif; letter-spacing: 1.8px; }
+.cb-name   { font: 800 12px var(--font-sans); fill: #2A0B35; letter-spacing: 0.4px; }
+.cb-shadow { fill: rgba(0, 0, 0, 0.5); }
+
+/* Idle boil: three near-identical poses at ~5 fps. */
+.cb-boil { animation: cb-boil 0.6s steps(1, end) infinite; }
+@keyframes cb-boil {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  33%  { transform: translate(0.6px, -0.5px) rotate(0.35deg); }
+  66%  { transform: translate(-0.5px, 0.4px) rotate(-0.3deg); }
+}
+
+/* Torn-off scrap: flung and dropped over nine frames, ~12 fps. */
+.cb-scrap {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cb-scrap 0.75s steps(9, end) forwards;
+  pointer-events: none;
+}
+@keyframes cb-scrap {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  40%  { transform: translate(calc(var(--dir) * 70px), -55px) rotate(calc(var(--dir) * 110deg)); opacity: 1; }
+  100% { transform: translate(calc(var(--dir) * 150px), 90px) rotate(calc(var(--dir) * 260deg)); opacity: 0; }
+}
+
+.cb-ticket { animation: cb-ticket-glow 1.2s steps(3, end) infinite alternate; }
+@keyframes cb-ticket-glow {
+  from { filter: drop-shadow(0 0 3px rgba(255, 210, 74, 0.7)); }
+  to   { filter: drop-shadow(0 0 12px rgba(255, 210, 74, 1)); }
+}
+
+/* --- The phone's scratch view ------------------------------------------- */
+.unwrap-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at 50% 42%, #3A1648 0%, var(--cb-plum-deep) 58%, #0A0210 100%);
+  color: var(--cb-cream);
+  /* The whole screen is the scratch surface: no scrolling, no text selection,
+     no pull-to-refresh halfway through a swipe. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: contain;
+  cursor: grab;
+}
+.unwrap-screen:active { cursor: grabbing; }
+.unwrap-screen.is-open { cursor: default; }
+.unwrap-screen.is-golden {
+  background: radial-gradient(ellipse at 50% 42%, #7A5412 0%, #3A1648 45%, var(--cb-plum-deep) 80%);
+}
+
+.unwrap-kicker {
+  margin: 0;
+  font: 600 0.72rem var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(243, 231, 206, 0.55);
+}
+.unwrap-guide {
+  margin: 0;
+  min-height: 1.5em;
+  max-width: 22em;
+  text-align: center;
+  font-size: clamp(1.05rem, 4.4vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.unwrap-screen.is-golden .unwrap-guide { color: var(--cb-gold); }
+
+.unwrap-bar {
+  /* As big as the screen allows, minus the room the copy and meter need. */
+  height: min(62vh, 580px, calc(100dvh - 320px));
+  aspect-ratio: 200 / 350;
+  transform: translateX(var(--tug, 0px)) rotate(var(--lean, 0deg));
+  transition: transform 140ms ease-out;
+}
+.unwrap-bar .cb { height: 100%; width: auto; margin: 0 auto; }
+.unwrap-bar.waiting { animation: unwrap-shiver 0.24s steps(2, end) infinite; }
+@keyframes unwrap-shiver {
+  from { transform: rotate(-1.4deg) translateX(-2px); }
+  to   { transform: rotate(1.4deg) translateX(2px); }
+}
+
+.unwrap-meter {
+  width: min(320px, 78vw);
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.unwrap-meter span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #A8781F, #FDE7A4);
+  transform-origin: left center;
+  transition: transform 90ms linear;
+}
+
+.unwrap-tear {
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: rgba(243, 231, 206, 0.5);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.unwrap-tear:hover { color: var(--cb-cream); }
+
+.unwrap-corner { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+.unwrap-footer { text-align: center; font-size: 0.85rem; color: rgba(243, 231, 206, 0.7); }
+
+.unwrap-chip {
+  padding: 7px 12px;
+  border: 1px solid rgba(243, 231, 206, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cb-cream);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.unwrap-chip:hover { background: rgba(255, 255, 255, 0.16); }
+
+/* --- In the game room ----------------------------------------------------- */
+.cup-stage.bar-stage {
+  display: flex;
+  flex-direction: column;
+  /* Grow with the shelf instead of clipping it (.cup-stage hides overflow for
+     the straws' cup), and only centre while it fits — `safe` stops a tall
+     shelf from spilling off the top where nobody can reach it. */
+  overflow: visible;
+  justify-content: safe center;
+  padding: 16px 14px 20px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(243, 207, 110, 0.14), transparent 55%),
+    linear-gradient(180deg, #2A0E35 0%, var(--cb-plum-deep) 75%, #0A0210 100%);
+}
+.bar-phase-text {
+  margin: 0 0 14px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: rgba(243, 231, 206, 0.72);
+}
+
+.bar-shelf {
+  display: grid;
+  /* Capped column width + centring: three bars sit together in the middle
+     instead of hugging the left edge of a wide stage. */
+  grid-template-columns: repeat(auto-fit, minmax(78px, 104px));
+  justify-content: center;
+  gap: 14px 12px;
+  align-items: end;
+}
+@media (min-width: 640px) {
+  .bar-shelf { grid-template-columns: repeat(auto-fit, minmax(92px, 124px)); }
+}
+/* Desktop: fitShelf (lib/fitShelf.ts) picks the bar width that fills the
+   stage. The stage then has to keep its flexed height rather than grow with
+   the shelf, or the measurement would chase its own tail. */
+@media (min-width: 1100px) {
+  .cup-stage.bar-stage { min-height: 0; overflow-y: auto; }
+}
+/* Scoped under .cup-stage so it outranks .dense/.denser further down. */
+.cup-stage .bar-shelf.fitted {
+  grid-template-columns: repeat(auto-fill, var(--bar-w));
+  gap: 12px;
+}
+
+/* Bigger rounds shrink the bars (shelfDensity in lib/bars.ts). */
+/* Columns stretch to the row (1fr) so a phone gets five across, not three
+   with gaps: forty bars in nine rows instead of fourteen. */
+.bar-shelf.dense  { grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 12px 10px; }
+.bar-shelf.denser { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 10px 8px; }
+.bar-shelf.denser .board-name { font-size: 0.7rem; }
+.bar-shelf.denser .board-status { font-size: 0.56rem; letter-spacing: 0.02em; }
+.bar-shelf.denser .bar-slot { padding: 2px; }
+
+.bar-slot {
+  padding: 4px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(.34, 1.56, .64, 1), opacity 0.3s, filter 0.3s;
+}
+.bar-slot:hover:not(:disabled) { transform: translateY(-6px) rotate(-1.5deg); }
+.bar-slot:focus-visible { outline: 2px solid var(--cb-gold); outline-offset: 2px; }
+.bar-slot:disabled { cursor: default; }
+.bar-slot.taken:not(.mine) { opacity: 0.55; filter: saturate(0.6); }
+.bar-slot.mine { filter: drop-shadow(0 0 10px rgba(243, 207, 110, 0.75)); }
+.cup-stage.countdown .bar-shelf { opacity: 0.35; transition: opacity 0.3s; }
+
+/* The live board: everyone's bar at their own step. */
+.unwrap-board { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.bar-shelf.board { width: 100%; }
+.board-tile { min-width: 0; text-align: center; transition: opacity 0.5s, filter 0.5s; }
+.board-tile.opened { opacity: 0.45; filter: saturate(0.5); }
+.board-tile.offline:not(.opened) { opacity: 0.65; }
+.board-tile.leading .cb { filter: drop-shadow(0 0 9px rgba(243, 207, 110, 0.65)); }
+.board-tile.mine .board-name { color: var(--cb-gold); }
+.board-meter {
+  height: 3px;
+  margin: 6px 6px 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.board-meter span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #A8781F, #FDE7A4);
+  transform-origin: left center;
+  transition: transform 0.25s steps(3, end);
+}
+.board-name {
+  margin-top: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cb-cream);
+}
+.board-status {
+  font: 600 0.64rem var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(243, 231, 206, 0.5);
+}
+
+/* The reveal: the ticket climbs out of the golden bar in eight frames. */
+.bar-reveal { display: flex; flex-direction: column; align-items: center; padding-top: 64px; }
+.bar-reveal-hero { position: relative; width: min(42vw, 170px); }
+.bar-reveal-ticket {
+  position: absolute;
+  left: 50%;
+  top: 48.6%;
+  width: 145%;
+  height: auto;
+  transform: translate(-50%, -50%) rotate(-86deg);
+  filter: drop-shadow(0 0 14px rgba(255, 210, 74, 0.85));
+  animation: bar-ticket-lift 0.8s steps(8, end) forwards;
+  pointer-events: none;
+}
+@keyframes bar-ticket-lift {
+  to { transform: translate(-50%, -128%) rotate(-3deg) scale(1.3); }
+}
+.bar-reveal-text { min-height: 150px; margin-top: 12px; text-align: center; }
+.bar-reveal-text .overlay-headline { color: var(--cb-gold); }
+.bar-reveal-rest {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+.bar-reveal-rest figure { width: 44px; margin: 0; }
+.bar-reveal-rest figcaption {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 0.64rem;
+  color: rgba(243, 231, 206, 0.6);
+}
+
+.phase-pill.unwrapping::before { background: var(--cb-gold); animation: pulse-dot 1.2s infinite; }
+.phase-pill.unwrapping { color: #6B3F8A; border-color: rgba(107, 63, 138, 0.35); background: rgba(107, 63, 138, 0.08); }
+
+/* Host's lobby switch: straws or bars for the next round. */
+.style-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-mute);
+}
+.style-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+}
+.style-toggle button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-mute);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.style-toggle button[aria-pressed="true"] { background: var(--cb-plum); color: var(--cb-gold); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-boil, .cb-ticket, .unwrap-bar.waiting { animation: none; }
+  .cb-scrap { display: none; }
+  .unwrap-bar, .unwrap-meter span { transition: none; }
+  .bar-reveal-ticket { animation-duration: 0.01s; }
+  .bar-slot { transition: none; }
 }

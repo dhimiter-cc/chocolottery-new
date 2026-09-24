@@ -197,6 +197,51 @@ export function playSparkleChime() {
   [1046.5, 1318.5, 1568.0, 2093.0].forEach((f, i) => tone(f, 0.5, 'sine', 0.1, i * 0.08));
 }
 
+// ── Unwrapping (chocolate-bar mode) ─────────────────────────────────────────
+// One noise grain: band-passed, with its own start offset into the shared
+// buffer so consecutive grains never sound identical.
+function grainAt(ctx: AudioContext, t: number, freq: number, q: number, vol: number, len: number) {
+  const src = ctx.createBufferSource();
+  src.buffer = getNoise(ctx);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = freq;
+  bp.Q.value = q;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0001, vol), t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  src.connect(bp);
+  bp.connect(g);
+  g.connect(ctx.destination);
+  src.start(t, Math.random() * 0.6);
+  src.stop(t + len + 0.02);
+}
+
+// Paper tearing: a dense run of low, dry grains — a rip rather than a hiss.
+export function playPaperRip() {
+  const ctx = getAudio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t0 = ctx.currentTime + 0.01;
+  const dur = 0.16 + Math.random() * 0.1;
+  for (let t = 0; t < dur; t += 0.006 + Math.random() * 0.01) {
+    grainAt(ctx, t0 + t, 900 + Math.random() * 1400, 1.2, 0.05 + Math.random() * 0.07, 0.03);
+  }
+}
+
+// Foil crinkling: sparse, bright, high clicks.
+export function playFoilCrinkle() {
+  const ctx = getAudio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t0 = ctx.currentTime + 0.01;
+  const dur = 0.22 + Math.random() * 0.1;
+  for (let t = 0; t < dur; t += 0.012 + Math.random() * 0.03) {
+    grainAt(ctx, t0 + t, 4200 + Math.random() * 3500, 3, 0.04 + Math.random() * 0.06, 0.018);
+  }
+}
+
 // Bundle handed to RevealPhase via the `sounds` prop.
 export const sounds = {
   playDrumroll,

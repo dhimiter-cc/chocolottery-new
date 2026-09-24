@@ -6,16 +6,21 @@
   // `tease`  — landing page / lobby: a teaser card, then the reveal on click.
   // `payoff` — the day itself, after the winner overlay: straight into the reveal.
   import { PRIZE } from '../lib/specialPrize.js';
+  import { DEFAULT_STYLE } from '../lib/bars.js';
+  import type { GameStyle } from '../lib/types.js';
   import { sounds } from '../lib/sound.js';
 
   let {
     mode = 'tease',
+    style = DEFAULT_STYLE,
     winnerName = '',
     onClose,
     onFireConfetti,
     onFireFireworks,
   }: {
     mode?: 'tease' | 'payoff';
+    /** How the round is won — the copy promises whichever one is being played. */
+    style?: GameStyle;
     winnerName?: string;
     onClose: () => void;
     onFireConfetti?: (big: boolean) => void;
@@ -114,6 +119,7 @@
   const viewW = labelX + 30;
 
   let showTeaser = $derived(mode === 'tease' && stage === 'tease');
+  let bars = $derived(style === 'bars');
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -133,13 +139,16 @@
     {#if showTeaser}
       <div class="announce-emoji">🎟️</div>
       <span class="announce-badge">Special edition</span>
-      <h2 class="announce-title">This Friday, the straw is worth more</h2>
+      <h2 class="announce-title">
+        {bars ? 'This Friday, one bar has a golden ticket' : 'This Friday, the straw is worth more'}
+      </h2>
       <p class="announce-body">
         We're celebrating the MOVION rebrand, and Wonka is not handing out a
         normal bar of chocolate.
       </p>
       <p class="announce-body">
-        Draw the longest straw on Friday and you don't just win the round — you walk away
+        {bars ? 'Find the golden ticket in your chocolate bar on Friday' : 'Draw the longest straw on Friday'}
+        and you don't just win the round — you walk away
         with something that needs two hands.
       </p>
       <div class="announce-actions">
@@ -167,7 +176,7 @@
                 HONEY &amp; ALMOND NOUGAT
               </span>
               <span class="gt-name">{PRIZE.brand}</span>
-              <span class="gt-strap">{PRIZE.weightKg} KG FOR WHOEVER DRAWS THE LONGEST STRAW</span>
+              <span class="gt-strap">{PRIZE.weightKg} KG FOR WHOEVER {bars ? 'FINDS THE GOLDEN TICKET' : 'DRAWS THE LONGEST STRAW'}</span>
             </div>
             <div class="gt-face gt-face-2"></div>
             <div class="gt-face gt-face-3"></div>
@@ -185,14 +194,14 @@
         {#if mode === 'payoff' && winnerName}
           <div class="gt-headline">🎟️ {winnerName} has the Golden Ticket</div>
           <p class="gt-lede">
-            The longest straw, on the one day it was worth {PRIZE.weightKg} kilograms.
+            {bars ? 'The one bar with a ticket inside' : 'The longest straw'}, on the one day it was worth {PRIZE.weightKg} kilograms.
             A delicious surprise awaits you…
           </p>
         {:else}
           <div class="gt-headline">A {PRIZE.weightKg} kilogram Toblerone</div>
           <p class="gt-lede">
             {PRIZE.lengthCm} centimetres, with {PRIZE.barsInside} full-size bars inside.
-            Whoever draws the longest straw on Friday takes it home.
+            Whoever {bars ? 'finds the golden ticket' : 'draws the longest straw'} on Friday takes it home.
           </p>
         {/if}
 

@@ -30,6 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     for (const t of Object.keys(game.players)) {
       game.players[t].straw_index = null;
+      game.players[t].unwrap = 0;
     }
 
     return { game, result: { ok: true } };

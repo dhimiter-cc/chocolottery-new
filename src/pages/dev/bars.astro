@@ -1,0 +1,18 @@
+---
+// Dev-only workbench for the chocolate bars. Not linked anywhere; 404s in production.
+import '../../styles/global.css';
+import BarLab from '../../components/BarLab.svelte';
+
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bar lab — Chocolate Lottery</title>
+</head>
+<body>
+  <BarLab client:load />
+</body>
+</html>

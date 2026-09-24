@@ -3,6 +3,8 @@ export interface Player {
   last_seen: number;
   straw_index: number | null;
   last_chat_ms?: number;
+  /** Bar mode: how far this player has unwrapped their bar (0..UNWRAP_STEPS). */
+  unwrap?: number;
 }
 export interface Suggestion {
   id: string; text: string; author_token: string; author_name: string;
@@ -17,7 +19,11 @@ export interface CupboardItem {
 export interface PrizeSnack {
   text: string; author_name: string; votes: number; random: boolean;
 }
-export type GameState = 'lobby' | 'picking' | 'reveal' | 'done';
+// `unwrapping` only happens in bar mode: everyone has a bar and is tearing it
+// open on their own screen. The first one to open the golden bar ends it.
+export type GameState = 'lobby' | 'picking' | 'unwrapping' | 'reveal' | 'done';
+/** Straws in a cup, or MOVION chocolate bars with a golden ticket. */
+export type GameStyle = 'straws' | 'bars';
 export interface Game {
   code: string; state: GameState; created_at: number;
   players: Record<string, Player>; straws: number[] | null;
@@ -32,6 +38,8 @@ export interface Game {
   timer_seconds: number | null;
   lobby_deadline: number | null;
   picking_deadline: number | null;
+  /** Absent on games created before bar mode existed — those are straws. */
+  style?: GameStyle;
 }
 export interface LeaderboardWin {
   name: string; game_code: string; timestamp: number; month: string;
@@ -40,6 +48,7 @@ export interface LeaderboardWin {
 export interface PublicPlayer {
   token: string; name: string; online: boolean; picked: boolean;
   straw_index: number | null; is_me: boolean;
+  unwrap: number;
 }
 export interface PublicSuggestion {
   id: string; text: string; author_name: string; mine: boolean;
@@ -60,4 +69,5 @@ export interface GameStateResponse {
   timer_seconds: number | null;
   lobby_deadline: number | null;
   picking_deadline: number | null;
+  style: GameStyle;
 }
