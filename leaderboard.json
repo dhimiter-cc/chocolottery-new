@@ -399,6 +399,79 @@
           "opened_at": 1790339720378
         }
       ]
+    },
+    {
+      "name": "Christelle",
+      "game_code": "WRAP-0054",
+      "timestamp": 1790339845,
+      "month": "2026-09",
+      "participants": 6,
+      "player_names": [
+        "Christelle",
+        "Dhim",
+        "Joey",
+        "Amine",
+        "Burak Bas",
+        "André"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "fed409ddd045980f705d9a7b56a77290863f44ea9c3fd7cc5feb52e11c52b467",
+        "salt": "4df2a34fb822bcd48db7b20ba7aa7acd",
+        "straws": [
+          34,
+          46,
+          50,
+          100,
+          58,
+          69
+        ],
+        "drawn_at": 1790339796638
+      },
+      "audit": [
+        {
+          "name": "Burak Bas",
+          "bar": 4,
+          "value": 58,
+          "picked_at": 1790339806955,
+          "opened_at": 1790339819364
+        },
+        {
+          "name": "Amine",
+          "bar": 5,
+          "value": 69,
+          "picked_at": 1790339802772,
+          "opened_at": 1790339827788
+        },
+        {
+          "name": "Joey",
+          "bar": 1,
+          "value": 46,
+          "picked_at": 1790339813511,
+          "opened_at": 1790339831602
+        },
+        {
+          "name": "André",
+          "bar": 0,
+          "value": 34,
+          "picked_at": 1790339811732,
+          "opened_at": 1790339836350
+        },
+        {
+          "name": "Christelle",
+          "bar": 3,
+          "value": 100,
+          "picked_at": 1790339806279,
+          "opened_at": 1790339841025
+        },
+        {
+          "name": "Dhim",
+          "bar": 2,
+          "value": 50,
+          "picked_at": 1790339813511,
+          "opened_at": 1790339845063
+        }
+      ]
     }
   ]
 }
