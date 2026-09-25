@@ -598,6 +598,295 @@
           "opened_at": 1790339936685
         }
       ]
+    },
+    {
+      "name": "TestBot 16",
+      "game_code": "CHOC-8660",
+      "timestamp": 1790342014,
+      "month": "2026-09",
+      "participants": 30,
+      "player_names": [
+        "TestBot 1",
+        "TestBot 2",
+        "TestBot 3",
+        "TestBot 4",
+        "TestBot 5",
+        "TestBot 6",
+        "TestBot 7",
+        "TestBot 8",
+        "TestBot 9",
+        "TestBot 10",
+        "TestBot 11",
+        "TestBot 12",
+        "TestBot 13",
+        "TestBot 14",
+        "TestBot 15",
+        "TestBot 16",
+        "TestBot 17",
+        "TestBot 18",
+        "TestBot 19",
+        "TestBot 20",
+        "TestBot 21",
+        "TestBot 22",
+        "TestBot 23",
+        "TestBot 24",
+        "TestBot 25",
+        "TestBot 26",
+        "TestBot 27",
+        "TestBot 28",
+        "TestBot 29",
+        "TestBot 30"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "01f967f7839c3d3cbddee3b7a441a21c5b3b5086413beecc362e70282e1edc53",
+        "salt": "b728c439b7776d9bf9634db61b7f2cce",
+        "straws": [
+          43,
+          24,
+          17,
+          54,
+          58,
+          19,
+          45,
+          52,
+          29,
+          69,
+          25,
+          26,
+          21,
+          16,
+          19,
+          43,
+          40,
+          22,
+          64,
+          69,
+          55,
+          64,
+          42,
+          55,
+          100,
+          59,
+          15,
+          56,
+          41,
+          46
+        ],
+        "drawn_at": 1790341962173
+      },
+      "audit": [
+        {
+          "name": "TestBot 13",
+          "bar": 14,
+          "value": 19,
+          "picked_at": 1790341966380,
+          "opened_at": 1790341973252
+        },
+        {
+          "name": "TestBot 5",
+          "bar": 26,
+          "value": 15,
+          "picked_at": 1790341963866,
+          "opened_at": 1790341974781
+        },
+        {
+          "name": "TestBot 14",
+          "bar": 25,
+          "value": 59,
+          "picked_at": 1790341966691,
+          "opened_at": 1790341976181
+        },
+        {
+          "name": "TestBot 3",
+          "bar": 22,
+          "value": 42,
+          "picked_at": 1790341963257,
+          "opened_at": 1790341977553
+        },
+        {
+          "name": "TestBot 17",
+          "bar": 21,
+          "value": 64,
+          "picked_at": 1790341967606,
+          "opened_at": 1790341978947
+        },
+        {
+          "name": "TestBot 9",
+          "bar": 19,
+          "value": 69,
+          "picked_at": 1790341965165,
+          "opened_at": 1790341980325
+        },
+        {
+          "name": "TestBot 30",
+          "bar": 4,
+          "value": 58,
+          "picked_at": 1790341971641,
+          "opened_at": 1790341981736
+        },
+        {
+          "name": "TestBot 11",
+          "bar": 9,
+          "value": 69,
+          "picked_at": 1790341965773,
+          "opened_at": 1790341983107
+        },
+        {
+          "name": "TestBot 16",
+          "bar": 24,
+          "value": 100,
+          "picked_at": 1790341967302,
+          "opened_at": 1790341984524
+        },
+        {
+          "name": "TestBot 15",
+          "bar": 23,
+          "value": 55,
+          "picked_at": 1790341966996,
+          "opened_at": 1790341985964
+        },
+        {
+          "name": "TestBot 18",
+          "bar": 29,
+          "value": 46,
+          "picked_at": 1790341967940,
+          "opened_at": 1790341987337
+        },
+        {
+          "name": "TestBot 4",
+          "bar": 3,
+          "value": 54,
+          "picked_at": 1790341963562,
+          "opened_at": 1790341988932
+        },
+        {
+          "name": "TestBot 6",
+          "bar": 10,
+          "value": 25,
+          "picked_at": 1790341964188,
+          "opened_at": 1790341990331
+        },
+        {
+          "name": "TestBot 21",
+          "bar": 17,
+          "value": 22,
+          "picked_at": 1790341968856,
+          "opened_at": 1790341991705
+        },
+        {
+          "name": "TestBot 7",
+          "bar": 12,
+          "value": 21,
+          "picked_at": 1790341964491,
+          "opened_at": 1790341993115
+        },
+        {
+          "name": "TestBot 25",
+          "bar": 11,
+          "value": 26,
+          "picked_at": 1790341970326,
+          "opened_at": 1790341994490
+        },
+        {
+          "name": "TestBot 2",
+          "bar": 5,
+          "value": 19,
+          "picked_at": 1790341962948,
+          "opened_at": 1790341995856
+        },
+        {
+          "name": "TestBot 22",
+          "bar": 1,
+          "value": 24,
+          "picked_at": 1790341969297,
+          "opened_at": 1790341997226
+        },
+        {
+          "name": "TestBot 26",
+          "bar": 20,
+          "value": 55,
+          "picked_at": 1790341970630,
+          "opened_at": 1790341998593
+        },
+        {
+          "name": "TestBot 1",
+          "bar": 0,
+          "value": 43,
+          "picked_at": 1790341962632,
+          "opened_at": 1790341999952
+        },
+        {
+          "name": "TestBot 20",
+          "bar": 16,
+          "value": 40,
+          "picked_at": 1790341968555,
+          "opened_at": 1790342001323
+        },
+        {
+          "name": "TestBot 8",
+          "bar": 15,
+          "value": 43,
+          "picked_at": 1790341964792,
+          "opened_at": 1790342003665
+        },
+        {
+          "name": "TestBot 10",
+          "bar": 18,
+          "value": 64,
+          "picked_at": 1790341965472,
+          "opened_at": 1790342005032
+        },
+        {
+          "name": "TestBot 23",
+          "bar": 6,
+          "value": 45,
+          "picked_at": 1790341969603,
+          "opened_at": 1790342006409
+        },
+        {
+          "name": "TestBot 24",
+          "bar": 7,
+          "value": 52,
+          "picked_at": 1790341969906,
+          "opened_at": 1790342007779
+        },
+        {
+          "name": "TestBot 27",
+          "bar": 27,
+          "value": 56,
+          "picked_at": 1790341971038,
+          "opened_at": 1790342009255
+        },
+        {
+          "name": "TestBot 29",
+          "bar": 8,
+          "value": 29,
+          "picked_at": 1790341971641,
+          "opened_at": 1790342010638
+        },
+        {
+          "name": "TestBot 19",
+          "bar": 13,
+          "value": 16,
+          "picked_at": 1790341968252,
+          "opened_at": 1790342012013
+        },
+        {
+          "name": "TestBot 28",
+          "bar": 28,
+          "value": 41,
+          "picked_at": 1790341971341,
+          "opened_at": 1790342013387
+        },
+        {
+          "name": "TestBot 12",
+          "bar": 2,
+          "value": 17,
+          "picked_at": 1790341966075,
+          "opened_at": 1790342014762
+        }
+      ]
     }
   ]
 }
