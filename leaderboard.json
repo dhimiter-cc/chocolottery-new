@@ -356,6 +356,21 @@
         "TestBot 5"
       ],
       "prize_snack": null
+    },
+    {
+      "name": "TestBot 4",
+      "game_code": "CHOC-7189",
+      "timestamp": 1790338025,
+      "month": "2026-09",
+      "participants": 5,
+      "player_names": [
+        "TestBot 1",
+        "TestBot 2",
+        "TestBot 3",
+        "TestBot 4",
+        "TestBot 5"
+      ],
+      "prize_snack": null
     }
   ]
 }
