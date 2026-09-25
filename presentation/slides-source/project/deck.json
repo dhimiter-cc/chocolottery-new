@@ -1,0 +1,52 @@
+{
+  "v": 4,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-25T09:43:10Z"
+  },
+  "title": "chocolate.lottery — the golden ticket round",
+  "order": [
+    "cover",
+    "two-screens",
+    "tear",
+    "room",
+    "countdown",
+    "picking",
+    "unwrap",
+    "board",
+    "found",
+    "prize",
+    "history",
+    "numbers",
+    "close"
+  ],
+  "sections": {
+    "s1": {
+      "description": "What it is: one big screen, a phone in every hand",
+      "start": "cover"
+    },
+    "s2": {
+      "description": "How a round plays, from the strip to the live hunt",
+      "start": "tear"
+    },
+    "s3": {
+      "description": "The payoff, the history, and the rehearsal numbers",
+      "start": "found"
+    }
+  },
+  "faces": {
+    "archivo-black": {
+      "family": "Archivo Black",
+      "href": "https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap"
+    },
+    "archivo": {
+      "family": "Archivo",
+      "href": "https://fonts.googleapis.com/css2?family=Archivo:wght@400..800&display=swap"
+    },
+    "doto": {
+      "family": "Doto",
+      "href": "https://fonts.googleapis.com/css2?family=Doto:wght@600..900&display=swap"
+    }
+  },
+  "designSystems": []
+}

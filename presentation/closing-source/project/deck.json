@@ -1,0 +1,31 @@
+{
+  "v": 4,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-25T11:15:47Z"
+  },
+  "title": "chocolate.lottery — closing",
+  "order": [
+    "celebrate",
+    "scan",
+    "unwrap",
+    "prize"
+  ],
+  "sections": {
+    "s1": {
+      "description": "The special prize, and how to win it in two steps",
+      "start": "celebrate"
+    }
+  },
+  "faces": {
+    "archivo-black": {
+      "family": "Archivo Black",
+      "href": "https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap"
+    },
+    "archivo": {
+      "family": "Archivo",
+      "href": "https://fonts.googleapis.com/css2?family=Archivo:wght@400..800&display=swap"
+    }
+  },
+  "designSystems": []
+}

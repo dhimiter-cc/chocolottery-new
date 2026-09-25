@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-24T12:00:00Z",
+  "title": "Design System: chocolate.lottery",
+  "extensions": {
+    "colorMeta": {
+      "gold-foil": { "role": "primary", "displayName": "Gold Foil", "canonical": "#F3CF6E", "tonalRamp": ["#3A2A06", "#5E450C", "#846217", "#A8781F", "#D9A43A", "#F3CF6E", "#F7DA8A", "#FBEDC6"] },
+      "gold-deep": { "role": "primary", "displayName": "Deep Gold", "canonical": "#D9A43A", "tonalRamp": ["#33230A", "#553B11", "#7A5518", "#A8781F", "#D9A43A", "#E6BD66", "#F0D595", "#F8EBCB"] },
+      "winner-gold": { "role": "primary", "displayName": "Winner Gold", "canonical": "#FFD24A", "tonalRamp": ["#3D2E00", "#665000", "#8F7100", "#BB9400", "#E6B820", "#FFD24A", "#FFE38A", "#FFF3C9"] },
+      "amber": { "role": "secondary", "displayName": "Working Amber", "canonical": "#E8A93A", "tonalRamp": ["#3A2408", "#5E3C0F", "#855616", "#B0721E", "#D9901E", "#E8A93A", "#F1C77C", "#F9E6C2"] },
+      "amber-dot": { "role": "secondary", "displayName": "Wordmark Dot Amber", "canonical": "#D9901E" },
+      "wrapper-night": { "role": "neutral", "displayName": "Wrapper Night", "canonical": "#16051D", "tonalRamp": ["#16051D", "#1E0827", "#22092C", "#2A0F35", "#2E0F3A", "#3B1549", "#6A4A78", "#CDBFD3"] },
+      "wrapper-plum": { "role": "neutral", "displayName": "Wrapper Plum", "canonical": "#2E0F3A" },
+      "ink-on-gold": { "role": "neutral", "displayName": "Ink on Gold", "canonical": "#2A0B35" },
+      "paper-cream-text": { "role": "neutral", "displayName": "Paper Cream Text", "canonical": "#F3E7CE", "tonalRamp": ["#3A3326", "#5E5443", "#847762", "#9A8497", "#C8B6A0", "#DCCDB5", "#F3E7CE", "#FBF6EC"] },
+      "wrapper-back-cream": { "role": "neutral", "displayName": "Wrapper-Back Cream", "canonical": "#EFE2C8" },
+      "cocoa-ink": { "role": "neutral", "displayName": "Cocoa Ink", "canonical": "#3A1D0D", "tonalRamp": ["#1E0E05", "#3A1D0D", "#5A3220", "#7A4B35", "#9C6A52", "#BF9079", "#DDBBA8", "#F3E3D8"] },
+      "foil-silver": { "role": "neutral", "displayName": "Foil Silver", "canonical": "#C9CED4", "tonalRamp": ["#23272B", "#3E444A", "#5E656C", "#80878F", "#B3B9C0", "#C9CED4", "#DADDE2", "#F0F2F4"] },
+      "success-green": { "role": "neutral", "displayName": "Success Green", "canonical": "#3FBF8C" },
+      "alert-red": { "role": "neutral", "displayName": "Alert Red", "canonical": "#F0625A" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Wordmark", "purpose": "The wordmark only; narrows to width 108% and stacks on phones." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles on the back of the wrapper and app page titles." },
+      "title": { "displayName": "Tear Strip Label", "purpose": "The one action line: 500 verb plus 900 action, uppercase." },
+      "body": { "displayName": "Body", "purpose": "All running copy; claims capped near 36ch." },
+      "label": { "displayName": "Packaging Label", "purpose": "Tracked uppercase micro-copy, corner nav, table heads, prize names; 0.75rem floor." },
+      "lot-code": { "displayName": "Lot Code", "purpose": "Doto dot-matrix for machine-printed data: game codes, dates, times." }
+    },
+    "shadows": [
+      { "name": "foil-drop", "value": "0 12px 26px -6px rgba(0,0,0,0.5)", "purpose": "Tear strip and the cream inside under it." },
+      { "name": "foil-drop-hover", "value": "0 18px 32px -8px rgba(0,0,0,0.55)", "purpose": "Tear strip on hover." },
+      { "name": "blocked-wordmark", "value": "0 3px 10px rgba(0,0,0,0.35)", "purpose": "text-shadow for gold display type pressed into paper." },
+      { "name": "crimp-shade", "value": "inset 0 14px 22px -14px rgba(0,0,0,0.7), inset 0 -14px 22px -14px rgba(0,0,0,0.7)", "purpose": "Sleeve where it runs under the foil ends." },
+      { "name": "band-edge", "value": "inset 0 1px 0 rgba(243,207,110,0.22), inset 0 -1px 0 rgba(243,207,110,0.12)", "purpose": "Lot bands." },
+      { "name": "panel", "value": "0 1px 2px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.22)", "purpose": "Game-room and leaderboard panels." }
+    ],
+    "motion": [
+      { "name": "strip-rip", "value": "0.56s steps(7, end) forwards", "purpose": "Tear strip rips from its tab end; clip-path inset right-to-left with a cream zig-zag edge." },
+      { "name": "bar-unwrap", "value": "steps(n, end)", "purpose": "In-game bar: 9 unwrap steps, 9-frame scrap fling (0.75s), 3-step ticket glow (1.2s), 3-pose idle boil (0.6s steps(1))." },
+      { "name": "ease-lift", "value": "0.25s cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Tear strip hover lift and tab slide." },
+      { "name": "state-quick", "value": "0.15s", "purpose": "Colour and border feedback on buttons, links, inputs." }
+    ],
+    "breakpoints": [
+      { "name": "phone", "value": "720px" },
+      { "name": "back-single-column", "value": "900px" },
+      { "name": "game-room-desktop", "value": "1100px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Tear Strip",
+      "kind": "custom",
+      "refersTo": "tear-strip",
+      "description": "The page's one action: a perforated gold strip with a pull tab.",
+      "html": "<button class=\"ds-tear\"><span class=\"ds-tear-perf\"></span><span class=\"ds-tear-label\"><span class=\"ds-tear-verb\">Pull to</span> <span class=\"ds-tear-action\">start a round</span></span><span class=\"ds-tear-tab\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\"><path d=\"M5 12h13M13 6l6 6-6 6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></span><span class=\"ds-tear-perf ds-tear-perf-b\"></span></button>",
+      "css": ".ds-tear { position: relative; display: flex; align-items: center; gap: 18px; width: 100%; height: 92px; padding: 0 20px 0 28px; border: 0; border-radius: 3px; background: #F3CF6E; color: #2A0B35; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; text-align: left; cursor: pointer; box-shadow: 0 12px 26px -6px rgba(0,0,0,0.5); transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s; } .ds-tear:hover { transform: translateY(-2px) rotate(-0.35deg); box-shadow: 0 18px 32px -8px rgba(0,0,0,0.55); } .ds-tear:active { transform: translateY(0); } .ds-tear:focus-visible { outline: 3px solid #EFE2C8; outline-offset: 4px; } .ds-tear-perf { position: absolute; left: 10px; right: 10px; top: 7px; border-top: 2px dashed rgba(42,11,53,0.34); pointer-events: none; } .ds-tear-perf-b { top: auto; bottom: 7px; } .ds-tear-label { flex: 1; font-size: clamp(1.25rem, 2.6vw, 1.9rem); font-stretch: 125%; line-height: 1.1; letter-spacing: -0.02em; text-transform: uppercase; } .ds-tear-verb { font-weight: 500; } .ds-tear-action { font-weight: 900; white-space: nowrap; } .ds-tear-tab { display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 3px; background: #D9A43A; box-shadow: inset 0 0 0 1.5px rgba(42,11,53,0.25); transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1); } .ds-tear:hover .ds-tear-tab { transform: translateX(5px); }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Flat gold foil with ink printed on it; the primary action in app chrome.",
+      "html": "<button class=\"ds-btn-primary\">Start the round</button>",
+      "css": ".ds-btn-primary { font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; font-size: 0.92rem; font-weight: 700; padding: 9px 16px; border-radius: 6px; border: 1px solid transparent; background: #F3CF6E; color: #2A0B35; cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 6px 16px rgba(0,0,0,0.35); transition: background 0.15s, transform 0.05s; } .ds-btn-primary:hover { background: #F7DA8A; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid #F3CF6E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions in app chrome; gold hairline, muted text.",
+      "html": "<button class=\"ds-btn-ghost\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\"><path d=\"M19 12H6M11 6l-6 6 6 6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg> Back</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; font-size: 0.92rem; font-weight: 500; padding: 9px 16px; border-radius: 6px; border: 1px solid rgba(243,207,110,0.18); background: transparent; color: #C8B6A0; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; } .ds-btn-ghost:hover { color: #F3E7CE; border-color: rgba(243,207,110,0.38); background: #22092C; } .ds-btn-ghost:focus-visible { outline: 2px solid #F3CF6E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Wrapper Inside (presets + button on cream)",
+      "kind": "custom",
+      "refersTo": "button-on-cream",
+      "description": "The cream inside revealed under the tear strip: cocoa presets and the single plum button.",
+      "html": "<div class=\"ds-inside\"><p class=\"ds-inside-q\">How long do people get to join?</p><div class=\"ds-inside-row\"><button class=\"ds-preset\">1 min</button><button class=\"ds-preset ds-preset-active\">2 min</button><button class=\"ds-preset\">No timer</button><button class=\"ds-btn-cream\">Open the round</button></div></div>",
+      "css": ".ds-inside { position: relative; padding: 22px 24px 16px; border-radius: 3px; background: #EFE2C8; color: #3A1D0D; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; box-shadow: 0 12px 26px -6px rgba(0,0,0,0.5); } .ds-inside::before { content: ''; position: absolute; left: 10px; right: 10px; top: 7px; border-top: 2px dashed rgba(58,29,13,0.3); } .ds-inside-q { margin: 6px 0 14px; font-weight: 600; } .ds-inside-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .ds-preset { padding: 9px 14px; border: 1.5px solid rgba(58,29,13,0.35); border-radius: 3px; background: transparent; color: #3A1D0D; font: 700 0.9rem 'Archivo Variable', sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; } .ds-preset:hover { border-color: #3A1D0D; } .ds-preset:focus-visible { outline: 2px solid #2E0F3A; outline-offset: 2px; } .ds-preset-active { background: #3A1D0D; border-color: #3A1D0D; color: #EFE2C8; } .ds-btn-cream { margin-left: auto; padding: 12px 22px; border: 0; border-radius: 3px; background: #2E0F3A; color: #F3CF6E; font: 700 1rem 'Archivo Variable', sans-serif; font-stretch: 115%; cursor: pointer; box-shadow: 0 6px 14px rgba(46,15,58,0.3); transition: background 0.15s; } .ds-btn-cream:hover { background: #3B1549; } .ds-btn-cream:focus-visible { outline: 2px solid #2E0F3A; outline-offset: 3px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "Names, snacks, chat; wrapper-soft fill with amber focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Your name\">",
+      "css": ".ds-input { width: 100%; padding: 9px 12px; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; font-size: 0.95rem; border: 1px solid rgba(243,207,110,0.18); border-radius: 6px; background: #22092C; color: #F3E7CE; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; } .ds-input::placeholder { color: #9A8497; } .ds-input:focus { outline: none; border-color: #E8A93A; background: #2A0F35; box-shadow: 0 0 0 3px rgba(232,169,58,0.14); }"
+    },
+    {
+      "name": "Corner Nav",
+      "kind": "nav",
+      "refersTo": "label",
+      "description": "Navigation printed as packaging micro-copy in the sleeve corners.",
+      "html": "<nav class=\"ds-corner\"><a href=\"#\" class=\"ds-pack-link\">Leaderboard</a><a href=\"#\" class=\"ds-pack-link\">Fairness check</a></nav>",
+      "css": ".ds-corner { display: flex; align-items: center; gap: 18px; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; } .ds-pack-link { padding: 4px 0; border-bottom: 1px solid rgba(243,207,110,0.35); color: #F3E7CE; text-decoration: none; transition: color 0.15s, border-color 0.15s; } .ds-pack-link:hover { color: #F3CF6E; border-color: #F3CF6E; } .ds-pack-link:focus-visible { outline: 2px solid #F3CF6E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Month Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Leaderboard month filters; the only pill in the system.",
+      "html": "<a class=\"ds-chip\" href=\"#\">July 2026</a><a class=\"ds-chip ds-chip-active\" href=\"#\">September 2026</a>",
+      "css": ".ds-chip { display: inline-block; margin-right: 6px; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #1E0827; border: 1px solid rgba(243,207,110,0.18); color: #C8B6A0; text-decoration: none; transition: color 0.15s, border-color 0.15s; } .ds-chip:hover { color: #F3E7CE; border-color: rgba(243,207,110,0.38); } .ds-chip:focus-visible { outline: 2px solid #F3CF6E; outline-offset: 2px; } .ds-chip-active { background: rgba(232,169,58,0.14); border-color: #E8A93A; color: #F3CF6E; }"
+    },
+    {
+      "name": "Facts Label",
+      "kind": "card",
+      "refersTo": "facts-label",
+      "description": "Nutrition-facts panel printed in cocoa on the cream back of the wrapper.",
+      "html": "<section class=\"ds-facts\"><h2 class=\"ds-facts-title\">Draw facts</h2><p class=\"ds-facts-serving\">Servings per office <strong>57 colleagues</strong></p><div class=\"ds-facts-heavy\"></div><div class=\"ds-facts-row ds-facts-major\"><span>Rounds drawn</span><b>18</b></div><div class=\"ds-facts-row\"><span>Typical odds</span><b>1 in 8.2</b></div><div class=\"ds-facts-heavy\"></div></section>",
+      "css": ".ds-facts { max-width: 360px; padding: 16px 18px 14px; border: 2px solid #3A1D0D; border-radius: 2px; background: #EFE2C8; color: #3A1D0D; font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-facts-title { margin: 0; font-size: 2.35rem; font-weight: 900; font-stretch: 112%; line-height: 1; letter-spacing: -0.03em; } .ds-facts-serving { display: flex; justify-content: space-between; margin: 8px 0 6px; padding-top: 6px; border-top: 1px solid #3A1D0D; font-size: 0.9rem; } .ds-facts-heavy { border-top: 9px solid #3A1D0D; } .ds-facts-row { display: flex; justify-content: space-between; padding: 5px 0; border-top: 1px solid rgba(58,29,13,0.55); font-size: 0.95rem; } .ds-facts-row b { font-weight: 800; } .ds-facts-major { border-top: 3px solid #3A1D0D; font-weight: 800; }"
+    },
+    {
+      "name": "Lot Band",
+      "kind": "card",
+      "refersTo": "lot-band",
+      "description": "One past round, printed as a wrapper band with its dot-matrix lot stamp.",
+      "html": "<div class=\"ds-lot\"><span class=\"ds-lot-code\">BEAN-7615</span><span class=\"ds-lot-stamp\">21 SEP<br>13:22</span><span><span class=\"ds-lot-winner\">Dhimiter</span><br><span class=\"ds-lot-others\">beat Joey, André</span></span><span class=\"ds-lot-odds\">1 in <strong>3</strong></span><span class=\"ds-lot-prize\">House chocolate</span></div>",
+      "css": ".ds-lot { display: grid; grid-template-columns: 9.5rem 5.2rem minmax(0,1fr) 5.5rem minmax(0,10rem); align-items: center; gap: 18px; padding: 14px 20px; border-radius: 3px; background: linear-gradient(90deg, #2A0F35 0%, #230C2D 100%); box-shadow: inset 0 1px 0 rgba(243,207,110,0.22), inset 0 -1px 0 rgba(243,207,110,0.12); font-family: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif; color: #F3E7CE; } .ds-lot-code { font-family: 'Doto Variable', ui-monospace, monospace; font-size: 1.2rem; font-weight: 800; letter-spacing: 0.04em; color: #C9CED4; } .ds-lot-stamp { font-family: 'Doto Variable', ui-monospace, monospace; font-size: 0.82rem; font-weight: 700; line-height: 1.2; color: #9A8497; } .ds-lot-winner { font-size: 1.15rem; font-weight: 800; font-stretch: 112%; color: #F3CF6E; } .ds-lot-others { font-size: 0.82rem; color: #C8B6A0; } .ds-lot-odds { font-size: 0.9rem; color: #C8B6A0; } .ds-lot-odds strong { font-size: 1.15rem; font-weight: 800; color: #F3E7CE; } .ds-lot-prize { text-align: right; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9A8497; }"
+    },
+    {
+      "name": "Foil End",
+      "kind": "custom",
+      "refersTo": "foil-silver",
+      "description": "The silver crimp at each end of the bar: flat ridges and a serrated cut edge.",
+      "html": "<div class=\"ds-foil\"></div>",
+      "css": ".ds-foil { position: relative; height: 40px; background: repeating-linear-gradient(90deg, #DADDE2 0 3px, #B3B9C0 3px 5px, #C9CED4 5px 8px); margin-bottom: 7px; } .ds-foil::after { content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 7px; background: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 0 L7 7 L14 0 Z' fill='%23B3B9C0'/%3E%3C/svg%3E\") repeat-x; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Wrapper",
+    "overview": "The app is a wrapped chocolate bar, and you open it to play. The front of the wrapper is the first screen: silver foil crimps at both ends, a drenched aubergine sleeve of uncoated paper, an enormous gold wordmark blocked into it, packaging micro-copy printed in the corners, and a single perforated gold tear strip as the only action. Scrolling turns the bar over to its back, where the facts label and the lot bands of past rounds are printed in cream and cocoa. The game room, the chocolate bars and the leaderboard sit on the same wrapper paper.\n\nThe palette works like real packaging print: one paper colour everywhere, foil used sparingly, and ink that changes with the surface it sits on (cream on aubergine, aubergine on gold, cocoa on cream). Type is one extended heavy grotesque at two extremes. Enormous wide blacks carry the name and the action, and tiny tracked capitals carry the packaging copy. Lot codes are the only other voice, printed in an inkjet dot-matrix face.\n\nIt moves like stop-motion. Authored moments (the tear strip ripping, the bars unwrapping, the ticket lifting) advance in discrete `steps()` frames and never tween between two poses. The rejected alternative is a gradient party-game hero with cards. The app has its own identity, not MOVION's. MOVION branding appears only on date-gated event pieces.",
+    "keyCharacteristics": [
+      "Drenched aubergine wrapper paper as the only ground, with print grain and a left-lit falloff on the sleeve.",
+      "Gold foil rationed to the wordmark, the one primary action and winners.",
+      "Flat silver foil ends drawn as crimp ridges with a serrated cut edge.",
+      "Cream wrapper-back panels printed in cocoa ink for facts and settings.",
+      "Archivo on its width axis: extended 900 display, tiny tracked uppercase labels.",
+      "Doto dot-matrix for game codes, lot stamps and dates.",
+      "Stop-motion motion grammar: authored moments advance in steps(), not eases."
+    ],
+    "rules": [
+      { "name": "The Rationed Foil Rule", "body": "Gold goes on the name, the one action per screen, and winners. If a second gold object competes with the primary action on a screen, one of them is wrong.", "section": "colors" },
+      { "name": "The Ink Follows Surface Rule", "body": "Aubergine carries cream text. Gold carries aubergine ink. Cream carries cocoa ink, plus plum for its single action. Never print gold text on cream, or cream text on gold.", "section": "colors" },
+      { "name": "The Borders Are Foil Rule", "body": "Hairlines on aubergine are gold at low alpha (18% rest, 38% hover, 9% soft dividers), never grey.", "section": "colors" },
+      { "name": "The Two Extremes Rule", "body": "Type is either packaging-display (900, extended, tight tracking) or packaging-label (small, uppercase, widely tracked). Emphasis inside one line comes from weight, never from a second family.", "section": "typography" },
+      { "name": "The Stamp Face Rule", "body": "Doto is only for machine-printed data: codes, dates, times. Never use it for prose or headings.", "section": "typography" },
+      { "name": "The Flat Foil Rule", "body": "Foil is flat colour with, at most, one soft drop beneath it. No gloss highlights and no metallic gradients across gold.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep gold for the wordmark, the one primary action per screen, and winners (the Rationed Foil Rule).",
+      "Do print cocoa on cream, aubergine on gold and cream on aubergine (the Ink Follows Surface Rule).",
+      "Do move authored moments in `steps()` frames: the 7-frame rip, the 9-step unwrap, and the 3-step ticket glow. Plain hover and state feedback may still ease over 0.15 to 0.25s.",
+      "Do set Doto only on machine-printed data (codes, dates, times).",
+      "Do draw icons as inline SVG strokes (2.2 to 2.4 width, round caps), like the arrows and chevrons.",
+      "Do fit event-day screens to the viewport (100svh front, 100dvh phone stage) and size bars by measuring the stage.",
+      "Do keep tracked packaging labels at 0.75rem or larger."
+    ],
+    "donts": [
+      "Don't build the gradient party-game hero with cards. The first screen is the wrapper.",
+      "Don't put gloss or metallic gradients on gold foil. Lighting gradients belong to the paper only.",
+      "Don't apply MOVION branding to the app itself. It stays on date-gated event pieces (golden ticket art, the Toblerone prism, the bar wrapper).",
+      "Don't add kickers or eyebrow labels above headings. Packaging micro-copy lives in the sleeve corners, not stacked over titles.",
+      "Don't use emoji or font glyphs as icons.",
+      "Don't print gold text on cream, or put a second filled button inside the wrapper's inside."
+    ]
+  }
+}

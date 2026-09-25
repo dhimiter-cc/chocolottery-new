@@ -186,9 +186,9 @@
       <div class="gt-reveal-body" class:gt-shown={stage === 'lit'}>
         {#if mode === 'payoff' && winnerName}
           <div class="gt-headline">🎟️ {winnerName} has the Golden Ticket</div>
-          <p class="gt-lede">
-            {bars ? 'The one bar with a ticket inside' : 'The longest straw'}, on the one day it was worth {PRIZE.weightKg} kilograms.
-            A delicious surprise awaits you…
+          <p class="gt-lede gt-rhyme">
+            Your diet's off, your luck is in,<br />
+            {PRIZE.weightKg} kilos: let's begin.
           </p>
         {:else}
           <div class="gt-headline">A {PRIZE.weightKg} kilogram Toblerone</div>
@@ -225,7 +225,6 @@
           </svg>
           <p class="gt-scale-caption">
             Measured in the only unit that matters: <strong>{bananas} bananas</strong> of chocolate.
-            The banana is sulking.
           </p>
         </div>
 

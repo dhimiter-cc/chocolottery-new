@@ -2107,12 +2107,15 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .gt-banana-ridge { fill: none; stroke: #C99A22; stroke-width: 0.3; stroke-linecap: round; opacity: 0.8; }
 .gt-banana-tip { fill: #4A2E14; }
 .gt-banana-stem { fill: none; stroke: #6B4A22; stroke-width: 0.9; stroke-linecap: round; }
+.gt-rhyme { font-size: 1.05rem; font-style: italic; color: rgba(243, 231, 206, 0.85); }
 .gt-scale-caption {
-  margin: 10px auto 0;
-  max-width: 44ch;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: rgba(243, 231, 206, 0.6);
+  margin: 12px auto 0;
+  max-width: 34ch;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: balance;
+  color: rgba(243, 231, 206, 0.8);
 }
 .gt-scale-caption strong { color: var(--gt-gold-2); font-weight: 700; }
 

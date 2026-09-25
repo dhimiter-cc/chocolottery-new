@@ -1,0 +1,89 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-09-04T13:16:25.898Z",
+        "reason": "3 instances, all deliberate: .title (L93) is a subtle dark-brown wordmark gradient, near-solid at normal viewing; .winner-name (L1125) and .countdown-overlay (L1189) are gold/amber gradients tied to the product's two core emotional beats (the pre-pick countdown and the win reveal) with a matching warm glow shadow -- meaningful trophy/prize signaling, not decorative filler. Verified via computed luminance, not just visual judgment."
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "winner-bounce",
+        "createdAt": "2026-09-04T13:43:35.871Z",
+        "reason": "Pre-existing, not touched this session. Celebratory bounce on a winner/rank badge -- matches the product's playful reveal identity, not dated UI chrome."
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.56, .64, 1)",
+        "createdAt": "2026-09-04T13:43:36.005Z",
+        "reason": "Pre-existing straw-hover lift before picking -- a tactile, thematic interaction (drawing a straw), not a generic button bounce."
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.8, .64, 1)",
+        "createdAt": "2026-09-04T13:43:36.130Z",
+        "reason": "Pre-existing, used on 3 elements: a new player's avatar arriving in the lobby, the winner-name reveal pop, and the 3-2-1-GO countdown pop -- the product's actual emotional peaks (tension/payoff), which both design-critique assessments this session independently praised as a strength."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/styles/global.css"
+        ],
+        "createdAt": "2026-09-24T18:17:56.642Z",
+        "reason": "Claude triage: .tear-strip::after (global.css ~L2878) is the ragged torn-paper edge shown only during the stop-motion rip animation (opacity 0 otherwise), not a card accent border; the finish reviewer asked for this torn edge."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ffffff",
+        "files": [
+          "src/components/JoinQR.svelte"
+        ],
+        "createdAt": "2026-09-24T18:26:06.824Z",
+        "reason": "Claude triage: the QR code's light modules must be pure white for reliable scanning (scanner contrast), not a palette choice."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "2.4px",
+        "createdAt": "2026-09-25T12:45:27.039Z",
+        "reason": "Claude: SVG user units in the 1 unit = 1 cm scale drawing (.gt-scale-note), not a CSS type size"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ffe45c",
+        "createdAt": "2026-09-25T12:45:27.242Z",
+        "reason": "Claude: banana illustration colours in the prize scale drawing; user asked for a banana, which has no palette colour"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d9a928",
+        "createdAt": "2026-09-25T12:45:27.479Z",
+        "reason": "Claude: banana illustration colours in the prize scale drawing; user asked for a banana, which has no palette colour"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c99a22",
+        "createdAt": "2026-09-25T12:45:27.700Z",
+        "reason": "Claude: banana illustration colours in the prize scale drawing; user asked for a banana, which has no palette colour"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4a2e14",
+        "createdAt": "2026-09-25T12:45:27.956Z",
+        "reason": "Claude: banana illustration colours in the prize scale drawing; user asked for a banana, which has no palette colour"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6b4a22",
+        "createdAt": "2026-09-25T12:45:28.226Z",
+        "reason": "Claude: banana illustration colours in the prize scale drawing; user asked for a banana, which has no palette colour"
+      }
+    ]
+  }
+}
