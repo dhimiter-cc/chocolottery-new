@@ -267,6 +267,20 @@
         "André"
       ],
       "prize_snack": "Banana bread"
+    },
+    {
+      "name": "Dhim",
+      "game_code": "CHOC-0220",
+      "timestamp": 1790332833,
+      "month": "2026-09",
+      "participants": 4,
+      "player_names": [
+        "Dhim",
+        "Joey",
+        "Sinterklaasje BONNE BONNE",
+        "Christelle"
+      ],
+      "prize_snack": null
     }
   ]
 }
