@@ -2090,20 +2090,31 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 
 .gt-scale { margin: 14px auto 2px; }
-/* Sized by HEIGHT, not width: the viewBox is 1 unit = 1 cm and its aspect now
-   follows the real bar, so constraining the width would let the drawing grow
-   tall enough to push the ticket off the card. */
-.gt-scale svg { display: block; height: 190px; width: auto; margin: 0 auto; }
-.gt-ground { stroke: rgba(243, 231, 206, 0.22); stroke-width: 1.5; }
-.gt-person { fill: rgba(243, 231, 206, 0.3); }
-.gt-scale-bar rect { fill: var(--gt-gold-2); }
-.gt-dim { stroke: var(--gt-gold-2); stroke-width: 1.5; }
+/* The viewBox is 1 unit = 1 cm and lies flat (bar and banana side by side),
+   so it's sized by width; at ~2.8:1 it can't grow tall enough to push the
+   ticket off the card. Stroke widths and text sizes below are in cm too. */
+.gt-scale svg { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; overflow: visible; }
+.gt-ground { stroke: rgba(243, 231, 206, 0.22); stroke-width: 0.35; }
+.gt-scale-bar { fill: var(--gt-gold-2); }
+.gt-dim { fill: none; stroke: rgba(243, 231, 206, 0.45); stroke-width: 0.3; }
 .gt-scale-note {
-  fill: rgba(243, 231, 206, 0.6);
+  fill: rgba(243, 231, 206, 0.7);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 2.4px;
   text-anchor: middle;
 }
+.gt-banana-skin { fill: #FFE45C; stroke: #D9A928; stroke-width: 0.25; stroke-linejoin: round; }
+.gt-banana-ridge { fill: none; stroke: #C99A22; stroke-width: 0.3; stroke-linecap: round; opacity: 0.8; }
+.gt-banana-tip { fill: #4A2E14; }
+.gt-banana-stem { fill: none; stroke: #6B4A22; stroke-width: 0.9; stroke-linecap: round; }
+.gt-scale-caption {
+  margin: 10px auto 0;
+  max-width: 44ch;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: rgba(243, 231, 206, 0.6);
+}
+.gt-scale-caption strong { color: var(--gt-gold-2); font-weight: 700; }
 
 .gt-ticket {
   display: block;
@@ -2131,7 +2142,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .gt-name     { font-size: 1.3rem; text-shadow: 1px 2px 0 var(--gt-ink); }
   /* Too small to read at phone size, and they crowd out the name. */
   .gt-tagline, .gt-strap { display: none; }
-  .gt-scale svg { height: 156px; }
   .gt-reveal-body { padding: 0 16px; }
   .gt-headline { font-size: 1.1rem; }
 }

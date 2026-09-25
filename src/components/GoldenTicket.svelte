@@ -107,17 +107,30 @@
     if (e.target === e.currentTarget) onClose();
   }
 
-  // The scale drawing uses a 1 unit = 1 cm viewBox, so the bar is drawn straight
-  // from the real measurements and can never drift out of sync with the copy.
-  // The figure holds the bar across its chest, so the bar is centred on the
-  // figure's own centre line and the measurement is called out to the side —
-  // a dimension line under a held bar would cross the torso.
-  const PERSON_X = 46;   // centre line of the silhouette
-  const BAR_Y = 62;      // top of the bar: chest height, level with the hands
-  const barX = PERSON_X - PRIZE.lengthCm / 2;
-  const barMidY = BAR_Y + PRIZE.thicknessCm / 2;
-  const labelX = barX + PRIZE.lengthCm + 36;
-  const viewW = labelX + 30;
+  // The scale drawing uses a 1 unit = 1 cm viewBox, so the bar and the banana
+  // are drawn straight from the real measurements and can never drift out of
+  // sync with the copy. Both lie on the same ground line, a dimension line
+  // over each.
+  const GROUND = 23;
+  const BAR_X = 3;
+  const BAR_TOP = GROUND - PRIZE.thicknessCm;
+  const DIM_Y = BAR_TOP - 3;
+  const bananaX = BAR_X + PRIZE.lengthCm + 7;
+  const bananaEnd = bananaX + PRIZE.bananaCm;
+  const viewW = bananaEnd + 5;
+  const viewH = GROUND + 3;
+  const bananas = (PRIZE.lengthCm / PRIZE.bananaCm).toFixed(1);
+
+  // Lying on its side, curve down. The underside's control point sits below
+  // the ground so the belly just touches it; the top curve is shallower, which
+  // leaves the banana ~3 cm thick in the middle and pointed at both tips.
+  const L = PRIZE.bananaCm;
+  const bananaPath =
+    `M ${bananaX} ${GROUND - 3} ` +
+    `Q ${bananaX + L / 2} ${GROUND + 3} ${bananaEnd} ${GROUND - 3.6} ` +
+    `Q ${bananaX + L / 2} ${GROUND - 3.6} ${bananaX} ${GROUND - 3} Z`;
+  const bananaRidge =
+    `M ${bananaX + 1.2} ${GROUND - 2.5} Q ${bananaX + L / 2} ${GROUND - 0.4} ${bananaEnd - 1.4} ${GROUND - 3}`;
 
   let showTeaser = $derived(mode === 'tease' && stage === 'tease');
   let bars = $derived(style === 'bars');
@@ -185,41 +198,34 @@
         {/if}
 
         <!-- A weight in kilograms means nothing to anyone. Drawn to scale
-             against a person it does. -->
+             next to a banana, it does. -->
         <div class="gt-scale">
           <svg
-            viewBox="0 0 {viewW} 206"
+            viewBox="0 0 {viewW} {viewH}"
             role="img"
-            aria-label="A person {PRIZE.personCm} centimetres tall holding the {PRIZE.lengthCm} centimetre bar across their chest"
+            aria-label="The {PRIZE.lengthCm} centimetre bar next to a {PRIZE.bananaCm} centimetre banana, drawn to scale"
           >
-            <line x1="8" y1="182" x2={viewW - 8} y2="182" class="gt-ground" />
-            <!-- Figure at real human proportions on the 1 unit = 1 cm grid:
-                 head 8-30, shoulders 38, hips 94, feet 182 — so the legs are
-                 90 of the 174, which is what stops it reading as a blob. -->
-            <g class="gt-person">
-              <circle cx={PERSON_X} cy="19" r="11" />
-              <path d="M42 27 L50 27 L50 40 L42 40 Z" />
-              <path d="M33 38 Q46 34 59 38 L57 94 L35 94 Z" />
-              <path d="M34 92 L44 92 L43 182 L35 182 Z" />
-              <path d="M48 92 L58 92 L57 182 L49 182 Z" />
-              <path d="M27 40 L33 40 L31 70 L25 70 Z" />
-              <path d="M59 40 L65 40 L67 70 L61 70 Z" />
+            <line x1="1" y1={GROUND} x2={viewW - 1} y2={GROUND} class="gt-ground" />
+            <!-- The bar at its real length and depth. No wordmark: at this
+                 size it renders as an illegible smudge, and the 3D bar above
+                 already carries it. -->
+            <rect class="gt-scale-bar" x={BAR_X} y={BAR_TOP} width={PRIZE.lengthCm} height={PRIZE.thicknessCm} rx="0.8" />
+            <g class="gt-banana">
+              <path d={bananaPath} class="gt-banana-skin" />
+              <path d={bananaRidge} class="gt-banana-ridge" />
+              <circle cx={bananaX + 0.2} cy={GROUND - 3} r="0.55" class="gt-banana-tip" />
+              <path d="M {bananaEnd - 0.3} {GROUND - 3.6} l 1.6 -1.3" class="gt-banana-stem" />
             </g>
-            <!-- The bar at its real length and depth, held across the chest.
-                 No wordmark on this one: at 11 units tall it renders as an
-                 illegible smudge, and the 3D bar above already carries it. -->
-            <g class="gt-scale-bar">
-              <rect x={barX} y={BAR_Y} width={PRIZE.lengthCm} height={PRIZE.thicknessCm} rx="2" />
-            </g>
-            <!-- Hands over the bar, so it reads as gripped rather than floating -->
-            <g class="gt-person">
-              <circle cx="28" cy={barMidY} r="5" />
-              <circle cx="64" cy={barMidY} r="5" />
-            </g>
-            <line x1={barX + PRIZE.lengthCm + 4} y1={barMidY} x2={labelX - 20} y2={barMidY} class="gt-dim" />
-            <text x={labelX} y={barMidY + 4} class="gt-scale-note">{PRIZE.lengthCm} cm</text>
-            <text x={PERSON_X} y="200" class="gt-scale-note">{PRIZE.personCm} cm</text>
+            <!-- Dimension lines, one per object, ticks at both ends -->
+            <path class="gt-dim" d="M {BAR_X} {DIM_Y} H {BAR_X + PRIZE.lengthCm} M {BAR_X} {DIM_Y - 1} v 2 M {BAR_X + PRIZE.lengthCm} {DIM_Y - 1} v 2" />
+            <text x={BAR_X + PRIZE.lengthCm / 2} y={DIM_Y - 1.6} class="gt-scale-note">{PRIZE.lengthCm} cm</text>
+            <path class="gt-dim" d="M {bananaX} {GROUND - 7} H {bananaEnd} M {bananaX} {GROUND - 8} v 2 M {bananaEnd} {GROUND - 8} v 2" />
+            <text x={bananaX + PRIZE.bananaCm / 2} y={GROUND - 8.6} class="gt-scale-note">{PRIZE.bananaCm} cm</text>
           </svg>
+          <p class="gt-scale-caption">
+            Measured in the only unit that matters: <strong>{bananas} bananas</strong> of chocolate.
+            The banana is sulking.
+          </p>
         </div>
 
         <img

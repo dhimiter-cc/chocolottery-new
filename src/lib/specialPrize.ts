@@ -13,19 +13,19 @@ export const TEASE_FROM = '2026-09-21';
 
 // Measurements are the manufacturer's for the XXL personalised bar
 // (42.6 x 11.4 x 10 cm, 1800 g, 18 x 100 g inside) — not estimates. The reveal
-// prints them as copy AND draws the scale silhouette from them, so a wrong
-// number here shows up twice.
+// prints them as copy AND draws the to-scale banana comparison from them, so a
+// wrong number here shows up twice.
 export const PRIZE = {
   brand: 'MOVION',
   weightKg: 1.8,
-  /** Real length of the box — drives the to-scale silhouette in the reveal. */
+  /** Real length of the box — drives the to-scale drawing in the reveal. */
   lengthCm: 42.6,
-  /** Depth of the box, for the silhouette's bar thickness. */
+  /** Depth of the box, for the drawing's bar height. */
   thicknessCm: 11,
   /** How many 100 g bars are inside — the detail that sells the size. */
   barsInside: 18,
-  /** Reference height the silhouette is drawn at, same units. */
-  personCm: 175,
+  /** The banana it's measured against, same units. */
+  bananaCm: 15,
 } as const;
 
 /** `YYYY-MM-DD` in the viewer's own timezone — ISO dates compare correctly as strings. */
