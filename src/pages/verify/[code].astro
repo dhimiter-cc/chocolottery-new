@@ -1,0 +1,113 @@
+---
+// Proof page for one round: not linked from the nav, only from the SEAL stamp
+// under the stage after the reveal. Reads the leaderboard record, which keeps
+// the sealed draw and the audit trail after the 24h game file is gone.
+import '../../styles/global.css';
+import { loadLeaderboard, drawCommit } from '../../lib/game.js';
+import type { LeaderboardWin } from '../../lib/types.js';
+
+const code = (Astro.params.code ?? '').toUpperCase().replace(/[^A-Z0-9-]/g, '');
+const { wins } = await loadLeaderboard();
+const win: LeaderboardWin | null =
+  [...wins].reverse().find((w) => w.game_code === code) ?? null;
+
+const draw = win?.draw ?? null;
+const recomputed = draw ? drawCommit(draw.straws, draw.salt) : null;
+const sealOk = !!draw && recomputed === draw.commit;
+const audit = win?.audit ?? [];
+const bars = audit.some((a) => 'opened_at' in a);
+
+const TZ = 'Europe/Amsterdam';
+function clock(ms: number | null | undefined): string {
+  if (ms == null) return '—';
+  const t = new Date(ms).toLocaleTimeString('en-GB', { timeZone: TZ, hour12: false });
+  return `${t}.${String(ms % 1000).padStart(3, '0')}`;
+}
+function after(ms: number | null | undefined): string {
+  if (ms == null || !draw?.drawn_at) return '';
+  return `+${((ms - draw.drawn_at) / 1000).toFixed(1)}s`;
+}
+const day = win
+  ? new Date(win.timestamp * 1000).toLocaleDateString('en-GB', { timeZone: TZ, day: 'numeric', month: 'short', year: 'numeric' })
+  : '';
+const command = draw ? `echo -n '${JSON.stringify(draw.straws)}:${draw.salt}' | sha256sum` : '';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{code} proof — Chocolate Lottery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<div class="parchment verify">
+  <header class="masthead">
+    <div>
+      <h1 class="title">{code || 'proof'}</h1>
+      <p class="tagline">{win ? `${day} · ${win.participants} in the draw · won by ${win.name}` : 'Round proof'}</p>
+    </div>
+    <a href="/" class="btn btn-ghost">Back</a>
+  </header>
+
+  {!win && (
+    <main class="panel"><p class="muted">No finished round with this code on the leaderboard.</p></main>
+  )}
+
+  {win && !draw && (
+    <main class="panel"><p class="muted">This round was played before the sealed draw existed, so there is nothing to check.</p></main>
+  )}
+
+  {win && draw && (
+    <main class="verify-grid">
+      <section class="panel">
+        <h2 class="verify-h">Sealed draw</h2>
+        <p class={sealOk ? 'verify-verdict ok' : 'verify-verdict bad'}>
+          {sealOk
+            ? 'Match. The draw revealed at the end is the one sealed when the host pressed Start.'
+            : 'No match. The revealed draw does not fit the seal.'}
+        </p>
+        <dl class="verify-kv">
+          <dt>Sealed at Start</dt><dd class="verify-hash">{draw.commit}</dd>
+          <dt>Recomputed now</dt><dd class="verify-hash">{recomputed}</dd>
+          <dt>Draw (bar values)</dt><dd class="mono">{JSON.stringify(draw.straws)}</dd>
+          <dt>Salt</dt><dd class="mono">{draw.salt}</dd>
+          <dt>Drawn at</dt><dd class="mono">{clock(draw.drawn_at)}</dd>
+        </dl>
+        <p class="muted">Check it yourself on any terminal:</p>
+        <pre class="verify-cmd">{command}</pre>
+        <p class="muted">100 is the golden ticket. The fingerprint was shown under the stage from Start, while the salt stayed on the server until the reveal.</p>
+      </section>
+
+      <section class="panel">
+        <h2 class="verify-h">{bars ? 'Open log' : 'Pick log'}</h2>
+        <div class="verify-table">
+          <table class="leaderboard">
+            <thead>
+              <tr>
+                <th>Player</th><th>Bar</th><th>Inside</th><th>Picked</th>
+                {bars && <th>Opened</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {audit.map((a) => (
+                <tr class:list={[{ 'top-rank': a.value === 100 }]}>
+                  <td>{a.name}</td>
+                  <td>{a.bar != null ? `Nº ${String(a.bar + 1).padStart(2, '0')}` : '—'}</td>
+                  <td>{a.value === 100 ? 'golden ticket' : a.value != null ? (bars ? 'chocolate' : a.value) : '—'}</td>
+                  <td class="mono">{clock(a.picked_at)} <span class="muted">{after(a.picked_at)}</span></td>
+                  {bars && (
+                    <td class="mono">{a.opened_at != null ? <>{clock(a.opened_at)} <span class="muted">{after(a.opened_at)}</span></> : 'opened by host'}</td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {bars && <p class="muted">In the order the bars were opened. Times are Amsterdam time, counted from the draw.</p>}
+      </section>
+    </main>
+  )}
+</div>
+</body>
+</html>

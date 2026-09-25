@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import { promises as fsp } from 'node:fs';
 import path from 'node:path';
-import { randomBytes, randomInt } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
 import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
 import { UNWRAP_STEPS } from './bars.js';
 import type {
-  Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack,
+  Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack, AuditEntry,
   PublicPlayer, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
@@ -107,6 +107,13 @@ export function generateStraws(n: number): number[] {
   return straws;
 }
 
+/** The sealed-draw fingerprint. Published at Start, checkable after the
+ *  reveal by anyone holding the straws and the salt:
+ *    echo -n '[100,41,43,22,34]:<salt>' | sha256sum */
+export function drawCommit(straws: number[], salt: string): string {
+  return createHash('sha256').update(JSON.stringify(straws) + ':' + salt).digest('hex');
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 /** Games saved before bar mode existed have no `style` — they were straws. */
 export function gameStyle(game: Game): GameStyle {
@@ -165,8 +172,13 @@ export function beginPicking(game: Game): boolean {
   for (const t of Object.keys(game.players)) {
     game.players[t].straw_index = null;
     game.players[t].unwrap = 0;
+    game.players[t].picked_at = null;
+    game.players[t].opened_at = null;
   }
   game.straws = generateStraws(draw.length);
+  game.draw_salt = randomBytes(16).toString('hex');
+  game.draw_commit = drawCommit(game.straws, game.draw_salt);
+  game.drawn_at = Date.now();
   game.state = 'picking';
   game.winner_token = null;
   game.lobby_deadline = null;
@@ -188,8 +200,12 @@ export function assignRemainingStraws(game: Game): void {
     const j = randomInt(i + 1);
     [free[i], free[j]] = [free[j], free[i]];
   }
+  const now = Date.now();
   for (const p of draw) {
-    if (p.straw_index === null && free.length) p.straw_index = free.pop()!;
+    if (p.straw_index === null && free.length) {
+      p.straw_index = free.pop()!;
+      p.picked_at = now;
+    }
   }
 }
 
@@ -211,6 +227,17 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
   game.prize_snack = pickPrizeSnack(game);
 
   if (!winnerToken) return null;
+  const straws = Array.isArray(game.straws) ? game.straws : [];
+  const bars = gameStyle(game) === 'bars';
+  const audit: AuditEntry[] = draw.map(([, p]) => ({
+    name: p.name,
+    bar: p.straw_index,
+    value: p.straw_index !== null ? straws[p.straw_index] ?? null : null,
+    picked_at: p.picked_at ?? null,
+    ...(bars ? { opened_at: p.opened_at ?? null } : {}),
+  }));
+  // Opened bars in the order they were opened, host-opened ones last.
+  if (bars) audit.sort((a, b) => (a.opened_at ?? Infinity) - (b.opened_at ?? Infinity));
   return {
     name: game.players[winnerToken].name,
     game_code: game.code,
@@ -221,11 +248,15 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
     participants: draw.length,
     player_names: draw.map(([, p]) => p.name),
     prize_snack: game.prize_snack?.text ?? null,
+    ...(game.draw_commit && game.draw_salt
+      ? { draw: { commit: game.draw_commit, salt: game.draw_salt, straws, drawn_at: game.drawn_at ?? null } }
+      : {}),
+    audit,
   };
 }
 
 // Everyone holds a straw/bar. Straws resolve on the spot; bars go on to the
-// unwrapping phase, where the round only ends once the golden bar is opened.
+// unwrapping phase, where the round only ends once every bar is open.
 // Shared by pick.ts (last pick) and resolve.ts (host force).
 export function afterAllPicked(game: Game): LeaderboardWin | null {
   if (gameStyle(game) !== 'bars') return finalizePicking(game);
@@ -235,8 +266,14 @@ export function afterAllPicked(game: Game): LeaderboardWin | null {
   return null;
 }
 
-// Host escape hatch for bar mode: tear every bar open at once. Needed when
-// whoever holds the golden bar has wandered off.
+/** Bar mode: has everyone in the draw torn their bar fully open? */
+export function allBarsOpen(game: Game): boolean {
+  return drawEntries(game).every(([, p]) => (p.unwrap ?? 0) >= UNWRAP_STEPS);
+}
+
+// Host escape hatch for bar mode: tear every remaining bar open at once.
+// Needed when someone has wandered off. Those bars get no `opened_at`, so the
+// audit trail shows the host opened them, not their holder.
 export function openAllBars(game: Game): LeaderboardWin | null {
   for (const [, p] of drawEntries(game)) p.unwrap = UNWRAP_STEPS;
   return finalizePicking(game);
@@ -383,27 +420,25 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     unwrap:      p.unwrap ?? 0,
   }));
 
+  const myStraw = myToken ? (game.players[myToken]?.straw_index ?? null) : null;
+
   // Straw values stay hidden until the reveal. While bars are being unwrapped,
-  // a bar's contents show up the moment its holder has it fully open — which,
-  // in practice, is always plain chocolate: opening the golden one ends the
-  // unwrapping phase in the same write.
+  // each player sees only what's in their own bar, once they have it fully
+  // open. Everyone else's stays secret, golden or not, so the room finds out
+  // together on the wall.
   let strawsOut: (number | null)[] | null = null;
   if (Array.isArray(game.straws)) {
     if (game.state === 'reveal' || game.state === 'done') {
       strawsOut = game.straws;
     } else if (game.state === 'unwrapping') {
-      const opened = new Set(
-        Object.values(game.players)
-          .filter(p => p.straw_index !== null && (p.unwrap ?? 0) >= UNWRAP_STEPS)
-          .map(p => p.straw_index)
-      );
-      strawsOut = game.straws.map((v, i) => (opened.has(i) ? v : null));
+      const me = myToken ? game.players[myToken] : undefined;
+      const mine = me && (me.unwrap ?? 0) >= UNWRAP_STEPS ? me.straw_index : null;
+      strawsOut = game.straws.map((v, i) => (i === mine ? v : null));
     } else {
       strawsOut = game.straws.map(() => null);
     }
   }
-
-  const myStraw = myToken ? (game.players[myToken]?.straw_index ?? null) : null;
+  const revealed = game.state === 'reveal' || game.state === 'done';
   const inGame  = !!(myToken && game.players[myToken]);
 
   const suggestions: PublicSuggestion[] = (game.suggestions ?? [])
@@ -452,6 +487,8 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     style:            gameStyle(game),
     host_plays:       hostPlays(game),
     host:             hostInfo(game, myToken, now),
+    draw_commit:      game.state === 'lobby' ? null : game.draw_commit ?? null,
+    draw_salt:        revealed ? game.draw_salt ?? null : null,
   };
 }
 

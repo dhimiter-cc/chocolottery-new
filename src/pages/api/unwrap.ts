@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import {
   withGame,
   finalizePicking,
+  allBarsOpen,
   appendLeaderboard,
   getPlayerToken,
 } from '../../lib/game.js';
@@ -12,9 +13,10 @@ import type { LeaderboardWin } from '../../lib/types.js';
 //
 // Progress only ever moves forward, so a late or duplicated request is a
 // harmless no-op. What's inside is decided by the draw (`game.straws`) and is
-// only told to the player once they reach the last step. If that bar is the
-// golden one, the round ends right here: the win is recorded and every other
-// screen flips to the reveal on its next poll.
+// only told to the player once they reach the last step, and only to them:
+// finding the golden ticket doesn't end the round. When the last bar in the
+// room is open the win is recorded and every screen flips to the reveal on
+// its next poll.
 
 type UnwrapResult =
   | { ok: true; step: number; golden?: boolean }
@@ -67,8 +69,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (step < UNWRAP_STEPS) return { game, result: { ok: true, step } };
 
+    player.opened_at = Date.now();
     const golden = game.straws[player.straw_index] === 100;
-    if (golden) winRecord = finalizePicking(game);
+    if (allBarsOpen(game)) winRecord = finalizePicking(game);
     return { game, result: { ok: true, step, golden } };
   });
 

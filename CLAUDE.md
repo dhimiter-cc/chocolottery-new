@@ -40,10 +40,12 @@ player's own bar goes full screen on their device (`UnwrapStage.svelte`,
 swipe/drag to tear it open in `UNWRAP_STEPS` stop-motion frames); the host's
 screen shows the live board of everyone's progress (`UnwrapPhase.svelte`).
 Progress goes to `POST /api/unwrap` (forward-only, idempotent). A bar's
-contents are only revealed once its holder reaches the last step, and opening
-the golden one calls `finalizePicking` in the same write, so the round ends
-for everyone on their next poll (500ms while unwrapping). The host's
-"resolve" button opens every bar at once if the ticket holder is AFK.
+contents are only revealed to its own holder once they reach the last step;
+the board shows other opened bars back in their foil, golden or not. Finding
+the ticket does **not** end the round: the write that opens the last bar calls
+`finalizePicking` (`allBarsOpen()`), and every screen flips to the reveal on
+its next poll (500ms while unwrapping), so the room finds out together. The
+host's "open all the bars" button opens the rest if someone is AFK.
 
 The bar is one SVG (`ChocolateBar.svelte`) drawn per step from seeded
 randomness, so every device shows the same frame. Dev-only workbench:
@@ -66,7 +68,7 @@ the stage takes their space; the game code moves onto the stage bar.
 lobby ──(host starts, ≥2 online)──▶ picking ──(all picked)──▶ reveal ─▶ done
   ▲                                    │                        ▲          │
   │                          (bar mode)└──▶ unwrapping ─────────┘          │
-  │                                   (golden bar opened / host opens all) │
+  │                                     (every bar opened / host opens all)│
   └──────────────────────────(host restarts)──────────────────────────────┘
 ```
 
@@ -85,6 +87,22 @@ Persisted files (see `lib/types.ts` for full interfaces):
 - `data/games/<CODE>.json` — one `Game` per game (players, straws, suggestions, chat, prize). Codes look like `CHOC-1234` (prefixes: CHOC/COCO/BEAN/WRAP).
 - `data/leaderboard.json` — append-only list of `LeaderboardWin` records (powers leaderboard + fairness). **Mirrored to GitHub — see below.**
 - `data/cupboard.json` — shared, global list of `CupboardItem` prizes (NOT per-game).
+
+### Sealed draw and audit trail
+
+So nobody has to take the draw on trust ("the first to open wins"):
+
+- **Sealed draw.** `beginPicking` stores a random `draw_salt` and
+  `draw_commit = sha256(JSON.stringify(straws) + ':' + salt)` (`drawCommit()`).
+  `sanitiseState` sends the commit from Start and the salt only in
+  `reveal`/`done`. The client prints the first 8 hex as a small `SEAL xxxx·xxxx`
+  under the stage; after the reveal it links to `/verify/<CODE>`.
+- **Audit trail.** Players get `picked_at` and (bar mode) `opened_at`, Unix
+  **ms**. A bar opened by the host's resolve has no `opened_at`.
+- **Both go into the leaderboard record** (`draw`, `audit` on `LeaderboardWin`),
+  so they survive the 24h game file and are mirrored to GitHub.
+  `/verify/<CODE>` (not linked in the nav, `noindex`) reads that record,
+  recomputes the hash and shows the open log.
 
 ### Durable leaderboard (`lib/leaderboardRemote.ts`)
 
@@ -115,6 +133,7 @@ src/
 ├── pages/
 │   ├── index.astro          # Landing: create/join game, fairness modal, feature announcement
 │   ├── leaderboard.astro     # Wins table
+│   ├── verify/[code].astro   # Hidden proof page: sealed draw check + open log
 │   ├── game/[code].astro     # Game page shell — SSR loads cookie/token, mounts <Game> island (client:load)
 │   └── api/                   # All server endpoints (Astro API routes, JSON in/out)
 │       ├── create.ts          # POST → new game file, returns code
@@ -129,7 +148,7 @@ src/
 │       ├── chat.ts            # POST → add chat message (rate-limited, keeps last 100)
 │       ├── cupboard.ts        # GET/POST → add/update/remove/give/ungive cupboard items (host)
 │       ├── fairness.ts        # GET  → computes expected vs actual wins + luck verdicts
-│       ├── unwrap.ts          # POST → bar mode: record unwrap step; last step reveals contents
+│       ├── unwrap.ts          # POST → bar mode: record unwrap step; last step tells the holder what's inside
 │       └── style.ts           # POST → host sets straws/bars for the next round (lobby only)
 ├── components/
 │   ├── Game.svelte           # ★ Root island. Owns gameState, polling loop, sound effects,

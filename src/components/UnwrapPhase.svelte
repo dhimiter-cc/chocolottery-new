@@ -1,7 +1,9 @@
 <script lang="ts">
   // Bar mode, after everyone has picked: each player tears their own bar open
-  // on their own screen while the board shows everyone's progress. The first
-  // person to fully open the golden bar ends the round for the whole room.
+  // on their own screen while the board shows everyone's progress. Each player
+  // only learns what's in their own bar; the board shows who has opened, not
+  // what they found. The round ends when the last bar is open (or the host
+  // opens the rest), and the whole room sees the reveal together.
   //
   // Two views of the same moment:
   //  - `bar`   — the player's own bar, full screen (<UnwrapStage>). Default on
@@ -97,7 +99,7 @@
   });
 
   // Plain chocolate: give it a moment to sink in, then show the board so the
-  // player can watch the hunt continue.
+  // player can watch the rest of the room open theirs.
   let movedToBoard = false;
   $effect(() => {
     if (goldenMine !== false || movedToBoard || view !== 'bar') return;
@@ -107,16 +109,22 @@
   });
 
   // ── The board ───────────────────────────────────────────────────────────
+  // Paper torn off, foil still whole: how an opened bar that isn't mine looks.
+  const SECRET_STEP = 4;
   let bars = $derived(
     (game.straws ?? []).map((v, i) => {
       const p = game.players.find(pl => pl.straw_index === i) ?? null;
       const serverStep = p?.unwrap ?? 0;
-      const opened = serverStep >= UNWRAP_STEPS && v !== null;
+      const opened = serverStep >= UNWRAP_STEPS;
+      // Only my own bar's contents ever reach this screen before the reveal.
+      // Everyone else's opened bar is drawn back in its foil (paper off, foil
+      // whole) so the board can't hint at chocolate or ticket.
+      const known = opened && v !== null;
       // My own tile follows my finger, not the last poll. It stops one short
       // of open: only the server knows what the last frame shows.
       const live = p?.is_me ? Math.max(serverStep, localStep) : serverStep;
-      const step = opened ? UNWRAP_STEPS : Math.min(live, UNWRAP_STEPS - 1);
-      return { i, p, step, opened, golden: opened ? v === 100 : null };
+      const step = known ? UNWRAP_STEPS : opened ? SECRET_STEP : Math.min(live, UNWRAP_STEPS - 1);
+      return { i, p, step, opened, golden: known ? v === 100 : null };
     })
   );
 
@@ -130,14 +138,14 @@
 
   let headline = $derived.by(() => {
     const left = wrapped.length;
-    if (left === 0) return '';
+    if (left === 0) return 'Everyone is open. Here it comes…';
     if (left === 1) {
       const p = wrapped[0].p;
       return p?.is_me ? 'Only your bar is left…' : `Only ${p?.name ?? 'one'}'s bar is left…`;
     }
     if (left === 2) return 'Down to two bars…';
     if (lead === 0) return 'Everyone has a bar. One of them has the golden ticket.';
-    return `${left} bars still wrapped. One of them has the golden ticket.`;
+    return `${left} bars still wrapped. Open yours, then we reveal together.`;
   });
 
   let othersWrapped = $derived(wrapped.filter(b => !b.p?.is_me).length);
@@ -166,7 +174,7 @@
         <BoardBar step={b.step} number={b.i + 1} golden={b.golden} />
         <div class="board-meter"><span style="transform: scaleX({b.step / UNWRAP_STEPS})"></span></div>
         <div class="board-name">{b.p ? (b.p.is_me ? 'You' : b.p.name) : '—'}</div>
-        <div class="board-status">{b.opened ? 'just chocolate' : b.step === 0 ? 'still sealed' : `${b.step}/${UNWRAP_STEPS}`}</div>
+        <div class="board-status">{b.opened ? (b.golden === true ? 'golden ticket!' : b.golden === false ? 'just chocolate' : 'opened') : b.step === 0 ? 'still sealed' : `${b.step}/${UNWRAP_STEPS}`}</div>
       </div>
     {/each}
   </div>
@@ -183,7 +191,9 @@
       <button type="button" class="unwrap-chip" onclick={() => (view = 'board')}>👀 Watch the board</button>
     {/snippet}
     {#snippet footer()}
-      {#if othersWrapped > 0}
+      {#if goldenMine === true}
+        <span>Keep it quiet. The wall reveals it once every bar is open.</span>
+      {:else if othersWrapped > 0}
         <span>{othersWrapped} other bar{othersWrapped === 1 ? '' : 's'} still wrapped</span>
       {:else if goldenMine === null}
         <span>Everyone else has opened theirs…</span>

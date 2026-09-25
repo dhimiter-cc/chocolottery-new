@@ -554,6 +554,19 @@
             </div>
           {/if}
 
+          <!-- Sealed draw: the fingerprint printed like a lot code, fixed at Start.
+               After the reveal it links to the proof page. -->
+          {#if gameState.draw_commit}
+            {@const seal = `${gameState.draw_commit.slice(0, 4)}·${gameState.draw_commit.slice(4, 8)}`}
+            <p class="draw-seal" title="Sealed draw, fixed at Start">
+              {#if gameState.draw_salt}
+                <a href="/verify/{code}">SEAL {seal}</a>
+              {:else}
+                SEAL {seal}
+              {/if}
+            </p>
+          {/if}
+
           {#if actionError}<p class="error" style="margin: 10px 0 0;">{actionError}</p>{/if}
 
           <!-- Prize snack card -->
