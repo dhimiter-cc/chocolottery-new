@@ -1,1 +1,404 @@
-{"wins":[{"name":"Joey","game_code":"COCO-7809","timestamp":1780658772,"month":"2026-06","participants":16,"player_names":["Dhim","Warrior","Nadim","Sofia","Burak","André","Elia","Joey","Theaa","Laufey","ALI.JR","Guess who","Theresa","Gisabelle","jaSperb","Ali Ahmed OG"],"prize_snack":"Nutella cookie"},{"name":"Gigi","game_code":"CHOC-5326","timestamp":1780679920,"month":"2026-06","participants":3,"player_names":["Dhim","Tessa","Gigi"],"prize_snack":"Maltesers"},{"name":"André","game_code":"BEAN-3787","timestamp":1781008749,"month":"2026-06","participants":13,"player_names":["Dhim","Ali.Jr","Sofie","Elia","Burak","Kayla","Dmj","joehoe","Kadir","Benny","Joey","Nadim","André"],"prize_snack":"Maltesers"},{"name":"André","game_code":"COCO-9305","timestamp":1781102678,"month":"2026-06","participants":6,"player_names":["Dhim","André","Burak","Theresa","Dmj","Kadir"],"prize_snack":null},{"name":"Elia","game_code":"CHOC-5950","timestamp":1781262323,"month":"2026-06","participants":13,"player_names":["Dhim","Ahsen","Theresa","Dmj","Burak","lau","Ali.Jr","Kadir","Joey","Elia","THEA","Brrrtt","André"],"prize_snack":"KitKat"},{"name":"THEA","game_code":"CHOC-7607","timestamp":1781608896,"month":"2026-06","participants":19,"player_names":["Dhim","Nadim","Elia","kadir","Ali Ahmed OG","Winner","Sofia","Jasperb","André","Bitch","Joey","Burak","Bart","THEA","Hamza","Kayla","Ali.Jr","Ryan","Theresa"],"prize_snack":"Snickers"},{"name":"Dhim","game_code":"COCO-3329","timestamp":1781697001,"month":"2026-06","participants":15,"player_names":["Dhim","Kadir","Theresa","Ali OG","Today's Winner","Dmj","Sofia","Theaaaaa","Nadim","LAUF","Kayla","Ryan","Burak","Kevin lover","Joey"],"prize_snack":"Maltesers"},{"name":"Po","game_code":"CHOC-3696","timestamp":1781862247,"month":"2026-06","participants":17,"player_names":["Dhim","Dmj","Elia","Ali OG","Po","Burak","André","Kadir","Ali.Jr","Sofia","Nadim","Kayla","Jasper","Hamza","Bart","Ryan","Dr content"],"prize_snack":"Twix"},{"name":"Ryan","game_code":"CHOC-7910","timestamp":1782214928,"month":"2026-06","participants":15,"player_names":["Dhim","Thea","Kayla","Hamza","Dmj","Theresa","André","Sof","Ryan","Nadim","Burak","Ali OG","Joey","Po","jasperrrr"],"prize_snack":"Snickers"},{"name":"Nadim","game_code":"CHOC-2837","timestamp":1782305596,"month":"2026-06","participants":9,"player_names":["Dhim","Nadim","Ryan","Burak","Kadir","Dmj","André","Joey","Ali.Jr"],"prize_snack":"Snickers"},{"name":"HostAlice","game_code":"BEAN-1211","timestamp":1783077854,"month":"2026-07","participants":2,"player_names":["HostAlice","BobTwo"],"prize_snack":null},{"name":"André","game_code":"WRAP-0464","timestamp":1790168349,"month":"2026-09","participants":20,"player_names":["Dhim","Kayla","Ali OG","Thea","Omar El","sofiasofisof","Elia","Nadim","Natalia","aliii","Theresa","Reni","Batoul","Sofia","laufey","Joey","Burak","po","Bart","André"],"prize_snack":"Banana bread"},{"name":"Dhim","game_code":"CHOC-0220","timestamp":1790332833,"month":"2026-09","participants":4,"player_names":["Dhim","Joey","Sinterklaasje BONNE BONNE","Christelle"],"prize_snack":null},{"name":"Dhim","game_code":"CHOC-5493","timestamp":1790333046,"month":"2026-09","participants":5,"player_names":["Ali","Joey","Christelle","Dhim","Burak"],"prize_snack":null},{"name":"Christelle","game_code":"WRAP-2154","timestamp":1790333114,"month":"2026-09","participants":5,"player_names":["Ali","Joey","Dhim","Christelle","Burak"],"prize_snack":null},{"name":"Joey","game_code":"COCO-9497","timestamp":1790333190,"month":"2026-09","participants":5,"player_names":["Ali","Dhim","Christelle","Burak","Joey"],"prize_snack":null}]}
+{
+  "wins": [
+    {
+      "name": "Joey",
+      "game_code": "COCO-7809",
+      "timestamp": 1780658772,
+      "month": "2026-06",
+      "participants": 16,
+      "player_names": [
+        "Dhim",
+        "Warrior",
+        "Nadim",
+        "Sofia",
+        "Burak",
+        "André",
+        "Elia",
+        "Joey",
+        "Theaa",
+        "Laufey",
+        "ALI.JR",
+        "Guess who",
+        "Theresa",
+        "Gisabelle",
+        "jaSperb",
+        "Ali Ahmed OG"
+      ],
+      "prize_snack": "Nutella cookie"
+    },
+    {
+      "name": "Gigi",
+      "game_code": "CHOC-5326",
+      "timestamp": 1780679920,
+      "month": "2026-06",
+      "participants": 3,
+      "player_names": [
+        "Dhim",
+        "Tessa",
+        "Gigi"
+      ],
+      "prize_snack": "Maltesers"
+    },
+    {
+      "name": "André",
+      "game_code": "BEAN-3787",
+      "timestamp": 1781008749,
+      "month": "2026-06",
+      "participants": 13,
+      "player_names": [
+        "Dhim",
+        "Ali.Jr",
+        "Sofie",
+        "Elia",
+        "Burak",
+        "Kayla",
+        "Dmj",
+        "joehoe",
+        "Kadir",
+        "Benny",
+        "Joey",
+        "Nadim",
+        "André"
+      ],
+      "prize_snack": "Maltesers"
+    },
+    {
+      "name": "André",
+      "game_code": "COCO-9305",
+      "timestamp": 1781102678,
+      "month": "2026-06",
+      "participants": 6,
+      "player_names": [
+        "Dhim",
+        "André",
+        "Burak",
+        "Theresa",
+        "Dmj",
+        "Kadir"
+      ],
+      "prize_snack": null
+    },
+    {
+      "name": "Elia",
+      "game_code": "CHOC-5950",
+      "timestamp": 1781262323,
+      "month": "2026-06",
+      "participants": 13,
+      "player_names": [
+        "Dhim",
+        "Ahsen",
+        "Theresa",
+        "Dmj",
+        "Burak",
+        "lau",
+        "Ali.Jr",
+        "Kadir",
+        "Joey",
+        "Elia",
+        "THEA",
+        "Brrrtt",
+        "André"
+      ],
+      "prize_snack": "KitKat"
+    },
+    {
+      "name": "THEA",
+      "game_code": "CHOC-7607",
+      "timestamp": 1781608896,
+      "month": "2026-06",
+      "participants": 19,
+      "player_names": [
+        "Dhim",
+        "Nadim",
+        "Elia",
+        "kadir",
+        "Ali Ahmed OG",
+        "Winner",
+        "Sofia",
+        "Jasperb",
+        "André",
+        "Bitch",
+        "Joey",
+        "Burak",
+        "Bart",
+        "THEA",
+        "Hamza",
+        "Kayla",
+        "Ali.Jr",
+        "Ryan",
+        "Theresa"
+      ],
+      "prize_snack": "Snickers"
+    },
+    {
+      "name": "Dhim",
+      "game_code": "COCO-3329",
+      "timestamp": 1781697001,
+      "month": "2026-06",
+      "participants": 15,
+      "player_names": [
+        "Dhim",
+        "Kadir",
+        "Theresa",
+        "Ali OG",
+        "Today's Winner",
+        "Dmj",
+        "Sofia",
+        "Theaaaaa",
+        "Nadim",
+        "LAUF",
+        "Kayla",
+        "Ryan",
+        "Burak",
+        "Kevin lover",
+        "Joey"
+      ],
+      "prize_snack": "Maltesers"
+    },
+    {
+      "name": "Po",
+      "game_code": "CHOC-3696",
+      "timestamp": 1781862247,
+      "month": "2026-06",
+      "participants": 17,
+      "player_names": [
+        "Dhim",
+        "Dmj",
+        "Elia",
+        "Ali OG",
+        "Po",
+        "Burak",
+        "André",
+        "Kadir",
+        "Ali.Jr",
+        "Sofia",
+        "Nadim",
+        "Kayla",
+        "Jasper",
+        "Hamza",
+        "Bart",
+        "Ryan",
+        "Dr content"
+      ],
+      "prize_snack": "Twix"
+    },
+    {
+      "name": "Ryan",
+      "game_code": "CHOC-7910",
+      "timestamp": 1782214928,
+      "month": "2026-06",
+      "participants": 15,
+      "player_names": [
+        "Dhim",
+        "Thea",
+        "Kayla",
+        "Hamza",
+        "Dmj",
+        "Theresa",
+        "André",
+        "Sof",
+        "Ryan",
+        "Nadim",
+        "Burak",
+        "Ali OG",
+        "Joey",
+        "Po",
+        "jasperrrr"
+      ],
+      "prize_snack": "Snickers"
+    },
+    {
+      "name": "Nadim",
+      "game_code": "CHOC-2837",
+      "timestamp": 1782305596,
+      "month": "2026-06",
+      "participants": 9,
+      "player_names": [
+        "Dhim",
+        "Nadim",
+        "Ryan",
+        "Burak",
+        "Kadir",
+        "Dmj",
+        "André",
+        "Joey",
+        "Ali.Jr"
+      ],
+      "prize_snack": "Snickers"
+    },
+    {
+      "name": "HostAlice",
+      "game_code": "BEAN-1211",
+      "timestamp": 1783077854,
+      "month": "2026-07",
+      "participants": 2,
+      "player_names": [
+        "HostAlice",
+        "BobTwo"
+      ],
+      "prize_snack": null
+    },
+    {
+      "name": "André",
+      "game_code": "WRAP-0464",
+      "timestamp": 1790168349,
+      "month": "2026-09",
+      "participants": 20,
+      "player_names": [
+        "Dhim",
+        "Kayla",
+        "Ali OG",
+        "Thea",
+        "Omar El",
+        "sofiasofisof",
+        "Elia",
+        "Nadim",
+        "Natalia",
+        "aliii",
+        "Theresa",
+        "Reni",
+        "Batoul",
+        "Sofia",
+        "laufey",
+        "Joey",
+        "Burak",
+        "po",
+        "Bart",
+        "André"
+      ],
+      "prize_snack": "Banana bread"
+    },
+    {
+      "name": "Dhim",
+      "game_code": "CHOC-0220",
+      "timestamp": 1790332833,
+      "month": "2026-09",
+      "participants": 4,
+      "player_names": [
+        "Dhim",
+        "Joey",
+        "Sinterklaasje BONNE BONNE",
+        "Christelle"
+      ],
+      "prize_snack": null
+    },
+    {
+      "name": "Dhim",
+      "game_code": "CHOC-5493",
+      "timestamp": 1790333046,
+      "month": "2026-09",
+      "participants": 5,
+      "player_names": [
+        "Ali",
+        "Joey",
+        "Christelle",
+        "Dhim",
+        "Burak"
+      ],
+      "prize_snack": null
+    },
+    {
+      "name": "Christelle",
+      "game_code": "WRAP-2154",
+      "timestamp": 1790333114,
+      "month": "2026-09",
+      "participants": 5,
+      "player_names": [
+        "Ali",
+        "Joey",
+        "Dhim",
+        "Christelle",
+        "Burak"
+      ],
+      "prize_snack": null
+    },
+    {
+      "name": "Joey",
+      "game_code": "COCO-9497",
+      "timestamp": 1790333190,
+      "month": "2026-09",
+      "participants": 5,
+      "player_names": [
+        "Ali",
+        "Dhim",
+        "Christelle",
+        "Burak",
+        "Joey"
+      ],
+      "prize_snack": null
+    },
+    {
+      "name": "Dhim",
+      "game_code": "BEAN-2594",
+      "timestamp": 1790339720,
+      "month": "2026-09",
+      "participants": 6,
+      "player_names": [
+        "Joey",
+        "Dhim",
+        "André",
+        "Amine",
+        "Christelle",
+        "Burak Bas"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "54d6d35be3360e8088880081332594389274c349874248bb930a3c7fcfe861ca",
+        "salt": "7c6472a7bc732f4bc47879f5a52688f2",
+        "straws": [
+          59,
+          59,
+          100,
+          18,
+          34,
+          23
+        ],
+        "drawn_at": 1790339697339
+      },
+      "audit": [
+        {
+          "name": "Christelle",
+          "bar": 5,
+          "value": 23,
+          "picked_at": 1790339704785,
+          "opened_at": 1790339710239
+        },
+        {
+          "name": "Burak Bas",
+          "bar": 1,
+          "value": 59,
+          "picked_at": 1790339706726,
+          "opened_at": 1790339710566
+        },
+        {
+          "name": "Joey",
+          "bar": 0,
+          "value": 59,
+          "picked_at": 1790339706727,
+          "opened_at": 1790339712540
+        },
+        {
+          "name": "André",
+          "bar": 4,
+          "value": 34,
+          "picked_at": 1790339702813,
+          "opened_at": 1790339713909
+        },
+        {
+          "name": "Dhim",
+          "bar": 2,
+          "value": 100,
+          "picked_at": 1790339703944,
+          "opened_at": 1790339718825
+        },
+        {
+          "name": "Amine",
+          "bar": 3,
+          "value": 18,
+          "picked_at": 1790339702726,
+          "opened_at": 1790339720378
+        }
+      ]
+    }
+  ]
+}
