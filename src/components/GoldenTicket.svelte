@@ -121,16 +121,17 @@
   const viewH = GROUND + 3;
   const bananas = (PRIZE.lengthCm / PRIZE.bananaCm).toFixed(1);
 
-  // Lying on its side, curve down. The underside's control point sits below
-  // the ground so the belly just touches it; the top curve is shallower, which
-  // leaves the banana ~3 cm thick in the middle and pointed at both tips.
+  // Lying on its side, curve down, tips ~6 cm up off the table. The underside's
+  // control point sits below the ground so the belly just touches it; the top
+  // curve is shallower, which leaves the banana ~3.3 cm thick in the middle and
+  // pointed at both tips.
   const L = PRIZE.bananaCm;
   const bananaPath =
-    `M ${bananaX} ${GROUND - 3} ` +
-    `Q ${bananaX + L / 2} ${GROUND + 3} ${bananaEnd} ${GROUND - 3.6} ` +
-    `Q ${bananaX + L / 2} ${GROUND - 3.6} ${bananaX} ${GROUND - 3} Z`;
+    `M ${bananaX} ${GROUND - 5.5} ` +
+    `Q ${bananaX + L / 2} ${GROUND + 5.5} ${bananaEnd} ${GROUND - 6.2} ` +
+    `Q ${bananaX + L / 2} ${GROUND - 1.15} ${bananaX} ${GROUND - 5.5} Z`;
   const bananaRidge =
-    `M ${bananaX + 1.2} ${GROUND - 2.5} Q ${bananaX + L / 2} ${GROUND - 0.4} ${bananaEnd - 1.4} ${GROUND - 3}`;
+    `M ${bananaX + 1.1} ${GROUND - 4.6} Q ${bananaX + L / 2} ${GROUND + 2.2} ${bananaEnd - 1.3} ${GROUND - 5.2}`;
 
   let showTeaser = $derived(mode === 'tease' && stage === 'tease');
   let bars = $derived(style === 'bars');
@@ -213,14 +214,14 @@
             <g class="gt-banana">
               <path d={bananaPath} class="gt-banana-skin" />
               <path d={bananaRidge} class="gt-banana-ridge" />
-              <circle cx={bananaX + 0.2} cy={GROUND - 3} r="0.55" class="gt-banana-tip" />
-              <path d="M {bananaEnd - 0.3} {GROUND - 3.6} l 1.6 -1.3" class="gt-banana-stem" />
+              <circle cx={bananaX + 0.2} cy={GROUND - 5.5} r="0.55" class="gt-banana-tip" />
+              <path d="M {bananaEnd - 0.3} {GROUND - 6.2} l 1.2 -1.5" class="gt-banana-stem" />
             </g>
             <!-- Dimension lines, one per object, ticks at both ends -->
             <path class="gt-dim" d="M {BAR_X} {DIM_Y} H {BAR_X + PRIZE.lengthCm} M {BAR_X} {DIM_Y - 1} v 2 M {BAR_X + PRIZE.lengthCm} {DIM_Y - 1} v 2" />
             <text x={BAR_X + PRIZE.lengthCm / 2} y={DIM_Y - 1.6} class="gt-scale-note">{PRIZE.lengthCm} cm</text>
-            <path class="gt-dim" d="M {bananaX} {GROUND - 7} H {bananaEnd} M {bananaX} {GROUND - 8} v 2 M {bananaEnd} {GROUND - 8} v 2" />
-            <text x={bananaX + PRIZE.bananaCm / 2} y={GROUND - 8.6} class="gt-scale-note">{PRIZE.bananaCm} cm</text>
+            <path class="gt-dim" d="M {bananaX} {GROUND - 10.5} H {bananaEnd} M {bananaX} {GROUND - 11.5} v 2 M {bananaEnd} {GROUND - 11.5} v 2" />
+            <text x={bananaX + PRIZE.bananaCm / 2} y={GROUND - 12.1} class="gt-scale-note">{PRIZE.bananaCm} cm</text>
           </svg>
           <p class="gt-scale-caption">
             Measured in the only unit that matters: <strong>{bananas} bananas</strong> of chocolate.
