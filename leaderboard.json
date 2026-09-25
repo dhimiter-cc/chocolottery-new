@@ -472,6 +472,79 @@
           "opened_at": 1790339845063
         }
       ]
+    },
+    {
+      "name": "André",
+      "game_code": "BEAN-7849",
+      "timestamp": 1790339936,
+      "month": "2026-09",
+      "participants": 6,
+      "player_names": [
+        "André",
+        "Amine",
+        "Christelle",
+        "Joey",
+        "Dhim",
+        "Burak Bas"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "a2c410ab466a7b16eee6c75ce886041d6873198bef9cd730cf943df8e71d7db5",
+        "salt": "110846ff8dfc67ef3d5ce385c93af2cf",
+        "straws": [
+          100,
+          32,
+          57,
+          22,
+          46,
+          32
+        ],
+        "drawn_at": 1790339902609
+      },
+      "audit": [
+        {
+          "name": "Burak Bas",
+          "bar": 4,
+          "value": 46,
+          "picked_at": 1790339911746,
+          "opened_at": 1790339916404
+        },
+        {
+          "name": "Amine",
+          "bar": 5,
+          "value": 32,
+          "picked_at": 1790339911516,
+          "opened_at": 1790339920766
+        },
+        {
+          "name": "Joey",
+          "bar": 1,
+          "value": 32,
+          "picked_at": 1790339909424,
+          "opened_at": 1790339923859
+        },
+        {
+          "name": "André",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1790339910327,
+          "opened_at": 1790339927485
+        },
+        {
+          "name": "Christelle",
+          "bar": 3,
+          "value": 22,
+          "picked_at": 1790339909189,
+          "opened_at": 1790339931346
+        },
+        {
+          "name": "Dhim",
+          "bar": 2,
+          "value": 57,
+          "picked_at": 1790339911746,
+          "opened_at": 1790339936685
+        }
+      ]
     }
   ]
 }
