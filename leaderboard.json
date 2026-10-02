@@ -1303,6 +1303,196 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Hamza",
+      "game_code": "CHOC-3985",
+      "timestamp": 1790939214,
+      "month": "2026-10",
+      "participants": 19,
+      "player_names": [
+        "Dhim",
+        "Amine",
+        "Theresa",
+        "Mimi",
+        "Sofia - 2",
+        "Joey",
+        "André",
+        "Dmj",
+        "Burak",
+        "Kadir",
+        "Hamza",
+        "Nadim",
+        "Sofia - 3",
+        "Sofia - 5",
+        "Sofia - 4",
+        "Kayla",
+        "Ali OG",
+        "Sofia K",
+        "Thea"
+      ],
+      "prize_snack": "Bounty",
+      "draw": {
+        "commit": "61056ed68a5dece4edcbf1f1bd0b2b33fe207e0b563a64440226f03a60b98ffe",
+        "salt": "a48791b76b047c5273b8a0ef9c86dcd3",
+        "straws": [
+          21,
+          51,
+          67,
+          16,
+          64,
+          63,
+          68,
+          42,
+          33,
+          56,
+          45,
+          38,
+          43,
+          63,
+          66,
+          100,
+          15,
+          50,
+          36
+        ],
+        "drawn_at": 1790939132389
+      },
+      "audit": [
+        {
+          "name": "Nadim",
+          "bar": 14,
+          "value": 66,
+          "picked_at": 1790939137691,
+          "opened_at": 1790939157591
+        },
+        {
+          "name": "Kayla",
+          "bar": 3,
+          "value": 16,
+          "picked_at": 1790939138596,
+          "opened_at": 1790939157604
+        },
+        {
+          "name": "Theresa",
+          "bar": 12,
+          "value": 43,
+          "picked_at": 1790939139072,
+          "opened_at": 1790939158730
+        },
+        {
+          "name": "Ali OG",
+          "bar": 2,
+          "value": 67,
+          "picked_at": 1790939137659,
+          "opened_at": 1790939158976
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 68,
+          "picked_at": 1790939137110,
+          "opened_at": 1790939159065
+        },
+        {
+          "name": "Sofia - 2",
+          "bar": 4,
+          "value": 64,
+          "picked_at": 1790939137903,
+          "opened_at": 1790939159848
+        },
+        {
+          "name": "André",
+          "bar": 8,
+          "value": 33,
+          "picked_at": 1790939138685,
+          "opened_at": 1790939160607
+        },
+        {
+          "name": "Dmj",
+          "bar": 13,
+          "value": 63,
+          "picked_at": 1790939138193,
+          "opened_at": 1790939160684
+        },
+        {
+          "name": "Burak",
+          "bar": 10,
+          "value": 45,
+          "picked_at": 1790939140272,
+          "opened_at": 1790939162065
+        },
+        {
+          "name": "Sofia - 3",
+          "bar": 1,
+          "value": 51,
+          "picked_at": 1790939148790,
+          "opened_at": 1790939162115
+        },
+        {
+          "name": "Dhim",
+          "bar": 7,
+          "value": 42,
+          "picked_at": 1790939137753,
+          "opened_at": 1790939162422
+        },
+        {
+          "name": "Sofia K",
+          "bar": 5,
+          "value": 63,
+          "picked_at": 1790939139028,
+          "opened_at": 1790939164376
+        },
+        {
+          "name": "Mimi",
+          "bar": 9,
+          "value": 56,
+          "picked_at": 1790939139027,
+          "opened_at": 1790939164477
+        },
+        {
+          "name": "Sofia - 5",
+          "bar": 18,
+          "value": 36,
+          "picked_at": 1790939142147,
+          "opened_at": 1790939164552
+        },
+        {
+          "name": "Sofia - 4",
+          "bar": 17,
+          "value": 50,
+          "picked_at": 1790939144393,
+          "opened_at": 1790939166941
+        },
+        {
+          "name": "Thea",
+          "bar": 11,
+          "value": 38,
+          "picked_at": 1790939141400,
+          "opened_at": 1790939173735
+        },
+        {
+          "name": "Kadir",
+          "bar": 0,
+          "value": 21,
+          "picked_at": 1790939154675,
+          "opened_at": 1790939208697
+        },
+        {
+          "name": "Amine",
+          "bar": 16,
+          "value": 15,
+          "picked_at": 1790939154675,
+          "opened_at": null
+        },
+        {
+          "name": "Hamza",
+          "bar": 15,
+          "value": 100,
+          "picked_at": 1790939154675,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
