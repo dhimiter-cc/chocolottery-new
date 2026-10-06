@@ -1493,6 +1493,106 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Bibi",
+      "game_code": "CHOC-9033",
+      "timestamp": 1791285812,
+      "month": "2026-10",
+      "participants": 9,
+      "player_names": [
+        "Dhim",
+        "aliii",
+        "Dmj",
+        "Joey",
+        "André",
+        "Christelle",
+        "Burak",
+        "Bibi",
+        "po"
+      ],
+      "prize_snack": "KitKat",
+      "draw": {
+        "commit": "732454abf3ba12222d5c1f819d2c299a69678b7d395804e3325cc5ce4cdea1f4",
+        "salt": "a133c983763de862909127d2f47076f3",
+        "straws": [
+          15,
+          25,
+          62,
+          22,
+          41,
+          25,
+          48,
+          42,
+          100
+        ],
+        "drawn_at": 1791285775114
+      },
+      "audit": [
+        {
+          "name": "Burak",
+          "bar": 7,
+          "value": 42,
+          "picked_at": 1791285780489,
+          "opened_at": 1791285785664
+        },
+        {
+          "name": "André",
+          "bar": 0,
+          "value": 15,
+          "picked_at": 1791285780401,
+          "opened_at": 1791285786097
+        },
+        {
+          "name": "Bibi",
+          "bar": 8,
+          "value": 100,
+          "picked_at": 1791285779735,
+          "opened_at": 1791285786365
+        },
+        {
+          "name": "Christelle",
+          "bar": 5,
+          "value": 25,
+          "picked_at": 1791285780900,
+          "opened_at": 1791285787440
+        },
+        {
+          "name": "po",
+          "bar": 3,
+          "value": 22,
+          "picked_at": 1791285782384,
+          "opened_at": 1791285787506
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 48,
+          "picked_at": 1791285779712,
+          "opened_at": 1791285789432
+        },
+        {
+          "name": "Dmj",
+          "bar": 4,
+          "value": 41,
+          "picked_at": 1791285779443,
+          "opened_at": 1791285793313
+        },
+        {
+          "name": "Dhim",
+          "bar": 2,
+          "value": 62,
+          "picked_at": 1791285780608,
+          "opened_at": 1791285797993
+        },
+        {
+          "name": "aliii",
+          "bar": 1,
+          "value": 25,
+          "picked_at": 1791285782384,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
