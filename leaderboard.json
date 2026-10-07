@@ -1593,6 +1593,115 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Kayla",
+      "game_code": "WRAP-7799",
+      "timestamp": 1791372517,
+      "month": "2026-10",
+      "participants": 10,
+      "player_names": [
+        "Dhim",
+        "sofiasofisof",
+        "Christelle",
+        "laufey",
+        "Burak",
+        "Neverwinning",
+        "Kayla",
+        "Natalia",
+        "Theresa",
+        "André"
+      ],
+      "prize_snack": "A whole toblerone",
+      "draw": {
+        "commit": "811264dafda179f2faf0d8f99ce321f515a9990f72c4b6b3e375b5eded5a34ce",
+        "salt": "a1631a0cc4847549ab1a9998680d72f0",
+        "straws": [
+          23,
+          25,
+          29,
+          100,
+          66,
+          20,
+          52,
+          52,
+          70,
+          26
+        ],
+        "drawn_at": 1791372497324
+      },
+      "audit": [
+        {
+          "name": "Theresa",
+          "bar": 8,
+          "value": 70,
+          "picked_at": 1791372501889,
+          "opened_at": 1791372510104
+        },
+        {
+          "name": "laufey",
+          "bar": 0,
+          "value": 23,
+          "picked_at": 1791372506732,
+          "opened_at": 1791372510375
+        },
+        {
+          "name": "Kayla",
+          "bar": 3,
+          "value": 100,
+          "picked_at": 1791372502793,
+          "opened_at": 1791372510582
+        },
+        {
+          "name": "André",
+          "bar": 2,
+          "value": 29,
+          "picked_at": 1791372502103,
+          "opened_at": 1791372510685
+        },
+        {
+          "name": "Neverwinning",
+          "bar": 6,
+          "value": 52,
+          "picked_at": 1791372505140,
+          "opened_at": 1791372511962
+        },
+        {
+          "name": "Burak",
+          "bar": 1,
+          "value": 25,
+          "picked_at": 1791372503674,
+          "opened_at": 1791372512169
+        },
+        {
+          "name": "Christelle",
+          "bar": 9,
+          "value": 26,
+          "picked_at": 1791372502383,
+          "opened_at": 1791372512300
+        },
+        {
+          "name": "sofiasofisof",
+          "bar": 4,
+          "value": 66,
+          "picked_at": 1791372502649,
+          "opened_at": 1791372512648
+        },
+        {
+          "name": "Dhim",
+          "bar": 5,
+          "value": 20,
+          "picked_at": 1791372504601,
+          "opened_at": 1791372515849
+        },
+        {
+          "name": "Natalia",
+          "bar": 7,
+          "value": 52,
+          "picked_at": 1791372506733,
+          "opened_at": 1791372517185
+        }
+      ]
     }
   ]
 }
