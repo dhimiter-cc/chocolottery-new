@@ -4,7 +4,10 @@
   import type { GameStateResponse } from '../lib/types.js';
   import { post } from '../lib/api.js';
 
-  let { game, code, isHost, onRefresh }: { game: GameStateResponse; code: string; isHost: boolean; onRefresh?: () => void } = $props();
+  // `compact` is for sitting inside the reveal canvas, where there is no room
+  // for a card of its own: same controls, one tight block.
+  let { game, code, isHost, onRefresh, compact = false }:
+    { game: GameStateResponse; code: string; isHost: boolean; onRefresh?: () => void; compact?: boolean } = $props();
 
   let giveSelectId = $state('');
   let giveError = $state('');
@@ -31,7 +34,7 @@
   }
 </script>
 
-<div class="give-card">
+<div class="give-card" class:compact>
   <div class="give-label">From the cupboard</div>
   {#if game.prize_given_id}
     <div class="give-status given">✓ {game.prize_given_name} was handed to the winner.</div>

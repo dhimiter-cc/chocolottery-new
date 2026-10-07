@@ -12,14 +12,13 @@ import type { LeaderboardWin } from '../../lib/types.js';
 // Bar mode: a player reports how far they've torn their bar open.
 //
 // Progress only ever moves forward, so a late or duplicated request is a
-// harmless no-op. What's inside is decided by the draw (`game.straws`) and is
-// only told to the player once they reach the last step, and only to them:
-// finding the golden ticket doesn't end the round. When the last bar in the
-// room is open the win is recorded and every screen flips to the reveal on
-// its next poll.
+// harmless no-op. Nobody is told what's inside their bar, the holder of the
+// golden one included: the ticket stays sealed until every bar in the room is
+// open (or the host opens the rest). The write that opens the last bar records
+// the win and every screen flips to the reveal on its next poll.
 
 type UnwrapResult =
-  | { ok: true; step: number; golden?: boolean }
+  | { ok: true; step: number }
   | { error: string; code: number };
 
 function json(payload: unknown, status: number) {
@@ -55,13 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const current = player.unwrap ?? 0;
     if (step <= current) {
-      const done = current >= UNWRAP_STEPS;
-      return {
-        result: done
-          ? { ok: true, step: current, golden: game.straws[player.straw_index] === 100 }
-          : { ok: true, step: current },
-        noWrite: true,
-      };
+      return { result: { ok: true, step: current }, noWrite: true };
     }
 
     player.unwrap = step;
@@ -70,9 +63,8 @@ export const POST: APIRoute = async ({ request }) => {
     if (step < UNWRAP_STEPS) return { game, result: { ok: true, step } };
 
     player.opened_at = Date.now();
-    const golden = game.straws[player.straw_index] === 100;
     if (allBarsOpen(game)) winRecord = finalizePicking(game);
-    return { game, result: { ok: true, step, golden } };
+    return { game, result: { ok: true, step } };
   });
 
   if (winRecord) await appendLeaderboard(winRecord);

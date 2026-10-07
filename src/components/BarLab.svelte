@@ -8,33 +8,28 @@
   const steps = Array.from({ length: UNWRAP_STEPS + 1 }, (_, i) => i);
 
   let scratching = $state(false);
-  let wantGolden = $state(true);
-  let golden = $state<boolean | null>(null);
   let log = $state<string[]>([]);
 
-  function open(g: boolean) {
-    wantGolden = g;
-    golden = null;
+  function open() {
     log = [];
     scratching = true;
   }
 
-  // Stand-in for POST /api/unwrap: answers the final step after a round trip.
+  // Stand-in for POST /api/unwrap.
   function onProgress(step: number) {
     log = [...log, `step ${step}`];
-    if (step >= UNWRAP_STEPS) setTimeout(() => (golden = wantGolden), 450);
   }
 </script>
 
 <main class="lab">
   <h1>Chocolate bar lab</h1>
-  <p>Every frame of the unwrap, bar Nº 07. The last two are the two possible endings.</p>
+  <p>Every frame of the unwrap, bar Nº 07. The last two are what the reveal shows: bare chocolate until it runs, then the ticket.</p>
 
   <div class="lab-row">
     {#each steps as s (s)}
       <figure>
-        <ChocolateBar step={s} number={7} golden={s === UNWRAP_STEPS ? false : null} name={s === 0 ? 'Dhimiter' : ''} />
-        <figcaption>{s}{s === UNWRAP_STEPS ? ' · plain' : ''}</figcaption>
+        <ChocolateBar step={s} number={7}  name={s === 0 ? 'Dhimiter' : ''} />
+        <figcaption>{s}{s === UNWRAP_STEPS ? ' · open' : ''}</figcaption>
       </figure>
     {/each}
     <figure>
@@ -54,13 +49,12 @@
   </div>
 
   <div class="lab-actions">
-    <button class="btn btn-primary" onclick={() => open(true)}>Scratch one (golden)</button>
-    <button class="btn btn-ghost" onclick={() => open(false)}>Scratch one (plain)</button>
+    <button class="btn btn-primary" onclick={open}>Scratch one</button>
   </div>
 </main>
 
 {#if scratching}
-  <UnwrapStage number={7} {golden} {onProgress}>
+  <UnwrapStage number={7} suspense="Somewhere in this room, a bar is hiding gold." {onProgress}>
     {#snippet corner()}
       <button type="button" class="unwrap-chip" onclick={() => (scratching = false)}>✕ close</button>
     {/snippet}

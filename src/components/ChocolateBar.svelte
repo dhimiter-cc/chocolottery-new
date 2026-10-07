@@ -19,7 +19,8 @@
     step?: number;
     /** 1-based bar number printed on the wrapper; also seeds the randomness. */
     number: number;
-    /** What's inside. Only drawn on the final step; null = not known yet. */
+    /** What's inside. Only drawn on the final step; null = not known, which is
+     *  how every bar looks until the reveal. */
     golden?: boolean | null;
     /** Name ribbon on the wrapper (picking grid, host board). */
     name?: string;
@@ -44,6 +45,10 @@
   const FOIL_TEARS: Tear[] = [null, null, null, null, null, [-10, 64], [104, 142], [206, 238], [298, 372]];
 
   let s = $derived(Math.max(0, Math.min(UNWRAP_STEPS, Math.round(step))));
+  // Fully open with nobody knowing what's inside (every bar until the reveal):
+  // the chocolate isn't drawn at all, just a glowing light with a question mark.
+  // Identical for every bar, so it can't give the golden one away.
+  let mystery = $derived(s >= UNWRAP_STEPS && golden === null);
   let sleeveTear = $derived(SLEEVE_TEARS[s]);
   let foilTear = $derived(FOIL_TEARS[s]);
 
@@ -159,7 +164,7 @@
   class:cb-boil={boil}
   viewBox="0 0 200 350"
   role="img"
-  aria-label={`Chocolate bar ${number}${s >= UNWRAP_STEPS ? (golden ? ', golden ticket inside' : golden === false ? ', just chocolate' : '') : s > 0 ? `, ${s} of ${UNWRAP_STEPS} unwrapped` : ''}`}
+  aria-label={`Chocolate bar ${number}${s >= UNWRAP_STEPS ? (golden ? ', golden ticket inside' : golden === false ? ', just chocolate' : ', opened, contents unknown') : s > 0 ? `, ${s} of ${UNWRAP_STEPS} unwrapped` : ''}`}
 >
   <defs>
     <linearGradient id="{uid}-gold" x1="0" y1="0" x2="1" y2="1">
@@ -186,6 +191,12 @@
     </linearGradient>
     <!-- Torn edges and curled flaps stay inside their own layer's outline, so
          a tear that runs off the end of the bar doesn't draw on the table. -->
+    <radialGradient id="{uid}-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFF6D2" stop-opacity="1" />
+      <stop offset="0.38" stop-color="#F8D983" stop-opacity="0.85" />
+      <stop offset="0.7" stop-color="#E0B04A" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#E0B04A" stop-opacity="0" />
+    </radialGradient>
     <clipPath id="{uid}-foil-box"><rect x={FOIL.x} y={FOIL.y - 4} width={FOIL.w} height={FOIL.h + 4} rx="5" /></clipPath>
     <clipPath id="{uid}-sleeve-box"><rect x={SLEEVE.x} y={SLEEVE.y - 16} width={SLEEVE.w} height={SLEEVE.h + 16} /></clipPath>
     {#if sleevePts}
@@ -198,6 +209,19 @@
 
   <ellipse class="cb-shadow" cx="100" cy="338" rx="86" ry="8" />
 
+  {#if mystery}
+    <g class="cb-mystery">
+      <circle class="cb-mystery-halo" cx="100" cy="170" r="118" fill="url(#{uid}-glow)" />
+      <g class="cb-mystery-rays" stroke="#F8D983" stroke-width="3" stroke-linecap="round">
+        {#each Array.from({ length: 12 }, (_, i) => i) as i (i)}
+          <line x1="100" y1="170" x2="100" y2={i % 2 ? 78 : 62} transform="rotate({i * 30} 100 170)" opacity={i % 2 ? 0.45 : 0.75} />
+        {/each}
+      </g>
+      <circle cx="100" cy="170" r="50" fill="url(#{uid}-gold)" />
+      <circle cx="100" cy="170" r="50" fill="none" stroke="#FFF6D2" stroke-width="2" opacity="0.7" />
+      <text class="cb-qmark" x="100" y="196">?</text>
+    </g>
+  {:else}
   <g transform={wobble}>
     <!-- Chocolate -->
     <rect x={SLAB.x} y={SLAB.y} width={SLAB.w} height={SLAB.h} rx="6" fill="#2B1409" />
@@ -281,8 +305,9 @@
       {/if}
     {/if}
   </g>
+  {/if}
 
-  {#if scrap}
+  {#if scrap && !mystery}
     {#key s}
       <polygon
         class="cb-scrap"

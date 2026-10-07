@@ -39,13 +39,17 @@ Bar mode adds an **`unwrapping`** phase between picking and reveal. Every
 player's own bar goes full screen on their device (`UnwrapStage.svelte`,
 swipe/drag to tear it open in `UNWRAP_STEPS` stop-motion frames); the host's
 screen shows the live board of everyone's progress (`UnwrapPhase.svelte`).
-Progress goes to `POST /api/unwrap` (forward-only, idempotent). A bar's
-contents are only revealed to its own holder once they reach the last step;
-the board shows other opened bars back in their foil, golden or not. Finding
-the ticket does **not** end the round: the write that opens the last bar calls
-`finalizePicking` (`allBarsOpen()`), and every screen flips to the reveal on
-its next poll (500ms while unwrapping), so the room finds out together. The
-host's "open all the bars" button opens the rest if someone is AFK.
+Progress goes to `POST /api/unwrap` (forward-only, idempotent). **Nobody learns what's
+in a bar before the reveal, the holder included**: `/api/unwrap` returns only the step,
+`sanitiseState` sends every straw as `null` until `reveal`/`done`, and a fully opened bar
+is drawn as a glowing orb with a "?" (`ChocolateBar` with `golden === null`), identical
+for every bar. Players hop to the board (the live view of everyone) a beat after their
+last tear; the stage keeps the rotating suspense lines. The write that opens the last bar
+calls `finalizePicking` (`allBarsOpen()`), and every screen flips to the reveal on its
+next poll (500ms while unwrapping). The reveal opens with a drumroll (`DRUMROLL_MS`),
+then the ticket lifts out of the winner's bar; the prize snack and the host's "mark
+given" control sit inside that canvas (`prize` snippet) so the stage never scrolls. The
+host's "unlock them and reveal" button opens the rest if someone is AFK.
 
 The bar is one SVG (`ChocolateBar.svelte`) drawn per step from seeded
 randomness, so every device shows the same frame. Dev-only workbench:
@@ -54,7 +58,8 @@ randomness, so every device shows the same frame. Dev-only workbench:
 Rounds can be big (tested with 41 players). On the desktop layout the bars are
 sized to the stage (`lib/fitShelf.ts`), elsewhere by head count
 (`shelfDensity()`); either way the stage must never clip the shelf, or players
-can't reach their bar.
+can't reach their bar. After the lobby, bar rounds drop the snack column
+(`.game-grid.stage-wide`) so the stage gets the width.
 
 **Event-day layout** (`eventLayout` in `Game.svelte`): on `EVENT_DATE`, or with
 `?event` on a game link, the header nav, snack votes and cupboard are hidden and

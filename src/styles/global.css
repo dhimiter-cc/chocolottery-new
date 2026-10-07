@@ -232,6 +232,8 @@ h2 {
   transition: color 0.15s;
 }
 .restart-btn:hover { color: var(--red); text-decoration-color: var(--red); }
+/* The host's way out of a stuck unwrap: a real button, not a footnote. */
+.unlock-btn { display: block; margin: 12px auto 0; }
 
 /* === Forms === */
 form label {
@@ -372,6 +374,18 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
     grid-template-columns: 1fr 280px;
     grid-template-areas: "stage chat";
   }
+}
+
+/* Bar rounds after the lobby: forty bars need the width. The snack column has
+   nothing to do once picking starts (it was already dimmed), so the stage takes
+   its space and loses the 720px cap. Phones and the lobby are unaffected. */
+@media (min-width: 1100px) {
+  .game-grid.stage-wide {
+    grid-template-columns: 1fr 300px;
+    grid-template-areas: "stage chat";
+  }
+  .game-grid.stage-wide .snacks-panel { display: none; }
+  .game-grid.stage-wide .cup-stage { max-width: none; }
 }
 
 /* Snacks/cupboard fade back during picking so the straws hold attention;
@@ -1680,6 +1694,17 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   align-items: center;
   flex-wrap: wrap;
 }
+.give-card.compact {
+  max-width: none;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(243, 231, 206, 0.28);
+}
+.give-card.compact .give-label { margin-bottom: 4px; color: rgba(243, 231, 206, 0.6); }
+.give-card.compact .give-status { margin-bottom: 8px; font-size: 0.88rem; color: var(--cb-cream); }
+.give-card.compact .give-status.given { color: var(--green); }
+.give-card.compact .give-controls select { min-width: 0; flex: 1 1 140px; }
 .give-controls select {
   font-family: inherit;
   font-size: 0.92rem;
@@ -2229,6 +2254,26 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   100% { transform: translate(calc(var(--dir) * 150px), 90px) rotate(calc(var(--dir) * 260deg)); opacity: 0; }
 }
 
+/* The opened-but-unknown bar: a glowing light with a black question mark. It
+   breathes in four stop-motion frames and the rays turn in twelve, like the rest
+   of the bar's animation. */
+.cb-qmark { font: 900 76px var(--font-sans); font-stretch: 118%; fill: #0A0210; }
+.cb-mystery-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cb-mystery-breathe 1.6s steps(4, end) infinite alternate;
+}
+.cb-mystery-rays {
+  transform-box: view-box;
+  transform-origin: 100px 170px;
+  animation: cb-mystery-spin 6s steps(12, end) infinite;
+}
+@keyframes cb-mystery-breathe {
+  from { transform: scale(0.86); opacity: 0.7; }
+  to   { transform: scale(1.08); opacity: 1; }
+}
+@keyframes cb-mystery-spin { to { transform: rotate(30deg); } }
+
 .cb-ticket { animation: cb-ticket-glow 1.2s steps(3, end) infinite alternate; }
 @keyframes cb-ticket-glow {
   from { filter: drop-shadow(0 0 3px rgba(255, 210, 74, 0.7)); }
@@ -2258,9 +2303,10 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   cursor: grab;
 }
 .unwrap-screen:active { cursor: grabbing; }
-.unwrap-screen.is-open { cursor: default; }
-.unwrap-screen.is-golden {
-  background: radial-gradient(ellipse at 50% 42%, #7A5412 0%, #3A1648 45%, var(--cb-plum-deep) 80%);
+.unwrap-screen.is-held { cursor: default; }
+/* Opened, ticket sealed: the room warms up as the held breath goes on. */
+.unwrap-screen.is-held {
+  background: radial-gradient(ellipse at 50% 46%, #5A3A14 0%, #3A1648 42%, var(--cb-plum-deep) 78%, #0A0210 100%);
 }
 
 .unwrap-kicker {
@@ -2279,7 +2325,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   font-weight: 700;
   line-height: 1.25;
 }
-.unwrap-screen.is-golden .unwrap-guide { color: var(--cb-gold); }
+.unwrap-screen.is-held .unwrap-guide { color: var(--cb-gold); }
 
 .unwrap-bar {
   /* As big as the screen allows, minus the room the copy and meter need. */
@@ -2289,11 +2335,48 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   transition: transform 140ms ease-out;
 }
 .unwrap-bar .cb { height: 100%; width: auto; margin: 0 auto; }
-.unwrap-bar.waiting { animation: unwrap-shiver 0.24s steps(2, end) infinite; }
-@keyframes unwrap-shiver {
-  from { transform: rotate(-1.4deg) translateX(-2px); }
-  to   { transform: rotate(1.4deg) translateX(2px); }
+/* The line under an opened bar: big, swapped every few seconds, each one
+   popping in on three stop-motion frames. */
+.unwrap-suspense {
+  margin: 0;
+  min-height: 2.5em;
+  max-width: 17em;
+  text-align: center;
+  font-size: clamp(1.25rem, 5.6vw, 1.9rem);
+  font-weight: 800;
+  font-stretch: 112%;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  color: var(--cb-cream);
+  text-wrap: balance;
+  animation: suspense-in 0.45s steps(3, end) both;
 }
+@keyframes suspense-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Roll-call: one dot per bar, gold once it's open. */
+.rollcall {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: min(340px, 84vw);
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.rollcall li {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(243, 231, 206, 0.35);
+  transition: background 0.3s steps(3, end), border-color 0.3s steps(3, end);
+}
+.rollcall li.on { background: var(--cb-gold); border-color: var(--cb-gold); }
+.rollcall li.mine { box-shadow: 0 0 0 2.5px var(--cb-plum-deep), 0 0 0 4px var(--cb-cream); }
+.rollcall-label { font: 600 0.74rem var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
 
 .unwrap-meter {
   width: min(320px, 78vw);
@@ -2349,6 +2432,35 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   background:
     radial-gradient(ellipse at 50% 0%, rgba(243, 207, 110, 0.14), transparent 55%),
     linear-gradient(180deg, #2A0E35 0%, var(--cb-plum-deep) 75%, #0A0210 100%);
+}
+.unwrap-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 14px;
+  margin-bottom: 4px;
+}
+/* The open-count, printed like the lot code on the bar's flap. */
+.unwrap-count {
+  font-family: var(--font-dot);
+  font-size: clamp(1.9rem, 4.2vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: rgba(243, 231, 206, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+.unwrap-count b { color: var(--cb-gold); font-weight: 800; }
+.unwrap-count i { margin: 0 0.12em; font-style: normal; opacity: 0.6; }
+.unwrap-hero .bar-phase-text { margin: 0; font-size: 1rem; max-width: 26em; }
+/* The waiting-room line for someone who has opened: bigger than the status text. */
+.unwrap-hero .bar-phase-text.suspense {
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+  font-style: normal;
+  font-weight: 800;
+  color: var(--cb-cream);
+  animation: suspense-in 0.45s steps(3, end) both;
 }
 .bar-phase-text {
   margin: 0 0 14px;
@@ -2427,8 +2539,8 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
    with gaps: forty bars in nine rows instead of fourteen. */
 .bar-shelf.dense  { grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 12px 10px; }
 .bar-shelf.denser { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 10px 8px; }
-.bar-shelf.denser .board-name { font-size: 0.7rem; }
-.bar-shelf.denser .board-status { font-size: 0.56rem; letter-spacing: 0.02em; }
+.bar-shelf.denser .board-name { font-size: 0.75rem; }
+.bar-shelf.denser .board-status { font-size: 0.75rem; letter-spacing: 0; }
 .bar-shelf.denser .bar-slot { padding: 2px; }
 
 .bar-slot {
@@ -2450,9 +2562,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .unwrap-board { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .bar-shelf.board { width: 100%; }
 .board-tile { min-width: 0; text-align: center; transition: opacity 0.5s, filter 0.5s; }
-.board-tile.opened { opacity: 0.45; filter: saturate(0.5); }
+.board-tile.opened { opacity: 1; }
 .board-tile.offline:not(.opened) { opacity: 0.65; }
-.board-tile.leading .cb { filter: drop-shadow(0 0 9px rgba(243, 207, 110, 0.65)); }
+.board-tile.leading .cb { filter: drop-shadow(0 0 6px rgba(243, 231, 206, 0.55)); }
 .board-tile.mine .board-name { color: var(--cb-gold); }
 .board-meter {
   height: 3px;
@@ -2483,10 +2595,49 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font: 600 0.64rem var(--font-mono);
-  letter-spacing: 0.06em;
+  font: 600 0.75rem var(--font-mono);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(243, 231, 206, 0.5);
+  color: rgba(243, 231, 206, 0.7);
+}
+
+/* The drumroll before the reveal: two lines, one after the other. */
+.bar-reveal:has(.bar-reveal-beat) { padding-top: 16px; }
+.bar-reveal-beat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 280px;
+  padding: 0 16px;
+  text-align: center;
+}
+.bar-reveal-beat-line {
+  margin: 0;
+  max-width: 14em;
+  font-size: clamp(1.8rem, 6vw, 3.6rem);
+  font-weight: 800;
+  font-stretch: 112%;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--cb-gold);
+  text-wrap: balance;
+  animation: suspense-in 0.5s steps(3, end) both;
+}
+.bar-reveal-beat-dots { display: flex; gap: 10px; }
+.bar-reveal-beat-dots i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cb-gold);
+  animation: beat-dot 0.9s steps(2, end) infinite;
+}
+.bar-reveal-beat-dots i:nth-child(2) { animation-delay: 0.15s; }
+.bar-reveal-beat-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes beat-dot {
+  from { opacity: 0.2; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1.15); }
 }
 
 /* The reveal: the ticket climbs out of the golden bar in eight frames. */
@@ -2506,7 +2657,36 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 @keyframes bar-ticket-lift {
   to { transform: translate(-50%, -128%) rotate(-3deg) scale(1.3); }
 }
+.bar-reveal-side { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 440px; }
 .bar-reveal-text { min-height: 150px; margin-top: 12px; text-align: center; }
+.bar-reveal-prize { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 4px; animation: suspense-in 0.45s steps(3, end) both; }
+.bar-prize-snack {
+  margin: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--cb-cream);
+}
+.bar-prize-snack b { display: block; font: 700 0.72rem var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--cb-gold); }
+.bar-prize-snack span { display: block; font-size: 0.78rem; color: rgba(243, 231, 206, 0.6); }
+/* Desktop: the bar on the left, the winner and the prize beside it. Everything
+   fits the stage, so nothing scrolls the moment the winner lands. */
+@media (min-width: 1100px) {
+  .bar-reveal {
+    display: grid;
+    grid-template-columns: auto minmax(0, 440px);
+    align-items: center;
+    justify-content: center;
+    column-gap: 48px;
+    /* Room for the ticket to climb above the bar. */
+    padding-top: 64px;
+  }
+  /* The ticket climbs out about 75px wider than the bar on each side. */
+  .bar-reveal-hero { width: min(170px, 26vh); margin-left: 84px; }
+  .bar-reveal-beat, .bar-reveal-rest, .bar-reveal > .bar-phase-text { grid-column: 1 / -1; }
+  .bar-reveal-text { min-height: 0; margin-top: 0; }
+  .bar-reveal .winner-name { font-size: clamp(2.2rem, 3.4vw, 3.6rem); overflow-wrap: anywhere; }
+  .bar-reveal-rest { margin-top: 20px; }
+}
 .bar-reveal-text .overlay-headline { color: var(--cb-gold); }
 .bar-reveal-rest {
   display: flex;
@@ -2569,15 +2749,10 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 
 /* --- Host screen: join QR + prize strip ------------------------------------ */
-.stage-overlay.lobby-with-qr {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-content: center;
-  gap: 24px 48px;
-  overflow-y: auto;
-}
-/* Same rule as the bar stage: on the wall, clip rather than scroll, or a new
+/* The QR is a small chip in the stage's top-left corner (JoinQR.svelte); the
+   room gets the whole stage. On the wall, clip rather than scroll, or a new
    avatar's 115% arrival pop can flash a scrollbar when the room is full. */
+.stage-overlay.lobby-with-qr { overflow-y: auto; }
 @media (min-width: 1100px) {
   .stage-overlay.lobby-with-qr { overflow: hidden; overflow: clip; }
 }
@@ -2587,28 +2762,62 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   align-items: center;
   max-width: 760px;
 }
-/* Only beside the QR does the room claim the remaining width; in the plain
-   (column) overlay a flex-basis would stretch it vertically instead. */
-.lobby-with-qr .lobby-room { flex: 1 1 280px; }
-.join-qr {
+.cup-stage:has(.join-qr-chip) { position: relative; }
+.join-qr-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
   display: flex;
-  flex: none;
-  flex-direction: column;
   align-items: center;
   gap: 8px;
+  padding: 5px 12px 5px 5px;
+  border: 1px solid rgba(243, 207, 110, 0.4);
+  border-radius: 12px;
+  background: rgba(22, 5, 29, 0.7);
+  color: var(--cb-gold);
+  font: 700 0.78rem var(--font-sans);
+  letter-spacing: 0.02em;
+  cursor: zoom-in;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-.join-qr-code {
-  /* Big enough to scan from the back of a room, bounded by the stage height. */
-  width: clamp(150px, min(24vw, 44vh), 380px);
+.join-qr-chip:hover { background: rgba(22, 5, 29, 0.92); border-color: var(--cb-gold); transform: translateY(-1px); }
+.join-qr-chip:focus-visible { outline: 2px solid var(--cb-gold); outline-offset: 2px; }
+.join-qr-mini {
+  display: block;
+  width: 52px;
   aspect-ratio: 1;
-  padding: 10px;
-  border-radius: 14px;
+  padding: 3px;
+  border-radius: 7px;
+  background: #fff;
+}
+.join-qr-mini :where(svg), .join-qr-code :where(svg) { display: block; width: 100%; height: 100%; }
+/* Click-to-enlarge: the whole screen dims, the QR comes up to scan-from-the-
+   back-of-the-room size, and any click puts it away again. */
+.join-qr-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border: none;
+  background: rgba(10, 2, 16, 0.82);
+  cursor: zoom-out;
+  animation: suspense-in 0.25s steps(3, end) both;
+}
+.join-qr-big { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.join-qr-code {
+  display: block;
+  width: clamp(200px, min(60vw, 62vh), 520px);
+  aspect-ratio: 1;
+  padding: 14px;
+  border-radius: 16px;
   background: #fff;
   box-shadow: 0 0 0 4px rgba(243, 207, 110, 0.35), 0 12px 30px rgba(0, 0, 0, 0.45);
 }
-.join-qr-code :where(svg) { display: block; width: 100%; height: 100%; }
-.join-qr-label { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.02em; color: var(--cb-gold); }
-.join-qr-url { font: 600 0.78rem var(--font-mono); color: rgba(243, 231, 206, 0.7); }
+.join-qr-label { font-size: 1.3rem; font-weight: 800; letter-spacing: 0.02em; color: var(--cb-gold); }
+.join-qr-url { font: 600 0.9rem var(--font-mono); color: rgba(243, 231, 206, 0.75); }
 
 .prize-strip {
   display: flex;
@@ -2663,9 +2872,10 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cb-boil, .cb-ticket, .unwrap-bar.waiting { animation: none; }
+  .cb-boil, .cb-ticket, .cb-mystery-halo, .cb-mystery-rays,
+  .unwrap-suspense, .bar-reveal-beat-line, .bar-reveal-beat-dots i { animation: none; }
   .cb-scrap { display: none; }
-  .unwrap-bar, .unwrap-meter span { transition: none; }
+  .unwrap-bar, .unwrap-meter span, .rollcall li { transition: none; }
   .bar-reveal-ticket { animation-duration: 0.01s; }
   .prize-mini .gt-bar, .prize-mini .gt-face-1::after { animation: none; }
   .prize-mini .gt-bar { transform: rotateX(-16deg) rotateY(-28deg); }

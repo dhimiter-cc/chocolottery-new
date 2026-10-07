@@ -16,9 +16,14 @@ export const DEFAULT_STYLE: GameStyle = 'bars';
 export const DEFAULT_HOST_PLAYS = false;
 
 /** Steps from sealed (0) to open (UNWRAP_STEPS). Paper tears on 1–4, the foil
- *  on 5–7, and the last step shows what's inside. The server only reveals a
- *  bar's contents once its holder reaches this number. */
+ *  on 5–7, and the last step leaves bare chocolate. Nobody sees what's inside
+ *  until every bar is open (or the host opens the rest) and the reveal runs. */
 export const UNWRAP_STEPS = 8;
+
+/** How long the reveal holds its breath ("Everyone is open." … "The golden
+ *  ticket was in…") before the bar and ticket appear. Anything else on screen
+ *  that names the winner waits this long too. */
+export const DRUMROLL_MS = 2500;
 
 /** Swipe distance per step, as a fraction of the shorter screen side — so a
  *  phone and a laptop both take roughly one full swipe per step. */

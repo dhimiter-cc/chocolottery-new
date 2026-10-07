@@ -10,12 +10,10 @@
     step,
     number,
     name = '',
-    golden = null,
   }: {
     step: number;
     number: number;
     name?: string;
-    golden?: boolean | null;
   } = $props();
 
   const FRAME_MS = 83;
@@ -42,4 +40,4 @@
   });
 </script>
 
-<ChocolateBar step={shown} {number} {name} golden={shown >= step ? golden : null} scraps />
+<ChocolateBar step={shown} {number} {name} scraps />

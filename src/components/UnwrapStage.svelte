@@ -7,8 +7,11 @@
   // bar leans into the drag, so it never feels like nothing is happening
   // between two frames.
   //
-  // Doesn't talk to the server. It reports each new step through `onProgress`
-  // and is told what's inside through `golden` once the parent finds out.
+  // Doesn't talk to the server. It reports each new step through `onProgress`.
+  // Nobody learns what's in their bar by opening it: the last frame is bare
+  // chocolate for everyone, and the screen turns into a held breath (`held`)
+  // until the room reveals together. The parent fills that moment through
+  // `footer`.
   import type { Snippet } from 'svelte';
   import ChocolateBar from './ChocolateBar.svelte';
   import { UNWRAP_STEPS, STEP_SWIPE } from '../lib/bars.js';
@@ -17,7 +20,8 @@
   let {
     number,
     initialStep = 0,
-    golden = null,
+    suspense = '',
+    waitingOnYou = false,
     onProgress,
     footer,
     corner,
@@ -25,8 +29,10 @@
     number: number;
     /** Where the server says this bar already is — survives a reload. */
     initialStep?: number;
-    /** null until the server has answered the final step. */
-    golden?: boolean | null;
+    /** The line under the bar once it's open; the parent rotates it. */
+    suspense?: string;
+    /** Every other bar is open: the whole room is waiting on this one. */
+    waitingOnYou?: boolean;
     onProgress: (step: number) => void;
     footer?: Snippet;
     corner?: Snippet;
@@ -50,10 +56,6 @@
 
   let step = $derived(Math.min(UNWRAP_STEPS, Math.floor(progress)));
   let opened = $derived(step >= UNWRAP_STEPS);
-  // The last frame waits on the server: until it says what's inside, hold the
-  // bar on its final foil pose and shiver it.
-  let waiting = $derived(opened && golden === null);
-  let shownStep = $derived(waiting ? UNWRAP_STEPS - 1 : step);
 
   let lastReported = -1;
   $effect(() => {
@@ -129,9 +131,8 @@
   let fraction = $derived(Math.min(1, progress / UNWRAP_STEPS));
 
   let guide = $derived.by(() => {
-    if (golden === true) return 'You found the Golden Ticket!';
-    if (golden === false) return 'Just chocolate. Still chocolate, though.';
-    if (waiting) return 'Something in there…';
+    if (opened) return 'Opened. Now nobody knows a thing.';
+    if (waitingOnYou) return 'Everyone is waiting on you.';
     if (step === 0) return coarse ? 'Swipe across the screen to unwrap your bar' : 'Drag across the screen to unwrap your bar';
     if (step <= 2) return 'Keep going. Rip that paper.';
     if (step <= 4) return 'Nearly through the wrapper…';
@@ -143,8 +144,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="unwrap-screen"
-  class:is-open={golden !== null}
-  class:is-golden={golden === true}
+  class:is-held={opened}
   onpointerdown={onDown}
   onpointermove={onMove}
   onpointerup={onUp}
@@ -155,15 +155,19 @@
   <p class="unwrap-kicker">Bar Nº {String(number).padStart(2, '0')} · yours</p>
   <p class="unwrap-guide" aria-live="polite">{guide}</p>
 
-  <div class="unwrap-bar" class:waiting style="--lean:{lean}deg; --tug:{tug}px">
-    <ChocolateBar step={shownStep} {number} golden={opened ? golden : null} scraps={!reducedMotion} boil={step === 0 && !reducedMotion} />
+  <div class="unwrap-bar" style="--lean:{lean}deg; --tug:{tug}px">
+    <ChocolateBar step={step} {number} scraps={!reducedMotion} boil={step === 0 && !reducedMotion} />
   </div>
 
-  <div class="unwrap-meter" role="progressbar" aria-valuemin="0" aria-valuemax={UNWRAP_STEPS} aria-valuenow={step} aria-label="Unwrapped">
-    <span style="transform: scaleX({fraction})"></span>
-  </div>
-
-  {#if !opened}
+  {#if opened}
+    <!-- Keyed so each new line re-runs the entrance. -->
+    {#key suspense}
+      <p class="unwrap-suspense">{suspense}</p>
+    {/key}
+  {:else}
+    <div class="unwrap-meter" role="progressbar" aria-valuemin="0" aria-valuemax={UNWRAP_STEPS} aria-valuenow={step} aria-label="Unwrapped">
+      <span style="transform: scaleX({fraction})"></span>
+    </div>
     <button type="button" class="unwrap-tear" onclick={tearStrip}>or tap to tear a strip</button>
   {/if}
 

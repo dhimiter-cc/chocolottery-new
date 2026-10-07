@@ -422,21 +422,15 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
 
   const myStraw = myToken ? (game.players[myToken]?.straw_index ?? null) : null;
 
-  // Straw values stay hidden until the reveal. While bars are being unwrapped,
-  // each player sees only what's in their own bar, once they have it fully
-  // open. Everyone else's stays secret, golden or not, so the room finds out
-  // together on the wall.
+  // Straw values stay hidden until the reveal. That includes the unwrapping
+  // phase: even a player whose bar is fully open isn't told what's in it, so
+  // the golden ticket shows up for the whole room at once, once the last bar is
+  // open (or the host opens the rest).
   let strawsOut: (number | null)[] | null = null;
   if (Array.isArray(game.straws)) {
-    if (game.state === 'reveal' || game.state === 'done') {
-      strawsOut = game.straws;
-    } else if (game.state === 'unwrapping') {
-      const me = myToken ? game.players[myToken] : undefined;
-      const mine = me && (me.unwrap ?? 0) >= UNWRAP_STEPS ? me.straw_index : null;
-      strawsOut = game.straws.map((v, i) => (i === mine ? v : null));
-    } else {
-      strawsOut = game.straws.map(() => null);
-    }
+    strawsOut = game.state === 'reveal' || game.state === 'done'
+      ? game.straws
+      : game.straws.map(() => null);
   }
   const revealed = game.state === 'reveal' || game.state === 'done';
   const inGame  = !!(myToken && game.players[myToken]);

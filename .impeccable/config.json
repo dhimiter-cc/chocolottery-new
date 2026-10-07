@@ -83,6 +83,36 @@
         "value": "#6b4a22",
         "createdAt": "2026-09-25T12:45:28.226Z",
         "reason": "Claude: banana illustration colours in the prize scale drawing; user asked for a banana, which has no palette colour"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 214, 90, 0.85)",
+        "createdAt": "2026-09-25T13:02:03.007Z",
+        "reason": "Claude: golden-ticket pre-reveal light effect, same warm-gold family as the existing .gt-flash/.gt-stage glow literals; user asked for a more intense glow"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 190, 50, 0.32)",
+        "createdAt": "2026-09-25T13:02:03.164Z",
+        "reason": "Claude: golden-ticket pre-reveal light effect, same warm-gold family as the existing .gt-flash/.gt-stage glow literals; user asked for a more intense glow"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 205, 70, 0.8)",
+        "createdAt": "2026-09-25T13:02:03.334Z",
+        "reason": "Claude: golden-ticket pre-reveal light effect, same warm-gold family as the existing .gt-flash/.gt-stage glow literals; user asked for a more intense glow"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(232, 185, 35, 0.42)",
+        "createdAt": "2026-09-25T13:02:03.479Z",
+        "reason": "Claude: golden-ticket pre-reveal light effect, same warm-gold family as the existing .gt-flash/.gt-stage glow literals; user asked for a more intense glow"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(232, 185, 35, 0.12)",
+        "createdAt": "2026-09-25T13:02:03.657Z",
+        "reason": "Claude: golden-ticket pre-reveal light effect, same warm-gold family as the existing .gt-flash/.gt-stage glow literals; user asked for a more intense glow"
       }
     ]
   }
