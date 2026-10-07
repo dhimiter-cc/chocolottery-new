@@ -1702,6 +1702,43 @@
           "opened_at": 1791372517185
         }
       ]
+    },
+    {
+      "name": "Joey",
+      "game_code": "CHOC-8767",
+      "timestamp": 1791372788,
+      "month": "2026-10",
+      "participants": 2,
+      "player_names": [
+        "aliii",
+        "Joey"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "115d8d542ce02943c1e464cd0490a18995c4cfc2f62ab1774ffad3c988a5781b",
+        "salt": "3d2180ddcd7ea1eee852ea34ae146abd",
+        "straws": [
+          100,
+          24
+        ],
+        "drawn_at": 1791372779348
+      },
+      "audit": [
+        {
+          "name": "aliii",
+          "bar": 1,
+          "value": 24,
+          "picked_at": 1791372783504,
+          "opened_at": 1791372786973
+        },
+        {
+          "name": "Joey",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1791372783504,
+          "opened_at": 1791372788002
+        }
+      ]
     }
   ]
 }
