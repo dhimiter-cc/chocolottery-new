@@ -1739,6 +1739,97 @@
           "opened_at": 1791372788002
         }
       ]
+    },
+    {
+      "name": "Sofia K",
+      "game_code": "BEAN-7140",
+      "timestamp": 1791546024,
+      "month": "2026-10",
+      "participants": 8,
+      "player_names": [
+        "Dhim",
+        "po",
+        "Christelle",
+        "Joey",
+        "Burak",
+        "Dmj",
+        "André",
+        "Sofia K"
+      ],
+      "prize_snack": "KitKat",
+      "draw": {
+        "commit": "e4f9eb58cb22fbfd1d062e4136b915a272b53b4415b085ba82d3beb24e1712c4",
+        "salt": "5633405c6acb0820c22dcabd010cfbd2",
+        "straws": [
+          100,
+          18,
+          57,
+          39,
+          18,
+          65,
+          61,
+          59
+        ],
+        "drawn_at": 1791546000034
+      },
+      "audit": [
+        {
+          "name": "Sofia K",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1791546009587,
+          "opened_at": 1791546018803
+        },
+        {
+          "name": "Burak",
+          "bar": 5,
+          "value": 65,
+          "picked_at": 1791546015137,
+          "opened_at": 1791546019800
+        },
+        {
+          "name": "André",
+          "bar": 7,
+          "value": 59,
+          "picked_at": 1791546015137,
+          "opened_at": 1791546019816
+        },
+        {
+          "name": "Dhim",
+          "bar": 2,
+          "value": 57,
+          "picked_at": 1791546005511,
+          "opened_at": 1791546020868
+        },
+        {
+          "name": "Christelle",
+          "bar": 3,
+          "value": 39,
+          "picked_at": 1791546007566,
+          "opened_at": 1791546021010
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 61,
+          "picked_at": 1791546004864,
+          "opened_at": 1791546021448
+        },
+        {
+          "name": "po",
+          "bar": 1,
+          "value": 18,
+          "picked_at": 1791546004460,
+          "opened_at": 1791546022156
+        },
+        {
+          "name": "Dmj",
+          "bar": 4,
+          "value": 18,
+          "picked_at": 1791546005133,
+          "opened_at": 1791546024016
+        }
+      ]
     }
   ]
 }
