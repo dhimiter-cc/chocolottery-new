@@ -2066,6 +2066,115 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Dhim 2",
+      "game_code": "WRAP-2017",
+      "timestamp": 1792153562,
+      "month": "2026-10",
+      "participants": 10,
+      "player_names": [
+        "Kayla",
+        "Thea",
+        "Christelle",
+        "Ali FE",
+        "Nadim",
+        "Dhim 2",
+        "Burak",
+        "Joey",
+        "Neverwinning",
+        "Sofia"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "1fc7db3e7647570e531190a46e4fec2ad70ff736f1fd9470ec7a774fc7a56c7a",
+        "salt": "46e7c7d4ef500a0300198220b82d68b4",
+        "straws": [
+          43,
+          69,
+          22,
+          18,
+          48,
+          100,
+          61,
+          44,
+          55,
+          65
+        ],
+        "drawn_at": 1792153506062
+      },
+      "audit": [
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 61,
+          "picked_at": 1792153511039,
+          "opened_at": 1792153532496
+        },
+        {
+          "name": "Christelle",
+          "bar": 8,
+          "value": 55,
+          "picked_at": 1792153511530,
+          "opened_at": 1792153532548
+        },
+        {
+          "name": "Burak",
+          "bar": 7,
+          "value": 44,
+          "picked_at": 1792153514642,
+          "opened_at": 1792153532960
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 43,
+          "picked_at": 1792153511424,
+          "opened_at": 1792153533156
+        },
+        {
+          "name": "Sofia",
+          "bar": 2,
+          "value": 22,
+          "picked_at": 1792153514192,
+          "opened_at": 1792153533732
+        },
+        {
+          "name": "Kayla",
+          "bar": 1,
+          "value": 69,
+          "picked_at": 1792153511280,
+          "opened_at": 1792153535033
+        },
+        {
+          "name": "Ali FE",
+          "bar": 3,
+          "value": 18,
+          "picked_at": 1792153521220,
+          "opened_at": 1792153536093
+        },
+        {
+          "name": "Thea",
+          "bar": 4,
+          "value": 48,
+          "picked_at": 1792153529258,
+          "opened_at": 1792153559193
+        },
+        {
+          "name": "Dhim 2",
+          "bar": 5,
+          "value": 100,
+          "picked_at": 1792153529258,
+          "opened_at": null
+        },
+        {
+          "name": "Neverwinning",
+          "bar": 9,
+          "value": 65,
+          "picked_at": 1792153529258,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
