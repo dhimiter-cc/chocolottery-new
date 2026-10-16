@@ -439,7 +439,7 @@
     {#if !eventLayout}
     <header class="game-head">
       <div>
-        <h1 class="title small">chocolate.lottery</h1>
+        <h1 class="title small">chocolottery</h1>
         <p class="muted">Game
           <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
           <span class="stamp" title="Click to copy share link" onclick={copyShareUrl}>

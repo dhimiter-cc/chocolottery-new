@@ -230,7 +230,7 @@
 
         <img
           src="/golden-ticket.webp"
-          alt="Golden Ticket for the Choco Lottery — a delicious surprise awaits you"
+          alt="Golden Ticket for the Chocolottery — a delicious surprise awaits you"
           class="gt-ticket"
           width="1942"
           height="809"

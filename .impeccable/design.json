@@ -1,14 +1,13 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-09-24T12:00:00Z",
-  "title": "Design System: chocolate.lottery",
+  "title": "Design System: chocolottery",
   "extensions": {
     "colorMeta": {
       "gold-foil": { "role": "primary", "displayName": "Gold Foil", "canonical": "#F3CF6E", "tonalRamp": ["#3A2A06", "#5E450C", "#846217", "#A8781F", "#D9A43A", "#F3CF6E", "#F7DA8A", "#FBEDC6"] },
       "gold-deep": { "role": "primary", "displayName": "Deep Gold", "canonical": "#D9A43A", "tonalRamp": ["#33230A", "#553B11", "#7A5518", "#A8781F", "#D9A43A", "#E6BD66", "#F0D595", "#F8EBCB"] },
       "winner-gold": { "role": "primary", "displayName": "Winner Gold", "canonical": "#FFD24A", "tonalRamp": ["#3D2E00", "#665000", "#8F7100", "#BB9400", "#E6B820", "#FFD24A", "#FFE38A", "#FFF3C9"] },
       "amber": { "role": "secondary", "displayName": "Working Amber", "canonical": "#E8A93A", "tonalRamp": ["#3A2408", "#5E3C0F", "#855616", "#B0721E", "#D9901E", "#E8A93A", "#F1C77C", "#F9E6C2"] },
-      "amber-dot": { "role": "secondary", "displayName": "Wordmark Dot Amber", "canonical": "#D9901E" },
       "wrapper-night": { "role": "neutral", "displayName": "Wrapper Night", "canonical": "#16051D", "tonalRamp": ["#16051D", "#1E0827", "#22092C", "#2A0F35", "#2E0F3A", "#3B1549", "#6A4A78", "#CDBFD3"] },
       "wrapper-plum": { "role": "neutral", "displayName": "Wrapper Plum", "canonical": "#2E0F3A" },
       "ink-on-gold": { "role": "neutral", "displayName": "Ink on Gold", "canonical": "#2A0B35" },
@@ -20,7 +19,7 @@
       "alert-red": { "role": "neutral", "displayName": "Alert Red", "canonical": "#F0625A" }
     },
     "typographyMeta": {
-      "display": { "displayName": "Wordmark", "purpose": "The wordmark only; narrows to width 108% and stacks on phones." },
+      "display": { "displayName": "Wordmark", "purpose": "The wordmark only; narrows to width 108% and scales down on phones." },
       "headline": { "displayName": "Headline", "purpose": "Section titles on the back of the wrapper and app page titles." },
       "title": { "displayName": "Tear Strip Label", "purpose": "The one action line: 500 verb plus 900 action, uppercase." },
       "body": { "displayName": "Body", "purpose": "All running copy; claims capped near 36ch." },

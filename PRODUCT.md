@@ -10,7 +10,7 @@ web
 Colleagues in one office (Creative Clicks / Movion, Amsterdam), on their phones or laptops, during a break or a team moment. Everyone opens the homepage directly as well: to start a round, glance at recent games, the leaderboard or the fairness check. Players usually arrive in a game by scanning the host's QR or opening a shared link. The host runs the round, often from a laptop on a big screen, and by default only oversees it.
 
 ## Product Purpose
-chocolate.lottery decides, as a shared game, who gets the chocolate. A group joins a round, each person picks a straw or a chocolate bar, and one of them is the winner (the longest straw / the bar with the golden ticket). It exists to make a small office ritual fun and fair-feeling. Success is a round that starts in seconds, gets the whole room watching the reveal, and leaves a record people like checking afterwards.
+chocolottery decides, as a shared game, who gets the chocolate. A group joins a round, each person picks a straw or a chocolate bar, and one of them is the winner (the longest straw / the bar with the golden ticket). It exists to make a small office ritual fun and fair-feeling. Success is a round that starts in seconds, gets the whole room watching the reveal, and leaves a record people like checking afterwards.
 
 ## Positioning
 An unofficial side game made by and for the team, not an official company product. Its identity is its own: playful, dry-humoured copy ("One chocolate. Many victims."), with a tongue-in-cheek Fairness Check that compares actual to statistically expected wins.
@@ -32,7 +32,7 @@ An unofficial side game made by and for the team, not an official company produc
 ## Brand Commitments
 - Do not brand the app itself as MOVION: it is not official to the team. Its palette is aubergine with warm gold/amber (the colours of the golden-ticket artwork), used as the app's own identity.
 - Event-specific pieces keep their MOVION branding while they're active: the Golden Ticket artwork (`public/golden-ticket.webp`), the personalised Toblerone, and the MOVION wrapper on the chocolate bars.
-- Name: chocolate.lottery. Voice: deadpan, office-humour, short.
+- Name: chocolottery. Voice: deadpan, office-humour, short.
 
 ## Evidence on Hand
 - Real win history in `data/leaderboard.json` (served via `/api/fairness` and the leaderboard page).

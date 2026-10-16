@@ -1,12 +1,11 @@
 ---
-name: chocolate.lottery
+name: chocolottery
 description: The office side game that decides who gets the chocolate, packaged as a wrapped bar you tear open to play.
 colors:
   gold-foil: "#F3CF6E"
   gold-foil-hover: "#F7DA8A"
   gold-deep: "#D9A43A"
   amber: "#E8A93A"
-  amber-dot: "#D9901E"
   winner-gold: "#FFD24A"
   wrapper-night: "#16051D"
   wrapper-soft: "#22092C"
@@ -137,7 +136,7 @@ components:
     padding: "{spacing.panel}"
 ---
 
-# Design System: chocolate.lottery
+# Design System: chocolottery
 
 ## Overview
 
@@ -169,7 +168,6 @@ Packaging print: a drenched aubergine paper, one flat gold foil, a silver foil, 
 
 ### Secondary
 - **Working Amber** (amber): The working accent for state rather than identity: input focus border, active chip and active ghost-button borders, over a 14% amber wash.
-- **Wordmark Dot Amber** (amber-dot): The full stop in "chocolate.lottery", and nothing else.
 
 ### Neutral
 - **Wrapper Night** (wrapper-night): Page ground, theme-color, the back of the bar.
@@ -197,7 +195,7 @@ Packaging print: a drenched aubergine paper, one flat gold foil, a silver foil, 
 **Character:** A single extended heavy grotesque, set as large as it will go or as small as a packaging label. The dot-matrix face reads as the inkjet date code on the flap of a real bar.
 
 ### Hierarchy
-- **Display** (900, width 125%, clamp(3rem, 7.4vw, 6rem), line-height 0.95): The wordmark only. On phones the width narrows to 108% and the two words stack.
+- **Display** (900, width 125%, clamp(3rem, 7.4vw, 6rem), line-height 0.95): The wordmark only. On phones the width narrows to 108% and the size scales down to fit one line.
 - **Headline** (900, width 112 to 118%, clamp(1.6rem, 2.6vw, 2.1rem)): Section titles on the back of the wrapper ("Recent rounds", "Draw facts" at 2.35rem). Page titles in the app shell use the same weight and width at 2.4rem, in gold.
 - **Title** (500 verb + 900 action, width 125%, uppercase, clamp(1.25rem, 2.6vw, 1.9rem)): The tear strip label. One line, one face, with weight doing the emphasis.
 - **Body** (400, 15px root, line-height 1.5): Everything else. Claims are capped near 36ch.

@@ -1,4 +1,4 @@
-/* Chocolate Lottery — the wrapper. The app is a wrapped chocolate bar:
+/* Chocolottery — the wrapper. The app is a wrapped chocolate bar:
    aubergine wrapper paper as the ground, gold foil rationed to what matters
    (the name, the one action, winners), silver foil at the ends, cocoa ink.
    Not a MOVION identity — a side game with its own packaging. */
@@ -3009,7 +3009,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
   text-wrap: balance;
 }
-.wm-dot { color: var(--accent-2); }
 .front-claim {
   max-width: 36ch;
   margin: 22px 0 44px;
@@ -3314,8 +3313,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .facts { max-width: 420px; }
 }
 @media (max-width: 720px) {
-  .wm-line { display: block; }
-  .wordmark { font-size: clamp(2.6rem, 14.5vw, 4.4rem); font-stretch: 108%; }
+  .wordmark { font-size: clamp(2.2rem, 11.5vw, 4rem); font-stretch: 108%; }
   .sleeve { padding: 96px 26px 104px; }
   /* Micro-copy corners only: the top-right one holds the ticket modal. */
   .pack-corner:not(.pack-corner-tr) { font-size: 0.62rem; letter-spacing: 0.16em; gap: 14px; }

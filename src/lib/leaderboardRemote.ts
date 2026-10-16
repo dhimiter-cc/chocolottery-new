@@ -19,7 +19,7 @@
 import type { LeaderboardWin } from './types.js';
 
 const TIMEOUT = 10_000;
-const UA      = 'chocolate-lottery';
+const UA      = 'chocolottery';
 
 // Overridable so the mirror can be pointed at a stub in tests.
 const API = process.env.GITHUB_API_BASE ?? 'https://api.github.com';

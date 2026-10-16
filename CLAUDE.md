@@ -1,4 +1,4 @@
-# chocolate.lottery
+# chocolottery
 
 A multiplayer office party game. A group draws straws to decide who gets the chocolate.
 One straw is secretly the longest (value `100`); **whoever pulls it wins** — they go on

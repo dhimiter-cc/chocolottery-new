@@ -280,7 +280,7 @@
 
         <text x="100" y="98" class="cb-wordmark" fill="url(#{uid}-gold)">MOVION</text>
         <text x="100" y="116" class="cb-small" fill="url(#{uid}-gold)">PRESENTS THE</text>
-        <text x="100" y="134" class="cb-small cb-strong" fill="url(#{uid}-gold)">CHOCO LOTTERY</text>
+        <text x="100" y="134" class="cb-small cb-strong" fill="url(#{uid}-gold)">CHOCOLOTTERY</text>
 
         <line x1="46" y1="148" x2="154" y2="148" stroke="url(#{uid}-gold)" stroke-width="0.8" />
         <text x="100" y="206" class="cb-number" fill="url(#{uid}-gold)">
