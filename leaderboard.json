@@ -2175,6 +2175,124 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Kayla",
+      "game_code": "CHOC-7141",
+      "timestamp": 1792153742,
+      "month": "2026-10",
+      "participants": 11,
+      "player_names": [
+        "Ali FE",
+        "Joey",
+        "Bart",
+        "Kayla",
+        "Princess D",
+        "Nadim",
+        "laufey",
+        "Sofia",
+        "Burak",
+        "Christelle",
+        "jasper"
+      ],
+      "prize_snack": "day off",
+      "draw": {
+        "commit": "3961411d0ce95b44989767fa307b3f26a53a8720cfa4fb4564878a29f89f5b8d",
+        "salt": "9d7ea4d0d014d00422c563156a0d1f2b",
+        "straws": [
+          16,
+          55,
+          100,
+          42,
+          34,
+          30,
+          35,
+          39,
+          19,
+          17,
+          49
+        ],
+        "drawn_at": 1792153719274
+      },
+      "audit": [
+        {
+          "name": "Christelle",
+          "bar": 10,
+          "value": 49,
+          "picked_at": 1792153726114,
+          "opened_at": 1792153729295
+        },
+        {
+          "name": "laufey",
+          "bar": 1,
+          "value": 55,
+          "picked_at": 1792153724393,
+          "opened_at": 1792153729416
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 16,
+          "picked_at": 1792153723778,
+          "opened_at": 1792153729572
+        },
+        {
+          "name": "Kayla",
+          "bar": 2,
+          "value": 100,
+          "picked_at": 1792153724214,
+          "opened_at": 1792153730314
+        },
+        {
+          "name": "Sofia",
+          "bar": 8,
+          "value": 19,
+          "picked_at": 1792153724637,
+          "opened_at": 1792153731042
+        },
+        {
+          "name": "Burak",
+          "bar": 9,
+          "value": 17,
+          "picked_at": 1792153724772,
+          "opened_at": 1792153731226
+        },
+        {
+          "name": "Bart",
+          "bar": 4,
+          "value": 34,
+          "picked_at": 1792153726181,
+          "opened_at": 1792153731949
+        },
+        {
+          "name": "jasper",
+          "bar": 7,
+          "value": 39,
+          "picked_at": 1792153726131,
+          "opened_at": 1792153732068
+        },
+        {
+          "name": "Ali FE",
+          "bar": 5,
+          "value": 30,
+          "picked_at": 1792153725663,
+          "opened_at": 1792153734766
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 35,
+          "picked_at": 1792153723388,
+          "opened_at": 1792153739587
+        },
+        {
+          "name": "Princess D",
+          "bar": 3,
+          "value": 42,
+          "picked_at": 1792153726181,
+          "opened_at": 1792153742943
+        }
+      ]
     }
   ]
 }
