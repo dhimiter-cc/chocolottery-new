@@ -3414,7 +3414,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .tot-lead { font: 800 1.35rem var(--font-sans); font-stretch: 112%; color: var(--gold); }
 .tot-treat { border-color: rgba(243, 207, 110, 0.55); }
 .tot-trick { border-color: var(--border-hover); }
-.tot-trick-text { margin-top: 8px; font-size: 1rem; font-style: italic; color: var(--text); text-wrap: balance; }
+.tot-trick-text { margin-top: 8px; font-style: italic; color: var(--text); text-wrap: balance; }
 .tot-note { margin-top: 6px; font-size: 0.78rem; color: var(--text-dim); font-family: var(--font-mono); }
 
 @media (prefers-reduced-motion: reduce) {
