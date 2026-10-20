@@ -26,6 +26,7 @@
   // read inside the {#if gameState} branches, which the server never renders.
   const trickOrTreat = !!currentTheme().trickOrTreat;
   import { UNWRAP_STEPS, DRUMROLL_MS } from '../lib/bars.js';
+  import { MIN_TRICKS } from '../lib/trickOdds.js';
   import { post } from '../lib/api.js';
   import { showToast } from '../lib/toast.svelte.js';
   import { GameConnection } from '../lib/gameConnection.svelte.js';
@@ -219,11 +220,15 @@
   let showRestartBtn = $derived(isHost && inGame && phase !== 'lobby');
   let actionError = $state('');
 
+  // Trick or treat: the round can't start until the room has written a trick.
+  let needsTrick = $derived(trickOrTreat && (gameState?.tricks?.length ?? 0) < MIN_TRICKS);
+
   let actionBtnText = $derived.by(() => {
     if (!gameState) return 'Start the lottery';
     if (phase === 'lobby') {
       const onlineCount = gameState.players.filter(p => p.online).length;
-      return onlineCount < 2 ? 'Need 2+ players' : `Start the lottery (${onlineCount})`;
+      if (onlineCount < 2) return 'Need 2+ players';
+      return needsTrick ? 'Add a trick first' : `Start the lottery (${onlineCount})`;
     }
     if (phase === 'reveal' || phase === 'done') return 'New game';
     return '';
@@ -232,7 +237,7 @@
   let actionBtnDisabled = $derived.by(() => {
     if (phase === 'lobby') {
       const onlineCount = gameState?.players.filter(p => p.online).length ?? 0;
-      return onlineCount < 2;
+      return onlineCount < 2 || needsTrick;
     }
     return false;
   });
@@ -266,7 +271,7 @@
   // while the poll catches up; the server no-ops duplicate/early calls.
   let autoStarting = $state(false);
   $effect(() => {
-    if (phase === 'lobby' && lobbyTimeLeft === 0 && onlineCount >= 2 && !autoStarting) {
+    if (phase === 'lobby' && lobbyTimeLeft === 0 && onlineCount >= 2 && !needsTrick && !autoStarting) {
       autoStarting = true;
       post('/api/autostart', { code })
         .then(() => conn.refresh())
@@ -306,11 +311,15 @@
       if (!isHost) {
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Waiting for more.`
-          : `${onlineCount} ready. Waiting for ${gameState.host?.name ?? 'the host'} to start.`;
+          : needsTrick
+            ? 'Waiting for someone to write a trick.'
+            : `${onlineCount} ready. Waiting for ${gameState.host?.name ?? 'the host'} to start.`;
       } else {
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Send the link to your colleagues.`
-          : `${onlineCount} ready. Press Start when everyone's in.`;
+          : needsTrick
+            ? 'Write at least one trick (see Trick votes) to unlock Start.'
+            : `${onlineCount} ready. Press Start when everyone's in.`;
       }
     } else if (phase === 'picking') {
       const pickedCount = gameState.players.filter(p => p.picked).length;

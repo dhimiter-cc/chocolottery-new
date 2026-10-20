@@ -4,8 +4,10 @@ import {
   beginPicking,
   getPlayerToken,
 } from '../../lib/game.js';
+import { themeFor } from '../../themes/resolve.js';
+import { MIN_TRICKS } from '../../lib/trickOdds.js';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, url, cookies }) => {
   const body = await request.json();
   const code = (body.code ?? '').trim();
 
@@ -17,6 +19,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const token = getPlayerToken(request);
+  // Trick or treat themes need the room to have written at least one trick.
+  const needsTricks = !!themeFor({ url, cookies }).trickOrTreat;
 
   const outcome = await withGame(code, (game) => {
     if (game.state !== 'lobby') {
@@ -24,6 +28,10 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if (game.creator_token && game.creator_token !== token) {
       return { result: { error: 'Only the host can start', code: 403 }, noWrite: true };
+    }
+
+    if (needsTricks && (game.tricks?.length ?? 0) < MIN_TRICKS) {
+      return { result: { error: 'Add at least one trick first', code: 400 }, noWrite: true };
     }
 
     if (!beginPicking(game)) {
