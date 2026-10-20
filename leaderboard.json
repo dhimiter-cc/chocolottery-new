@@ -2293,6 +2293,142 @@
           "opened_at": 1792153742943
         }
       ]
+    },
+    {
+      "name": "Theresa",
+      "game_code": "CHOC-2950",
+      "timestamp": 1792495270,
+      "month": "2026-10",
+      "participants": 13,
+      "player_names": [
+        "Kayla",
+        "aliii",
+        "Thea",
+        "Bart",
+        "Christelle",
+        "Sofia",
+        "Nadim",
+        "Theresa",
+        "Burak",
+        "laufey",
+        "Ali OG",
+        "Joey",
+        "Dmj"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "313a2ff6054ef80b317fd882a1c2fe6742273acbbc31e035f42c989c1c2d5192",
+        "salt": "7434a2e4bd7bddfafc431423842e014a",
+        "straws": [
+          41,
+          37,
+          32,
+          17,
+          100,
+          69,
+          45,
+          34,
+          66,
+          26,
+          65,
+          45,
+          36
+        ],
+        "drawn_at": 1792495195160
+      },
+      "audit": [
+        {
+          "name": "aliii",
+          "bar": 12,
+          "value": 36,
+          "picked_at": 1792495203500,
+          "opened_at": 1792495230040
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 45,
+          "picked_at": 1792495200630,
+          "opened_at": 1792495230511
+        },
+        {
+          "name": "laufey",
+          "bar": 8,
+          "value": 66,
+          "picked_at": 1792495199829,
+          "opened_at": 1792495230531
+        },
+        {
+          "name": "Burak",
+          "bar": 9,
+          "value": 26,
+          "picked_at": 1792495226901,
+          "opened_at": 1792495231130
+        },
+        {
+          "name": "Theresa",
+          "bar": 4,
+          "value": 100,
+          "picked_at": 1792495202205,
+          "opened_at": 1792495231173
+        },
+        {
+          "name": "Christelle",
+          "bar": 2,
+          "value": 32,
+          "picked_at": 1792495200385,
+          "opened_at": 1792495231498
+        },
+        {
+          "name": "Kayla",
+          "bar": 3,
+          "value": 17,
+          "picked_at": 1792495200148,
+          "opened_at": 1792495231722
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 41,
+          "picked_at": 1792495199889,
+          "opened_at": 1792495232371
+        },
+        {
+          "name": "Dmj",
+          "bar": 10,
+          "value": 65,
+          "picked_at": 1792495206763,
+          "opened_at": 1792495232800
+        },
+        {
+          "name": "Sofia",
+          "bar": 5,
+          "value": 69,
+          "picked_at": 1792495200994,
+          "opened_at": 1792495233541
+        },
+        {
+          "name": "Bart",
+          "bar": 11,
+          "value": 45,
+          "picked_at": 1792495202502,
+          "opened_at": 1792495242994
+        },
+        {
+          "name": "Ali OG",
+          "bar": 1,
+          "value": 37,
+          "picked_at": 1792495226901,
+          "opened_at": 1792495262961
+        },
+        {
+          "name": "Thea",
+          "bar": 7,
+          "value": 34,
+          "picked_at": 1792495201124,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
