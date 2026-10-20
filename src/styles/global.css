@@ -3388,7 +3388,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
    costume avatars in the lobby. Colour for the trick state comes from the theme. */
 .tricks { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-soft); }
 
-.lobby-player .avatar.costume { font-size: 1.7rem; }
+.lobby-player .avatar.costume { font-size: clamp(1.25rem, 2.6vw, 1.9rem); } /* an emoji, on the Title step of the type ramp */
 
 .tot {
   width: 100%;
@@ -3396,7 +3396,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.22);
+  background: var(--bg);
   text-align: center;
   animation: suspense-in 0.45s steps(3, end) both;
 }
@@ -3414,7 +3414,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .tot-lead { font: 800 1.35rem var(--font-sans); font-stretch: 112%; color: var(--gold); }
 .tot-treat { border-color: rgba(243, 207, 110, 0.55); }
 .tot-trick { border-color: var(--border-hover); }
-.tot-trick-text { margin-top: 8px; font-size: 1.05rem; font-style: italic; color: var(--text); text-wrap: balance; }
+.tot-trick-text { margin-top: 8px; font-size: 1rem; font-style: italic; color: var(--text); text-wrap: balance; }
 .tot-note { margin-top: 6px; font-size: 0.78rem; color: var(--text-dim); font-family: var(--font-mono); }
 
 @media (prefers-reduced-motion: reduce) {
