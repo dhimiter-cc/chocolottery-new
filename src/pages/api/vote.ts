@@ -5,6 +5,7 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
   const code = (body.code ?? '').trim();
   const id = (body.id ?? '').trim();
+  const isTrick = body.kind === 'trick';
   const token = getPlayerToken(request);
 
   if (!code || !token) {
@@ -24,12 +25,13 @@ export const POST: APIRoute = async ({ request }) => {
     if (!game.players[token]) {
       return { result: { error: 'Not in game', code: 403 }, noWrite: true };
     }
-    if (!Array.isArray(game.suggestions)) {
+    const list = isTrick ? game.tricks : game.suggestions;
+    if (!Array.isArray(list)) {
       return { result: { error: 'No suggestions', code: 404 }, noWrite: true };
     }
 
     let found = false;
-    for (const s of game.suggestions) {
+    for (const s of list) {
       if (s.id === id) {
         found = true;
         const votes: string[] = Array.isArray(s.votes) ? s.votes : [];

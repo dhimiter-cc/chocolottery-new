@@ -6,6 +6,7 @@ import {
   getPlayerToken,
   setPlayerCookie,
 } from '../../lib/game.js';
+import { pickCostume } from '../../lib/costumes.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json().catch(() => ({}));
@@ -89,6 +90,7 @@ export const POST: APIRoute = async ({ request }) => {
       name,
       last_seen: Math.floor(Date.now() / 1000),
       straw_index: null,
+      costume: pickCostume(Object.values(game.players).map((p) => p.costume)),
     };
     if (!game.creator_token) {
       game.creator_token = token;

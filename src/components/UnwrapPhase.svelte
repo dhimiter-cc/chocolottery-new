@@ -19,6 +19,7 @@
   import { post } from '../lib/api.js';
   import { UNWRAP_STEPS, preloadTicket, shelfDensity } from '../lib/bars.js';
   import { fitShelf } from '../lib/fitShelf.js';
+  import { currentTheme } from '../themes/client.js';
   import UnwrapStage from './UnwrapStage.svelte';
   import BoardBar from './BoardBar.svelte';
 
@@ -103,14 +104,8 @@
   // ── Suspense ────────────────────────────────────────────────────────────
   // One line at a time under my opened bar, swapped every few seconds. They
   // never say whether the ticket is mine: nobody knows, and that's the point.
-  const SUSPENSE = [
-    'Somewhere in this room, a bar is hiding gold.',
-    'Is it yours? Poker face.',
-    "Don't look at your neighbour.",
-    'Hold the chocolate. Hold your breath.',
-    'Every bar looks innocent. One is lying.',
-    'Nothing to see here. Probably.',
-  ];
+  const copy = currentTheme().copy;
+  const SUSPENSE = copy['unwrap.suspense'];
   let tick = $state(0);
   $effect(() => {
     const id = setInterval(() => (tick += 1), 3600);
@@ -145,13 +140,13 @@
 
   let headline = $derived.by(() => {
     const left = wrapped.length;
-    if (left === 0) return 'Everyone is open. Here it comes…';
+    if (left === 0) return copy['unwrap.allOpen'];
     if (left === 1) {
       const p = wrapped[0].p;
       return p?.is_me ? 'Only your bar is left…' : `Only ${p?.name ?? 'one'}'s bar is left…`;
     }
     if (left === 2) return 'Down to two bars…';
-    if (lead === 0 && openCount === 0) return 'Everyone has a bar. One of them has the golden ticket.';
+    if (lead === 0 && openCount === 0) return copy['unwrap.allHaveBar'];
     // I'm done and waiting: the board is my waiting room now, so it carries the
     // suspense lines (the count beside it already says how many are left).
     if (mineOpen) return suspenseLine;

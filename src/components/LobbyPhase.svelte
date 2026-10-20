@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
   import JoinQR from './JoinQR.svelte';
+  import { currentTheme } from '../themes/client.js';
+
+  // Some themes (Halloween) show each player's random costume instead of their initial.
+  const costumes = currentTheme().costumes;
 
   // `joinUrl` is only passed on the host's screen: the QR sits beside the room
   // so people can scan it off the wall.
@@ -30,8 +34,8 @@
         class:me={player.is_me}
         title="{player.name}{player.online ? '' : ' (offline)'}"
       >
-        <div class="avatar" style="background: {avatarColor(player.name)};">
-          {avatarInitial(player.name)}
+        <div class="avatar" class:costume={costumes && !!player.costume} style="background: {avatarColor(player.name)};">
+          {costumes && player.costume ? player.costume : avatarInitial(player.name)}
         </div>
         <div class="name">{player.is_me ? player.name + ' (you)' : player.name}</div>
       </div>

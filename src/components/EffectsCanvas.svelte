@@ -1,5 +1,6 @@
 <script lang="ts">
   // Svelte 5 runes ($effect, $state, $props) are compiler built-ins — no import needed
+  import { currentTheme } from '../themes/client.js';
 
   interface Particle {
     x: number;
@@ -89,10 +90,14 @@
     }
   }
 
-  const CONFETTI_COLORS = ['#E89817', '#FFD24A', '#E63946', '#6366F1', '#0F9D6E', '#FFFFFF', '#FF7AD5', '#22D3EE'];
+  // What gets thrown (colours, emoji, palettes) comes from the active theme —
+  // see themes/default.ts and the event files next to it.
+  function fx() {
+    return currentTheme().effects;
+  }
 
   function spawnEmojiBurst(n: number) {
-    const glyphs = ['🎉', '🍫', '👏', '✨', '🎊'];
+    const glyphs = fx().emojiGlyphs;
     const w = canvas.width / (window.devicePixelRatio || 1);
     const h = canvas.height / (window.devicePixelRatio || 1);
     for (let i = 0; i < n; i++) {
@@ -115,8 +120,9 @@
   }
 
   export function fireConfetti(big: boolean) {
+    const effects = fx();
     const count = big ? 260 : 180;
-    const colors = CONFETTI_COLORS;
+    const colors = effects.confettiColors;
     const perEmitter = Math.floor(count / 3);
 
     // Left cannon
@@ -133,7 +139,7 @@
     launchCannon(0.5, -90, big ? 30 : 18, colors, 0.6, 0.12, 0.992, 7, 14, 240, 340, 'streamer', 12, 22);
 
     // A few emoji lobbed up for good measure
-    spawnEmojiBurst(big ? 16 : 9);
+    spawnEmojiBurst(effects.emojiBurst[big ? 1 : 0]);
 
     ensureLoop();
   }
@@ -142,12 +148,7 @@
   export function fireFireworks(bursts = 6) {
     const w = canvas.width / (window.devicePixelRatio || 1);
     const h = canvas.height / (window.devicePixelRatio || 1);
-    const palettes = [
-      ['#FFD24A', '#E89817', '#FFFBE0'],
-      ['#FF7AD5', '#E63946', '#FFFFFF'],
-      ['#22D3EE', '#6366F1', '#FFFFFF'],
-      ['#0F9D6E', '#A7F3D0', '#FFD24A'],
-    ];
+    const palettes = fx().fireworkPalettes;
     let delay = 0;
     for (let b = 0; b < bursts; b++) {
       setTimeout(() => {
@@ -187,9 +188,39 @@
     }
   }
 
-  export function fireTears() {
-    const colors = ['#7AB6E8', '#9CC8EE', '#B5D6F2', '#5C9DD8'];
+  // Some themes add glyphs drifting up out of the floor with the tears
+  // (Halloween's ghosts); `glyphs` is picked from at random.
+  function spawnRisingGlyphs(glyphs: string[], n: number) {
     const w = canvas.width / (window.devicePixelRatio || 1);
+    const h = canvas.height / (window.devicePixelRatio || 1);
+    for (let i = 0; i < n; i++) {
+      setTimeout(() => {
+        if (!canvas) return;
+        particles.push(
+          spawnParticle({
+            x: rand(0.08, 0.92) * w,
+            y: h + 30,
+            vx: rand(-0.6, 0.6),
+            vy: rand(-3.2, -1.6),
+            g: -0.012,
+            drag: 0.998,
+            size: rand(12, 20),
+            color: '#fff',
+            maxLife: rand(260, 380),
+            kind: 'emoji',
+            glyph: glyphs[Math.floor(Math.random() * glyphs.length)],
+          }),
+        );
+        ensureLoop();
+      }, i * 120);
+    }
+  }
+
+  export function fireTears() {
+    const effects = fx();
+    const colors = effects.tearColors;
+    const w = canvas.width / (window.devicePixelRatio || 1);
+    if (effects.tearGlyphs?.length) spawnRisingGlyphs(effects.tearGlyphs, effects.tearGlyphCount ?? 12);
 
     function spawnBurst(n: number) {
       for (let i = 0; i < n; i++) {
@@ -219,7 +250,7 @@
   }
 
   export function fireSparkles() {
-    const colors = ['#FFD24A', '#E89817', '#FFFBE0'];
+    const colors = fx().sparkleColors;
     const w = canvas.width / (window.devicePixelRatio || 1);
     const h = canvas.height / (window.devicePixelRatio || 1);
 

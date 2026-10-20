@@ -2,17 +2,21 @@
 // Dev-only workbench for the chocolate bars. Not linked anywhere; 404s in production.
 import '../../styles/global.css';
 import BarLab from '../../components/BarLab.svelte';
+import ThemeDecor from '../../themes/ThemeDecor.astro';
+import { themeFor } from '../../themes/resolve.js';
 
 if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+const theme = themeFor(Astro);
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme={theme.id}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bar lab — Chocolottery</title>
 </head>
 <body>
+  <ThemeDecor id={theme.id} />
   <BarLab client:load />
 </body>
 </html>

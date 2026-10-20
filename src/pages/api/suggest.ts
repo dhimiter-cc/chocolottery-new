@@ -5,6 +5,8 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
   const code = (body.code ?? '').trim();
   let text = (body.text ?? '').trim();
+  // Trick or treat: the same endpoint also takes trick suggestions.
+  const isTrick = body.kind === 'trick';
   const token = getPlayerToken(request);
 
   if (!code || !token) {
@@ -19,33 +21,37 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  if (text.length > 80) text = text.slice(0, 80);
+  const maxLen = isTrick ? 100 : 80;
+  if (text.length > maxLen) text = text.slice(0, maxLen);
 
   const outcome = await withGame(code, (game) => {
     if (!game.players[token]) {
       return { result: { error: 'Not in game', code: 403 }, noWrite: true };
     }
 
-    if (!Array.isArray(game.suggestions)) {
+    if (isTrick) {
+      if (!Array.isArray(game.tricks)) game.tricks = [];
+    } else if (!Array.isArray(game.suggestions)) {
       game.suggestions = [];
     }
+    const list = isTrick ? game.tricks! : game.suggestions;
 
     // Deduplicate by lowercase text
     const needle = text.toLowerCase();
-    for (const s of game.suggestions) {
+    for (const s of list) {
       if (s.text.toLowerCase() === needle) {
         return { result: { error: 'Already suggested', code: 409 }, noWrite: true };
       }
     }
 
-    if (game.suggestions.length >= 50) {
+    if (list.length >= 50) {
       return { result: { error: 'Too many suggestions, slow down', code: 429 }, noWrite: true };
     }
 
     const id = generateId();
     const author = game.players[token].name ?? 'Anon';
 
-    game.suggestions.push({
+    list.push({
       id,
       text,
       author_token: token,

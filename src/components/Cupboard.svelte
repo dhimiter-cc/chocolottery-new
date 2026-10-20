@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
   import { post } from '../lib/api.js';
+  import { currentTheme } from '../themes/client.js';
+
+  const copy = currentTheme().copy;
 
   let {
     game,
@@ -71,7 +74,7 @@
   <div class="modal" onclick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
     <div class="modal-card cupboard-modal-card">
       <div class="section-head" style="margin-bottom:12px;">
-        <h2>🍫 The cupboard</h2>
+        <h2>{copy['cupboard.title']}</h2>
         <span class="count">{game.cupboard.length}</span>
       </div>
       <p class="muted">{hint}</p>

@@ -7,6 +7,8 @@
   import type { Snippet } from 'svelte';
   import type { GameStateResponse } from '../lib/types.js';
   import { UNWRAP_STEPS, TICKET_SRC, DRUMROLL_MS } from '../lib/bars.js';
+  import { currentTheme } from '../themes/client.js';
+  import type { SoundName } from '../themes/types.js';
   import ChocolateBar from './ChocolateBar.svelte';
 
   interface Sounds {
@@ -50,12 +52,19 @@
   let lifted = $state(false);
   let showName = $state(false);
 
+  // The active event theme swaps copy and adds sounds, never structure. Read
+  // once: it's decided by the server before first paint.
+  const theme = currentTheme();
+  const copy = theme.copy;
+  /** Play one of the theme's extra sounds, if the sound bundle has it. */
+  const playThemed = (name?: SoundName) => (sounds as unknown as Record<string, (() => void) | undefined>)[name ?? '']?.();
+
   let me = $derived(game.players.find(p => p.is_me) ?? null);
   let message = $derived.by(() => {
     if (!winner) return '';
-    if (iWon) return "It was in yours. Walk slowly. Don't apologise.";
-    if (game.host?.is_me && !game.host_plays) return 'Time to hand over the prize.';
-    return me ? "Pretend you're happy for them. That's professionalism." : '';
+    if (iWon) return copy['reveal.winnerMsg'];
+    if (game.host?.is_me && !game.host_plays) return copy['reveal.hostMsg'];
+    return me ? copy['reveal.guestMsg'] : '';
   });
 
   const reducedMotion =
@@ -72,10 +81,12 @@
 
     // The drumroll. `later` collapses to 0ms under reduced motion, so these
     // run back to back there and the bar simply appears.
+    playThemed(theme.sounds.revealStart);
     later(() => { beat = 1; }, DRUMROLL_MS / 2 - 50);
     later(() => {
       started = true;
       sounds.playSparkleChime();
+      playThemed(theme.sounds.barLit);
       onFireSparkles();
     }, DRUMROLL_MS);
 
@@ -108,7 +119,7 @@
     <!-- Keyed so each line re-runs its entrance. -->
     {#key beat}
       <div class="bar-reveal-beat" aria-live="polite">
-        <p class="bar-reveal-beat-line">{beat === 0 ? 'Everyone is open.' : 'The golden ticket was in…'}</p>
+        <p class="bar-reveal-beat-line">{beat === 0 ? copy['reveal.beatOpen'] : copy['reveal.beatTicket']}</p>
         <span class="bar-reveal-beat-dots" aria-hidden="true"><i></i><i></i><i></i></span>
       </div>
     {/key}
@@ -131,7 +142,7 @@
     <div class="bar-reveal-side">
       <div class="bar-reveal-text" class:shown={showName}>
         {#if showName}
-          <div class="overlay-headline">🎟️ The golden ticket was in bar Nº {String(winner.straw_index + 1).padStart(2, '0')}</div>
+          <div class="overlay-headline">{copy['reveal.headline']} bar Nº {String(winner.straw_index + 1).padStart(2, '0')}</div>
           <div class="winner-name">{winner.name}</div>
           {#if message}<div class="overlay-sub">{message}</div>{/if}
         {/if}

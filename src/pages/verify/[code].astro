@@ -4,6 +4,10 @@
 // the sealed draw and the audit trail after the 24h game file is gone.
 import '../../styles/global.css';
 import { loadLeaderboard, drawCommit } from '../../lib/game.js';
+import ThemeDecor from '../../themes/ThemeDecor.astro';
+import { themeFor } from '../../themes/resolve.js';
+
+const theme = themeFor(Astro);
 import type { LeaderboardWin } from '../../lib/types.js';
 
 const code = (Astro.params.code ?? '').toUpperCase().replace(/[^A-Z0-9-]/g, '');
@@ -33,7 +37,7 @@ const day = win
 const command = draw ? `echo -n '${JSON.stringify(draw.straws)}:${draw.salt}' | sha256sum` : '';
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme={theme.id}>
 <head>
 <meta charset="UTF-8">
 <title>{code} proof — Chocolottery</title>
@@ -41,6 +45,7 @@ const command = draw ? `echo -n '${JSON.stringify(draw.straws)}:${draw.salt}' | 
 <meta name="robots" content="noindex">
 </head>
 <body>
+<ThemeDecor id={theme.id} />
 <div class="parchment verify">
   <header class="masthead">
     <div>

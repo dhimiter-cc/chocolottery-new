@@ -2,7 +2,10 @@
 import '../../styles/global.css';
 import { loadGame, getPlayerToken } from '../../lib/game.js';
 import Game from '../../components/Game.svelte';
+import ThemeDecor from '../../themes/ThemeDecor.astro';
+import { themeFor } from '../../themes/resolve.js';
 
+const theme = themeFor(Astro);
 const { code } = Astro.params;
 const upperCode = code?.toUpperCase() ?? '';
 
@@ -17,13 +20,14 @@ if (token && upperCode) {
 }
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme={theme.id}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{upperCode} — Chocolottery</title>
 </head>
 <body>
+  <ThemeDecor id={theme.id} />
   <Game
     code={upperCode}
     initialToken={token}

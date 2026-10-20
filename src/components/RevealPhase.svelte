@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
+  import { currentTheme } from '../themes/client.js';
+  import type { SoundName } from '../themes/types.js';
 
   interface Sounds {
     playDrumroll: (ms: number) => void;
@@ -28,6 +30,11 @@
     onFireSparkles: () => void;
     onFireFireworks: (bursts?: number) => void;
   } = $props();
+
+  // The active event theme swaps copy and adds sounds, never structure.
+  const theme = currentTheme();
+  const copy = theme.copy;
+  const playThemed = (name?: SoundName) => (sounds as unknown as Record<string, (() => void) | undefined>)[name ?? '']?.();
 
   let revealDone = $state(false);
   let charging = $state(false);
@@ -60,10 +67,10 @@
 
   let winnerMessage = $derived.by(() => {
     if (!winnerPlayer) return '';
-    if (iWon) return "Take it. Walk slowly. Don't apologise.";
+    if (iWon) return copy['reveal.strawWinnerMsg'];
     const me = game.players.find(p => p.is_me);
     return me
-      ? "Pretend you're happy for them. That's professionalism."
+      ? copy['reveal.strawGuestMsg']
       : `${winnerPlayer.name} drew the longest straw.`;
   });
 
@@ -76,6 +83,7 @@
     sounds.playDrumroll(3000);
     sounds.playRisingRumble();
     sounds.playSparkleChime();
+    playThemed(theme.sounds.revealStart);
     onFireSparkles();
     charging = true;
 
@@ -83,6 +91,7 @@
       charging = false;
       flashing = true;
       revealed = true;
+      playThemed(theme.sounds.barLit);
       setTimeout(() => { flashing = false; }, 600);
 
       // Trigger CSS height transition by updating reactive state
@@ -150,7 +159,7 @@
 <!-- Winner overlay -->
 {#if showWinner && winnerPlayer}
   <div class="stage-overlay" style="pointer-events:none;">
-    <div class="overlay-headline">🍫 Longest straw belongs to</div>
+    <div class="overlay-headline">{copy['reveal.strawHeadline']}</div>
     <div class="winner-name">{winnerPlayer.name}</div>
     <div class="overlay-sub">{winnerMessage}</div>
   </div>

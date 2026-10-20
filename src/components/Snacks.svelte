@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
   import { post } from '../lib/api.js';
+  import { currentTheme } from '../themes/client.js';
+
+  const copy = currentTheme().copy;
 
   let { game, code, onOpenCupboard, onRefresh }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void; onRefresh?: () => void } = $props();
 
@@ -70,9 +73,9 @@
 </script>
 
 <div class="section-head">
-  <h2>Snack votes</h2>
+  <h2>{copy['snacks.title']}</h2>
   <div class="section-head-right">
-    <button type="button" class="cupboard-trigger-btn" onclick={onOpenCupboard}>🍫 Cupboard</button>
+    <button type="button" class="cupboard-trigger-btn" onclick={onOpenCupboard}>{copy['snacks.cupboardBtn']}</button>
     <span class="count">{game.suggestions.length}</span>
   </div>
 </div>
@@ -97,7 +100,7 @@
             : 'Add to suggestions & vote'}
           onclick={() => handleChipClick(item.name)}
         >
-          {item.name}
+          {#if copy['snacks.itemIcon']}<span class="snack-icon" aria-hidden="true">{copy['snacks.itemIcon']}</span>{/if}{item.name}
         </button>
       {/each}
     </div>
@@ -133,7 +136,7 @@
           <span class="arrow">▲</span>
           <span class="num">{s.votes}</span>
         </button>
-        <div class="snack-text">{s.text}</div>
+        <div class="snack-text">{#if copy['snacks.itemIcon']}<span class="snack-icon" aria-hidden="true">{copy['snacks.itemIcon']}</span>{/if}{s.text}</div>
         <div class="snack-author">— {s.author_name}</div>
       </div>
     {/each}
