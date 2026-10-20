@@ -474,11 +474,13 @@
     {/if}
 
     {#if gameState}
-      <div class="game-grid" class:stage-wide={bars && phase !== 'lobby'}>
+      <!-- In the lobby the votes live inside the canvas, so the snack column goes. -->
+      {@const votesInStage = phase === 'lobby' && !eventLayout}
+      <div class="game-grid" class:stage-wide={bars && phase !== 'lobby'} class:votes-in-stage={votesInStage}>
         <!-- Snacks: left column on desktop. Dimmed during picking so
              attention goes to the straws, not vote-chasing or cupboard
              browsing — chat stays at full prominence next to it. -->
-        {#if !eventLayout}
+        {#if !eventLayout && !votesInStage}
           <section class="panel snacks-panel" class:dimmed={phase === 'picking' || phase === 'unwrapping'}>
             <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
             {#if trickOrTreat}<Tricks game={gameState} {code} onRefresh={() => conn.refresh()} />{/if}
@@ -534,7 +536,13 @@
 
           {#if phase === 'lobby'}
             <div class="cup-stage" class:bar-stage={bars} data-phase="lobby">
-              <LobbyPhase game={gameState} joinUrl={isHost ? joinUrl : ''} />
+              <LobbyPhase
+                game={gameState}
+                joinUrl={isHost ? joinUrl : ''}
+                code={eventLayout ? '' : code}
+                onRefresh={() => conn.refresh()}
+                onOpenCupboard={() => (showCupboard = true)}
+              />
               <div class="straws"></div>
               <div class="cup"></div>
             </div>

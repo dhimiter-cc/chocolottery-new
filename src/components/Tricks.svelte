@@ -8,7 +8,8 @@
   import { currentTheme } from '../themes/client.js';
   import { TRICK_ODDS } from '../lib/trickOdds.js';
 
-  let { game, code, onRefresh }: { game: GameStateResponse; code: string; onRefresh?: () => void } = $props();
+  // `compact` is the version inside the lobby canvas: one hint line, scrolling list.
+  let { game, code, onRefresh, compact = false }: { game: GameStateResponse; code: string; onRefresh?: () => void; compact?: boolean } = $props();
 
   const words = currentTheme().trickOrTreat;
 
@@ -40,12 +41,12 @@
 </script>
 
 {#if words}
-  <div class="tricks">
+  <div class="votes tricks" class:votes-compact={compact}>
     <div class="section-head">
       <h2>{words.title}</h2>
       <div class="section-head-right"><span class="count">{game.tricks.length}</span></div>
     </div>
-    <p class="muted">{words.intro.replace('{odds}', String(TRICK_ODDS))}</p>
+    <p class="muted">{(compact ? words.hint : words.intro).replace('{odds}', String(TRICK_ODDS))}</p>
 
     <form class="snack-form" onsubmit={suggest}>
       <input type="text" bind:value={text} maxlength="100" placeholder={words.placeholder} autocomplete="off" />

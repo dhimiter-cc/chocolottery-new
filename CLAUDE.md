@@ -124,7 +124,7 @@ lobby ──(host starts, ≥2 online)──▶ picking ──(all picked)──
   └──────────────────────────(host restarts)──────────────────────────────┘
 ```
 
-- **lobby** — players join via code, suggest + vote on the prize snack, host edits the cupboard.
+- **lobby** — players join via code, suggest + vote on the prize snack (and, on trick-or-treat themes, on tricks), host edits the cupboard. The votes sit **inside the lobby canvas, at its bottom** (`LobbyPhase` renders `Snacks`/`Tricks` with `compact`); the side snack column is dropped in the lobby (`.votes-in-stage`) and comes back in later phases. On a trick-or-treat theme the host can't start (and the lobby timer won't auto-start) until the room has written at least one trick (`MIN_TRICKS`, enforced in `api/start.ts` and `api/autostart.ts`, which resolve the theme from the request).
 - **picking** — straws are generated server-side (`generateStraws`); each player clicks one. A 3‑2‑1‑GO countdown runs client-side; picking is blocked while it's active. When the second-to-last player picks, the last player is **auto-assigned** the only remaining straw (`api/pick.ts`).
 - **reveal / done** — winner (the `100` straw holder) is computed, prize snack chosen, a leaderboard record is written. Host can mark which cupboard item was handed over ("give"), or restart.
 

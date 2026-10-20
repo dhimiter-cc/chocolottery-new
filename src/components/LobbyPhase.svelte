@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
   import JoinQR from './JoinQR.svelte';
+  import Snacks from './Snacks.svelte';
+  import Tricks from './Tricks.svelte';
   import { currentTheme } from '../themes/client.js';
 
   // Some themes (Halloween) show each player's random costume instead of their initial.
@@ -8,7 +10,23 @@
 
   // `joinUrl` is only passed on the host's screen: the QR sits beside the room
   // so people can scan it off the wall.
-  let { game, joinUrl = '' }: { game: GameStateResponse; joinUrl?: string } = $props();
+  // With `code`, the treat votes (and trick votes, on themes that have them) sit at
+  // the bottom of the canvas, where the room is already looking.
+  let {
+    game,
+    joinUrl = '',
+    code = '',
+    onRefresh,
+    onOpenCupboard,
+  }: {
+    game: GameStateResponse;
+    joinUrl?: string;
+    code?: string;
+    onRefresh?: () => void;
+    onOpenCupboard?: () => void;
+  } = $props();
+
+  const hasTricks = !!currentTheme().trickOrTreat;
 
   function avatarColor(name: string): string {
     let h = 0;
@@ -49,4 +67,16 @@
     <div class="lobby-host">Hosted by {game.host.is_me ? 'you' : game.host.name} · not in the draw</div>
   {/if}
   </div>
+  {#if code}
+    <div class="lobby-votes">
+      <section class="lobby-votes-col">
+        <Snacks compact {game} {code} {onOpenCupboard} {onRefresh} />
+      </section>
+      {#if hasTricks}
+        <section class="lobby-votes-col">
+          <Tricks compact {game} {code} {onRefresh} />
+        </section>
+      {/if}
+    </div>
+  {/if}
 </div>

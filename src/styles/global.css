@@ -491,6 +491,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 @media (max-width: 560px) {
   .phase-bar { flex-direction: column; align-items: stretch; }
   .phase-actions { justify-content: flex-end; }
+  /* Capped at the bar: with the sound toggle in the status row, their content width
+     was pushing the whole page 29px wider than a phone. */
+  .phase-info, .phase-actions { max-width: 100%; }
 }
 .phase-info {
   display: flex;
@@ -3419,4 +3422,46 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 
 @media (prefers-reduced-motion: reduce) {
   .tot, .tot-door { animation: none; }
+}
+
+/* === Votes inside the lobby canvas ===========================================
+   The treat votes (and trick votes, on themes that have them) sit at the bottom
+   of the lobby stage, where the room is already looking, instead of in a side
+   column. The overlay stops being absolutely positioned so the canvas grows with
+   its content: a full room plus both lists still fits, and scrolls with the stage
+   panel rather than clipping on a phone. */
+.cup-stage[data-phase='lobby'] { display: flex; flex-direction: column; padding: 0; }
+.cup-stage[data-phase='lobby'] .stage-overlay.lobby { position: relative; inset: auto; flex: 1; }
+.lobby-room { flex: 1; justify-content: center; width: 100%; }
+
+.lobby-votes {
+  width: 100%;
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  text-align: left;
+}
+.lobby-votes-col {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: rgba(22, 5, 29, 0.55);
+}
+.lobby-votes .tricks { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* Compact lists scroll inside their own box. */
+.votes-compact .snacks-list { max-height: 132px; overflow-y: auto; }
+.votes-compact .snack-quick-picks { max-height: 70px; overflow-y: auto; }
+.votes-compact .snack-form-divider { display: none; }
+.votes-compact .snacks-empty { padding: 8px 0; }
+
+/* Lobby, desktop: no snack column, the stage takes the width. */
+@media (min-width: 1100px) {
+  .game-grid.votes-in-stage {
+    grid-template-columns: 1fr 300px;
+    grid-template-areas: "stage chat";
+  }
+  .game-grid.votes-in-stage .cup-stage { max-width: 860px; }
 }

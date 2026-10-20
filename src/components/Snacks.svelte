@@ -5,7 +5,9 @@
 
   const copy = currentTheme().copy;
 
-  let { game, code, onOpenCupboard, onRefresh }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void; onRefresh?: () => void } = $props();
+  // `compact` is the version that lives inside the lobby canvas: no explainer, no
+  // "still need votes" row, and the list scrolls inside its own box.
+  let { game, code, onOpenCupboard, onRefresh, compact = false }: { game: GameStateResponse; code: string; onOpenCupboard?: () => void; onRefresh?: () => void; compact?: boolean } = $props();
 
   let suggestText = $state('');
   let snackError = $state('');
@@ -72,6 +74,7 @@
   let availableCupboard = $derived(game.cupboard.filter(item => item.stock > 0));
 </script>
 
+<div class="votes" class:votes-compact={compact}>
 <div class="section-head">
   <h2>{copy['snacks.title']}</h2>
   <div class="section-head-right">
@@ -79,7 +82,9 @@
     <span class="count">{game.suggestions.length}</span>
   </div>
 </div>
-<p class="muted">Pitch ideas. Upvote favourites. Highest-voted wins. Tie or no votes? Random. (Dwight, no beets.)</p>
+{#if !compact}
+  <p class="muted">Pitch ideas. Upvote favourites. Highest-voted wins. Tie or no votes? Random. (Dwight, no beets.)</p>
+{/if}
 
 <!-- Quick-pick chips from cupboard -->
 {#if availableCupboard.length > 0}
@@ -144,7 +149,7 @@
 </div>
 
 <!-- Non-voter nudge banner -->
-{#if game.suggestions.length > 0 && nonVoters.length > 0}
+{#if !compact && game.suggestions.length > 0 && nonVoters.length > 0}
   <div class="snack-non-voters">
     <span class="non-voter-label">Still need votes:</span>
     {#each nonVoters as p (p.token)}
@@ -162,3 +167,4 @@
 {/if}
 
 {#if snackError}<p class="error">{snackError}</p>{/if}
+</div>
