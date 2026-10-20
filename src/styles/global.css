@@ -3447,7 +3447,7 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   padding: 12px 14px;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
-  background: rgba(22, 5, 29, 0.55);
+  background: var(--panel);
 }
 .lobby-votes .tricks { margin-top: 0; padding-top: 0; border-top: 0; }
 
