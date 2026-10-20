@@ -259,3 +259,8 @@ html[data-theme='halloween'] .gt-card { box-shadow: 0 0 70px rgba(var(--hw-viole
 /* Trick or treat: a trick door glows violet, a treat door stays gold. */
 html[data-theme='halloween'] .tot-trick { border-color: rgba(var(--hw-violet), 0.7); box-shadow: 0 0 28px rgba(var(--hw-violet), 0.3); }
 html[data-theme='halloween'] .tot-trick .tot-lead { color: #C4B5FD; }
+
+/* Phones: the header is crowded enough, so the spider stays home. */
+@media (max-width: 560px) {
+  .hw-spider { display: none; }
+}

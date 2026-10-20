@@ -466,9 +466,10 @@
         </p>
       </div>
       <div class="head-actions">
-        <button type="button" class="btn btn-ghost" onclick={() => (showFairness = true)}>⚖️ Fairness</button>
-        <a href="/leaderboard" class="btn btn-ghost">Leaderboard</a>
-        <a href="/" class="btn btn-ghost">Home</a>
+        <!-- On phones these shrink to three icon buttons in one row (see .head-ico / .head-label). -->
+        <button type="button" class="btn btn-ghost" aria-label="Fairness" onclick={() => (showFairness = true)}><span class="head-ico" aria-hidden="true">⚖️</span><span class="head-label"><span class="head-ico-wide" aria-hidden="true">⚖️ </span>Fairness</span></button>
+        <a href="/leaderboard" class="btn btn-ghost" aria-label="Leaderboard"><span class="head-ico" aria-hidden="true">🏆</span><span class="head-label">Leaderboard</span></a>
+        <a href="/" class="btn btn-ghost" aria-label="Home"><span class="head-ico" aria-hidden="true">🏠</span><span class="head-label">Home</span></a>
       </div>
     </header>
     {/if}

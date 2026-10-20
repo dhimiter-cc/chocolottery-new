@@ -3522,3 +3522,50 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   }
   .game-grid.votes-in-stage .cup-stage { max-width: 860px; }
 }
+
+/* === Phones: lobby ===========================================================
+   Three fixes from the mobile critique: (1) nothing covers anything, (2) the vote
+   lines get the width and 44px touch targets, (3) the header is one short row so
+   the room, the votes and Start fit the first screen. */
+.head-ico { display: none; }
+
+@media (max-width: 560px) {
+  /* 3. Header: title and code on the left, three icon buttons on the right. */
+  .game-head { flex-wrap: nowrap; margin-bottom: 12px; padding-bottom: 10px; }
+  .head-actions { flex-wrap: nowrap; gap: 6px; flex: none; }
+  .head-actions .btn { min-width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+  .head-ico { display: inline; }
+  .head-label { display: none; }
+  .game-head .muted { margin: 2px 0 0; }
+
+  /* Status row and its controls reach 44px too. */
+  .phase-actions .btn, .sound-toggle { min-height: 44px; }
+  .sound-toggle { min-width: 44px; }
+
+  /* 1a. The join QR sits in the flow above the room instead of over it. */
+  .join-qr-chip { position: static; align-self: flex-start; margin-bottom: 10px; }
+  .cup-stage[data-phase='lobby'] .stage-overlay.lobby { padding: 12px; }
+
+  /* 2. Vote lines: label and buttons on one row, the strip full width beneath, so the
+     pills have the whole line instead of what's left beside the label. */
+  .vline {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas: "label plus ghost" "strip strip strip";
+    gap: 6px 8px;
+    padding: 8px 10px;
+  }
+  .vline-label { grid-area: label; }
+  .vline-rest { display: none; }
+  .vline-plus { grid-area: plus; }
+  .vline-ghost { grid-area: ghost; }
+  .vline-strip, .vline-form { grid-area: strip; }
+  .vline-pill, .vline-plus, .vline-ghost, .vline-go, .vline-x { min-height: 44px; min-width: 44px; }
+  .vline-form input { min-height: 44px; }
+}
+
+/* 1b. Below the desktop layout a floating chat button sits at the bottom right; leave
+   room under the last controls so it never covers them. */
+@media (max-width: 1099px) {
+  .game-room:not(.event-layout) { padding-bottom: 88px; }
+}

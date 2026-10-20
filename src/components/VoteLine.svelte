@@ -38,6 +38,11 @@
     extra?: Snippet;
   } = $props();
 
+  // On phones only the first word of the label shows ("Treat", not "Treat votes"),
+  // which frees room for the pills.
+  const [word, ...restWords] = label.split(' ');
+  const rest = restWords.length ? ' ' + restWords.join(' ') : '';
+
   // The trick endpoints take `kind: 'trick'`; snacks are the default.
   const extraBody = () => (kind === 'trick' ? { kind: 'trick' } : {});
 
@@ -83,7 +88,7 @@
 
 <div class="vline" class:vline-adding={adding}>
   <span class="vline-label" title={hint}>
-    <span aria-hidden="true">{icon}</span> {label}
+    <span aria-hidden="true">{icon}</span> <span>{word}<span class="vline-rest">{rest}</span></span>
     <span class="vline-count">{items.length}</span>
   </span>
 
