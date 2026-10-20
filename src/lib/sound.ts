@@ -263,11 +263,11 @@ export function playFoilCrinkle() {
 // ── Halloween ───────────────────────────────────────────────────────────────
 // A door on dry hinges: a sawtooth whose pitch stutters, through a band-pass
 // that slowly opens. Quiet on purpose; it sits under the drumroll.
-export function playCreak() {
+export function playCreak(delay = 0) {
   const ctx = getAudio();
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume();
-  const t0 = ctx.currentTime + 0.02;
+  const t0 = ctx.currentTime + 0.02 + delay;
   const dur = 1.3;
   const osc = ctx.createOscillator();
   osc.type = 'sawtooth';
@@ -291,6 +291,30 @@ export function playCreak() {
   g.connect(ctx.destination);
   osc.start(t0);
   osc.stop(t0 + dur + 0.05);
+}
+
+// Someone knocking at the door: four low thumps, then the hinges. Plays as the
+// reveal's drumroll starts.
+export function playKnock() {
+  const ctx = getAudio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t0 = ctx.currentTime + 0.02;
+  [0, 0.22, 0.44, 0.9].forEach((at, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(i === 3 ? 95 : 130, t0 + at);
+    osc.frequency.exponentialRampToValueAtTime(52, t0 + at + 0.12);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0 + at);
+    g.gain.exponentialRampToValueAtTime(0.5, t0 + at + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + 0.16);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(t0 + at);
+    osc.stop(t0 + at + 0.2);
+  });
+  playCreak(1.35);
 }
 
 // A theremin-ish wail on a diminished chord, wobbling slowly, for the moment
@@ -339,6 +363,7 @@ export const sounds = {
   playPartyHorn,
   playTada,
   playSparkleChime,
+  playKnock,
   playCreak,
   playSpookyStinger,
 };

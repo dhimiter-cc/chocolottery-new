@@ -23,6 +23,8 @@ export function buildTheme(event?: EventTheme): Theme {
     id: event.id,
     label: event.label,
     copy: { ...DEFAULT_THEME.copy, ...event.copy },
+    trickOrTreat: event.trickOrTreat ?? DEFAULT_THEME.trickOrTreat,
+    costumes: event.costumes ?? DEFAULT_THEME.costumes,
     effects: { ...DEFAULT_THEME.effects, ...event.effects },
     sounds: { ...DEFAULT_THEME.sounds, ...event.sounds },
     barPrint: event.barPrint ?? DEFAULT_THEME.barPrint,

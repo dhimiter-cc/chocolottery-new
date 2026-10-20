@@ -25,6 +25,8 @@ export const POST: APIRoute = async ({ request }) => {
     game.straws = null;
     game.winner_token = null;
     game.prize_snack = null;
+    game.door = null;
+    game.trick_pick = null;
     game.prize_given_id = null;
     game.prize_given_name = null;
 

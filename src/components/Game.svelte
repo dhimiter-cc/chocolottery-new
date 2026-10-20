@@ -16,8 +16,15 @@
   import PrizeStrip from './PrizeStrip.svelte';
   import Toaster from './Toaster.svelte';
   import SoundToggle from './SoundToggle.svelte';
+  import Tricks from './Tricks.svelte';
+  import TrickOrTreat from './TrickOrTreat.svelte';
+  import { currentTheme } from '../themes/client.js';
   import { isEventDay, isTeaseActive, hasEventPreviewParam } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
+
+  // Trick or treat exists only while the active theme provides its words. Only
+  // read inside the {#if gameState} branches, which the server never renders.
+  const trickOrTreat = !!currentTheme().trickOrTreat;
   import { UNWRAP_STEPS, DRUMROLL_MS } from '../lib/bars.js';
   import { post } from '../lib/api.js';
   import { showToast } from '../lib/toast.svelte.js';
@@ -420,6 +427,7 @@
      winner, so the stage never grows a scrollbar when the winner lands. -->
 {#snippet barPrize()}
   {#if gameState}
+    {#if trickOrTreat}<TrickOrTreat game={gameState} {sounds} />{/if}
     {#if gameState.prize_snack}
       <p class="bar-prize-snack">
         <b>🍫 Prize snack</b> {gameState.prize_snack.text}
@@ -464,6 +472,7 @@
         {#if !eventLayout}
           <section class="panel snacks-panel" class:dimmed={phase === 'picking' || phase === 'unwrapping'}>
             <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
+            {#if trickOrTreat}<Tricks game={gameState} {code} onRefresh={() => conn.refresh()} />{/if}
           </section>
         {/if}
 
@@ -613,6 +622,11 @@
           {/if}
 
           {#if actionError}<p class="error" style="margin: 10px 0 0;">{actionError}</p>{/if}
+
+          <!-- Trick or treat door (straw mode; bar mode shows it inside the reveal canvas) -->
+          {#if trickOrTreat && !eventLayout && !bars && (phase === 'reveal' || phase === 'done')}
+            <TrickOrTreat game={gameState} {sounds} delay={5200} />
+          {/if}
 
           <!-- Prize snack card -->
           {#if !eventLayout && !bars && gameState.prize_snack && (phase === 'reveal' || phase === 'done')}

@@ -96,6 +96,16 @@ back to the default, so nothing is left half-themed.
   before each snack (`snacks.itemIcon`). Extra CSS can reach anything else.
 - **Sound mute:** `SoundToggle.svelte` (stage header) flips `setMuted()` in `lib/sound.ts`;
   every sound goes through `getAudio()`, so one flag silences them all. Kept in localStorage.
+- **Trick or treat** (a theme feature: only on while the theme provides `trickOrTreat` words,
+  today Halloween). The room suggests and votes on **tricks** in the lobby (`Tricks.svelte`;
+  `/api/suggest` and `/api/vote` take `kind: 'trick'`, stored in `game.tricks`). At the reveal
+  `finalizePicking` sets `game.door` and `game.trick_pick` (`lib/trickOrTreat.ts`): **the winner
+  never chooses**, the door comes from `sha256(draw_salt + ':door')` (one in `TRICK_ODDS` is a
+  trick), so it is sealed until the reveal and recomputable afterwards. Treat = the usual prize.
+  Trick = the top-voted trick (a house trick if nobody wrote any), then the prize anyway.
+  `TrickOrTreat.svelte` shows the knock and the result on every screen; it never touches who wins.
+- **Costume avatars** (`costumes: true` on a theme): each player gets a random costume emoji at
+  join (`lib/costumes.ts`, `player.costume`), shown as their lobby avatar.
 - **Rules:** gold stays the winner's colour; every animation respects
   `prefers-reduced-motion`; ambient layers are `position:fixed; pointer-events:none` and
   low contrast (the stage is projected).

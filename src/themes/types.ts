@@ -52,7 +52,7 @@ export interface Effects {
 }
 
 /** Names of the sound functions in lib/sound.ts that a theme may trigger. */
-export type SoundName = 'playCreak' | 'playSpookyStinger' | 'playSparkleChime' | 'playPartyHorn' | 'playTada';
+export type SoundName = 'playKnock' | 'playCreak' | 'playSpookyStinger' | 'playSparkleChime' | 'playPartyHorn' | 'playTada';
 
 /** One drawn shape printed on a bar's sleeve. 'gold' means the sleeve's gold foil. */
 export interface PrintItem {
@@ -70,10 +70,28 @@ export interface BarPrintGeometry {
   sleeve: { x: number; y: number; w: number; h: number };
 }
 
+/** Words for the trick-or-treat feature. Having this on a theme turns the feature on:
+ *  trick votes in the lobby and the door at the reveal. The winner never chooses
+ *  a door (see lib/trickOrTreat.ts). `intro` may use {odds}. */
+export interface TrickOrTreatCopy {
+  title: string;
+  intro: string;
+  placeholder: string;
+  empty: string;
+  knocking: string;
+  treat: string;
+  trickLead: string;
+  trickNote: string;
+}
+
 export interface Theme {
   id: string;
   label: string;
   copy: Copy;
+  /** Trick or treat, off unless a theme provides its words. */
+  trickOrTreat?: TrickOrTreatCopy;
+  /** Show each player's random costume emoji as their avatar. */
+  costumes?: boolean;
   effects: Effects;
   sounds: {
     /** Plays as the reveal drumroll starts. */
@@ -93,6 +111,8 @@ export interface EventTheme {
    *  switches on by `?theme=<id>` or the THEME env var (never by date). */
   window?: { from: string; to: string };
   copy?: Partial<Copy>;
+  trickOrTreat?: TrickOrTreatCopy;
+  costumes?: boolean;
   effects?: Partial<Effects>;
   sounds?: Theme['sounds'];
   barPrint?: Theme['barPrint'];

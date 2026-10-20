@@ -38,8 +38,8 @@ export const HALLOWEEN: EventTheme = {
     'landing.cornerRight': 'Best drawn after dark',
     'landing.footer': 'Packed in the office kitchen. No HR forms were harmed. Some pumpkins were.',
 
-    'reveal.beatOpen': 'Every bar is open.',
-    'reveal.beatTicket': 'The golden ticket was lurking in…',
+    'reveal.beatOpen': 'Knock, knock…',
+    'reveal.beatTicket': 'Trick or treat?',
     'reveal.headline': '🎃 The spirits chose',
     'reveal.winnerMsg': "It was in yours. The spirits chose you. Walk slowly. Don't look behind you.",
     'reveal.hostMsg': 'Time to hand over the loot.',
@@ -86,7 +86,25 @@ export const HALLOWEEN: EventTheme = {
     tearGlyphCount: 14,
   },
 
-  sounds: { revealStart: 'playCreak', barLit: 'playSpookyStinger' },
+  // Someone knocks, the door creaks, then the bar lights up.
+  sounds: { revealStart: 'playKnock', barLit: 'playSpookyStinger' },
+
+  // Trick or treat: the room votes on tricks; one winner in three opens a trick
+  // door (the most-voted trick, then the prize anyway), the rest a treat door.
+  trickOrTreat: {
+    title: 'Trick votes',
+    intro:
+      'One winner in {odds} opens a trick door: they do the most-voted trick, then take the prize anyway. You write the tricks, so nothing here is a surprise you did not vote for.',
+    placeholder: 'Do a ghost impression, hum the Jaws theme…',
+    empty: 'No tricks yet. The house keeps a few mild ones in reserve.',
+    knocking: 'Knock, knock…',
+    treat: '🍬 Treat! Take the prize.',
+    trickLead: '🕷️ Trick!',
+    trickNote: 'Do it, then take the prize.',
+  },
+
+  // Everyone arrives in a random costume.
+  costumes: true,
 
   barPrint: ({ sleeve }): PrintItem[] => [
     { d: web(sleeve.x + sleeve.w - 10, sleeve.y + 10, 44), fill: 'none', stroke: 'gold', strokeWidth: 0.7, opacity: 0.55 },

@@ -10,6 +10,8 @@ export interface Player {
    *  with "open all the bars" has no `opened_at`. */
   picked_at?: number | null;
   opened_at?: number | null;
+  /** Costume emoji handed out at join (Halloween avatars). Absent on older games. */
+  costume?: string;
 }
 export interface Suggestion {
   id: string; text: string; author_token: string; author_name: string;
@@ -35,6 +37,13 @@ export interface Game {
   players: Record<string, Player>; straws: number[] | null;
   winner_token: string | null; creator_token: string | null;
   suggestions: Suggestion[]; prize_snack: PrizeSnack | null;
+  /** Trick or treat (Halloween): the room's suggested tricks, same shape and
+   *  voting as snack suggestions. */
+  tricks?: Suggestion[];
+  /** Set at the reveal from the sealed draw (see lib/trickOrTreat.ts), cleared
+   *  on restart. `trick_pick` is the trick to do, only when the door is 'trick'. */
+  door?: 'trick' | 'treat' | null;
+  trick_pick?: PrizeSnack | null;
   prize_given_id: string | null; prize_given_name: string | null;
   chat: ChatMessage[];
   // Timers (absolute Unix-second deadlines). `timer_seconds` is the host's
@@ -77,6 +86,7 @@ export interface PublicPlayer {
   token: string; name: string; online: boolean; picked: boolean;
   straw_index: number | null; is_me: boolean;
   unwrap: number;
+  costume: string | null;
 }
 export interface PublicSuggestion {
   id: string; text: string; author_name: string; mine: boolean;
@@ -92,6 +102,10 @@ export interface GameStateResponse {
   creator_token: string | null; is_host: boolean; my_token: string | null;
   my_straw: number | null; suggestions: PublicSuggestion[];
   prize_snack: PrizeSnack | null; cupboard: PublicCupboardItem[];
+  tricks: PublicSuggestion[];
+  /** Trick or treat result, only once the reveal is out. */
+  door: 'trick' | 'treat' | null;
+  trick: PrizeSnack | null;
   prize_given_id: string | null; prize_given_name: string | null;
   chat: PublicChatMessage[]; in_game: boolean;
   timer_seconds: number | null;

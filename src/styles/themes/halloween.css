@@ -255,3 +255,7 @@ html[data-theme='halloween'] .bar-reveal::after { right: 0; transform: scaleX(-1
 
 /* The event-day golden ticket modal gets the same violet halo as the bar reveal. */
 html[data-theme='halloween'] .gt-card { box-shadow: 0 0 70px rgba(var(--hw-violet), 0.35), var(--shadow-2); }
+
+/* Trick or treat: a trick door glows violet, a treat door stays gold. */
+html[data-theme='halloween'] .tot-trick { border-color: rgba(var(--hw-violet), 0.7); box-shadow: 0 0 28px rgba(var(--hw-violet), 0.3); }
+html[data-theme='halloween'] .tot-trick .tot-lead { color: #C4B5FD; }

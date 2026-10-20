@@ -5,8 +5,9 @@ import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { withLock } from './lock.js';
 import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
 import { UNWRAP_STEPS } from './bars.js';
+import { doorFor, pickTrick } from './trickOrTreat.js';
 import type {
-  Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack, AuditEntry,
+  Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack, AuditEntry, Suggestion,
   PublicPlayer, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
@@ -225,6 +226,9 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
   game.state = 'reveal';
   game.picking_deadline = null;
   game.prize_snack = pickPrizeSnack(game);
+  // Trick or treat: the door comes from the sealed draw, so it can't be gamed.
+  game.door = game.draw_salt ? doorFor(game.draw_salt) : 'treat';
+  game.trick_pick = game.door === 'trick' ? pickTrick(game.tricks) : null;
 
   if (!winnerToken) return null;
   const straws = Array.isArray(game.straws) ? game.straws : [];
@@ -418,6 +422,7 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     straw_index: p.straw_index ?? null,
     is_me:       token === myToken,
     unwrap:      p.unwrap ?? 0,
+    costume:     p.costume ?? null,
   }));
 
   const myStraw = myToken ? (game.players[myToken]?.straw_index ?? null) : null;
@@ -435,7 +440,7 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
   const revealed = game.state === 'reveal' || game.state === 'done';
   const inGame  = !!(myToken && game.players[myToken]);
 
-  const suggestions: PublicSuggestion[] = (game.suggestions ?? [])
+  const publicSuggestions = (list: Suggestion[] | undefined): PublicSuggestion[] => (list ?? [])
     .map(s => ({
       id:           s.id,
       text:         s.text,
@@ -447,6 +452,7 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
       created_at:   s.created_at,
     }))
     .sort((a, b) => b.votes - a.votes || a.created_at - b.created_at);
+  const suggestions = publicSuggestions(game.suggestions);
 
   const chat: PublicChatMessage[] = inGame
     ? (game.chat ?? []).map(m => ({
@@ -470,6 +476,9 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     my_straw:         myStraw,
     suggestions,
     prize_snack:      game.prize_snack ?? null,
+    tricks:           publicSuggestions(game.tricks),
+    door:             revealed ? game.door ?? null : null,
+    trick:            revealed ? game.trick_pick ?? null : null,
     cupboard:         cupboardPublic(),
     prize_given_id:   game.prize_given_id ?? null,
     prize_given_name: game.prize_given_name ?? null,
