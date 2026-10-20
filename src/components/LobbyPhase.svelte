@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { GameStateResponse } from '../lib/types.js';
   import JoinQR from './JoinQR.svelte';
-  import Snacks from './Snacks.svelte';
-  import Tricks from './Tricks.svelte';
+  import VoteLine from './VoteLine.svelte';
+  import { TRICK_ODDS } from '../lib/trickOdds.js';
   import { currentTheme } from '../themes/client.js';
 
   // Some themes (Halloween) show each player's random costume instead of their initial.
@@ -11,7 +11,7 @@
   // `joinUrl` is only passed on the host's screen: the QR sits beside the room
   // so people can scan it off the wall.
   // With `code`, the treat votes (and trick votes, on themes that have them) sit at
-  // the bottom of the canvas, where the room is already looking.
+  // the bottom of the canvas as two slim lines, where the room is already looking.
   let {
     game,
     joinUrl = '',
@@ -26,7 +26,12 @@
     onOpenCupboard?: () => void;
   } = $props();
 
-  const hasTricks = !!currentTheme().trickOrTreat;
+  const theme = currentTheme();
+  const copy = theme.copy;
+  const trickWords = theme.trickOrTreat;
+  let stocked = $derived(game.cupboard.filter((c) => c.stock > 0).map((c) => c.name));
+  // The cupboard button's leading emoji, as a compact icon button.
+  const cupboardIcon = copy['snacks.cupboardBtn'].split(' ')[0];
 
   function avatarColor(name: string): string {
     let h = 0;
@@ -69,13 +74,37 @@
   </div>
   {#if code}
     <div class="lobby-votes">
-      <section class="lobby-votes-col">
-        <Snacks compact {game} {code} {onOpenCupboard} {onRefresh} />
-      </section>
-      {#if hasTricks}
-        <section class="lobby-votes-col">
-          <Tricks compact {game} {code} {onRefresh} />
-        </section>
+      <VoteLine
+        kind="snack"
+        {code}
+        icon={copy['snacks.itemIcon'] || '🍫'}
+        label={copy['snacks.title']}
+        hint="Highest-voted wins the prize snack. A tie or no votes is random."
+        items={game.suggestions}
+        quick={stocked}
+        placeholder="Tim Tams, Speculoos…"
+        empty="Nothing yet. Tap + to suggest."
+        {onRefresh}
+      >
+        {#snippet extra()}
+          {#if onOpenCupboard}
+            <button type="button" class="vline-ghost" aria-label={copy['snacks.cupboardBtn']} title={copy['snacks.cupboardBtn']} onclick={onOpenCupboard}>{cupboardIcon}</button>
+          {/if}
+        {/snippet}
+      </VoteLine>
+      {#if trickWords}
+        <VoteLine
+          kind="trick"
+          {code}
+          icon="🕷️"
+          label={trickWords.title}
+          hint={trickWords.hint.replace('{odds}', String(TRICK_ODDS))}
+          items={game.tricks}
+          placeholder={trickWords.placeholder}
+          empty="Add a trick: the round needs one."
+          attention={game.tricks.length === 0}
+          {onRefresh}
+        />
       {/if}
     </div>
   {/if}
