@@ -7,6 +7,8 @@
    Doto the inkjet dot-matrix of a lot code. */
 @import '@fontsource-variable/archivo/wdth.css';
 @import '@fontsource-variable/doto';
+/* Event themes (Halloween, …): scoped overrides on top of everything below. */
+@import './themes/index.css';
 
 :root {
   color-scheme: dark;
@@ -3377,3 +3379,6 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .verify-cmd { margin: 0; padding: 12px 14px; overflow-x: auto; background: var(--stage-edge); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); font-family: var(--font-mono); color: var(--text); }
 .verify-table { overflow-x: auto; }
 @media (max-width: 560px) { .verify-kv { grid-template-columns: minmax(0, 1fr); } }
+
+/* A theme can put a small glyph before each snack suggestion (themes: snacks.itemIcon). */
+.snack-icon { margin-right: 0.35em; }

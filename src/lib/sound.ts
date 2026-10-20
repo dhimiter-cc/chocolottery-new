@@ -4,7 +4,25 @@
 
 let audioCtx: AudioContext | null = null;
 
+// Mute is remembered per browser. Every sound goes through getAudio(), so one
+// flag silences all of them; muting also suspends the context so sounds that
+// are already scheduled stop at once.
+const MUTE_KEY = 'chocolottery-muted';
+let muted = false;
+try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch { /* server render or storage blocked */ }
+
+export function isMuted(): boolean {
+  return muted;
+}
+
+export function setMuted(value: boolean) {
+  muted = value;
+  try { localStorage.setItem(MUTE_KEY, value ? '1' : '0'); } catch { /* storage blocked: mute lasts for this visit */ }
+  if (audioCtx) void (value ? audioCtx.suspend() : audioCtx.resume());
+}
+
 function getAudio(): AudioContext | null {
+  if (muted) return null;
   if (audioCtx) return audioCtx;
   try { audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)(); }
   catch { audioCtx = null; }
@@ -242,6 +260,74 @@ export function playFoilCrinkle() {
   }
 }
 
+// ── Halloween ───────────────────────────────────────────────────────────────
+// A door on dry hinges: a sawtooth whose pitch stutters, through a band-pass
+// that slowly opens. Quiet on purpose; it sits under the drumroll.
+export function playCreak() {
+  const ctx = getAudio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t0 = ctx.currentTime + 0.02;
+  const dur = 1.3;
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  const steps = 14;
+  for (let i = 0; i <= steps; i++) {
+    const base = 95 + (i / steps) * 70;
+    osc.frequency.setValueAtTime(base + (Math.random() - 0.5) * 38, t0 + (i / steps) * dur);
+  }
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.value = 5;
+  bp.frequency.setValueAtTime(380, t0);
+  bp.frequency.exponentialRampToValueAtTime(980, t0 + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.2);
+  g.gain.setValueAtTime(0.14, t0 + dur * 0.7);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(bp);
+  bp.connect(g);
+  g.connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.05);
+}
+
+// A theremin-ish wail on a diminished chord, wobbling slowly, for the moment
+// the bar lights up.
+export function playSpookyStinger() {
+  const ctx = getAudio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t0 = ctx.currentTime + 0.02;
+  const dur = 1.6;
+  // A, C, E-flat: the chord that never resolves.
+  [220, 261.63, 311.13].forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(f * 0.97, t0);
+    osc.frequency.exponentialRampToValueAtTime(f * 1.03, t0 + dur);
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 5 + i * 0.7;
+    lfoGain.gain.value = f * 0.012;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.1, t0 + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(t0);
+    lfo.start(t0);
+    osc.stop(t0 + dur + 0.05);
+    lfo.stop(t0 + dur + 0.05);
+  });
+  // One low bell on top.
+  tone(110, 1.4, 'sine', 0.14, 0.05);
+}
+
 // Bundle handed to RevealPhase via the `sounds` prop.
 export const sounds = {
   playDrumroll,
@@ -253,4 +339,6 @@ export const sounds = {
   playPartyHorn,
   playTada,
   playSparkleChime,
+  playCreak,
+  playSpookyStinger,
 };

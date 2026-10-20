@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import { loadLeaderboard } from '../lib/game.js';
 import { isEventDay } from '../lib/specialPrize.js';
+import ThemeDecor from '../themes/ThemeDecor.astro';
+import { themeFor } from '../themes/resolve.js';
 import type { LeaderboardWin } from '../lib/types.js';
 
 // The homepage is a wrapped chocolate bar: the first screen is the front of
@@ -10,6 +12,7 @@ import type { LeaderboardWin } from '../lib/types.js';
 
 const { wins } = await loadLeaderboard();
 const eventDay = isEventDay();
+const theme = themeFor(Astro);
 
 // ── The back of the wrapper: figures from the real win history ─────────────
 const rounds = wins.length;
@@ -60,7 +63,7 @@ function others(w: LeaderboardWin): string {
 const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme={theme.id}>
 <head>
 <meta charset="UTF-8">
 <title>Chocolottery</title>
@@ -68,6 +71,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 <meta name="theme-color" content="#16051D">
 </head>
 <body class="wrapper-page">
+<ThemeDecor id={theme.id} />
 
 <!-- ═══ The front of the wrapper ═══════════════════════════════════════════ -->
 <section class="bar-front" aria-labelledby="wordmark">
@@ -85,7 +89,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
       <h1 id="wordmark" class="wordmark">
         chocolottery
       </h1>
-      <p class="front-claim">One chocolate. Many victims. Whoever finds the golden ticket takes it home.</p>
+      <p class="front-claim">{theme.copy['landing.claim']}</p>
 
       <div class="tear" id="tear">
         <button type="button" class="tear-strip" id="create-btn" aria-expanded="false" aria-controls="tear-inside">
@@ -121,7 +125,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
     </div>
 
     <p class="pack-corner pack-corner-bl" aria-hidden="true">Net wt. 1 bar · Serves the whole office</p>
-    <p class="pack-corner pack-corner-br" aria-hidden="true">Best drawn before the afternoon slump</p>
+    <p class="pack-corner pack-corner-br" aria-hidden="true">{theme.copy['landing.cornerRight']}</p>
   </div>
 
   <div class="foil-end foil-end-b" aria-hidden="true"></div>
@@ -182,7 +186,7 @@ const actionLabel = eventDay ? 'Start the event' : 'Start a round';
 </main>
 
 <footer class="back-foot">
-  <p>Packed in the office kitchen. No HR forms were harmed.</p>
+  <p>{theme.copy['landing.footer']}</p>
 </footer>
 
 <!-- Fairness Check modal -->

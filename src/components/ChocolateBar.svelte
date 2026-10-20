@@ -7,6 +7,7 @@
   // edge, a new wobble — and nothing tweens between them. Both come from a seed,
   // so every device draws the exact same frame for the same bar and step.
   import { UNWRAP_STEPS, TICKET_SRC, seeded } from '../lib/bars.js';
+  import { currentTheme } from '../themes/client.js';
 
   let {
     step = 0,
@@ -136,6 +137,13 @@
     return out;
   })();
   const BEVEL = 5;
+
+  // The active event theme's taglines and extra sleeve print (a bat and cobweb
+  // at Halloween). Static and identical for every bar, so it gives nothing away.
+  const theme = currentTheme();
+  const printItems = theme.barPrint?.({ sleeve: SLEEVE }) ?? [];
+  // 'gold' in a print item means the sleeve's gold foil gradient.
+  const paint = (v: string | undefined, fallback: string) => (v === 'gold' ? `url(#${uid}-gold)` : (v ?? fallback));
 
   // Scrap thrown off on each new step: purple paper while the sleeve tears,
   // silver once it's the foil's turn.
@@ -278,6 +286,18 @@
         <rect x={SLEEVE.x + 12} y={SLEEVE.y + 12} width={SLEEVE.w - 24} height={SLEEVE.h - 24} rx="2"
               fill="none" stroke="url(#{uid}-gold)" stroke-width="0.6" opacity="0.7" />
 
+        {#each printItems as item, i (i)}
+          <path
+            d={item.d}
+            transform={item.transform}
+            fill={paint(item.fill, 'currentColor')}
+            fill-rule={item.fillRule}
+            stroke={paint(item.stroke, 'none')}
+            stroke-width={item.strokeWidth}
+            stroke-linecap="round"
+            opacity={item.opacity}
+          />
+        {/each}
         <text x="100" y="98" class="cb-wordmark" fill="url(#{uid}-gold)">MOVION</text>
         <text x="100" y="116" class="cb-small" fill="url(#{uid}-gold)">PRESENTS THE</text>
         <text x="100" y="134" class="cb-small cb-strong" fill="url(#{uid}-gold)">CHOCOLOTTERY</text>
@@ -292,8 +312,8 @@
           <rect x="30" y="236" width="140" height="24" rx="2" fill="url(#{uid}-gold)" />
           <text x="100" y="252.5" class="cb-name">{name.length > 14 ? name.slice(0, 13) + '…' : name}</text>
         {:else}
-          <text x="100" y="246" class="cb-tiny" fill="url(#{uid}-gold)">SWEETER IDEAS</text>
-          <text x="100" y="258" class="cb-tiny" fill="url(#{uid}-gold)">BRIGHTER TOMORROWS</text>
+          <text x="100" y="246" class="cb-tiny" fill="url(#{uid}-gold)">{theme.copy['bar.tagline1']}</text>
+          <text x="100" y="258" class="cb-tiny" fill="url(#{uid}-gold)">{theme.copy['bar.tagline2']}</text>
         {/if}
         <text x="100" y="278" class="cb-tiny" fill="url(#{uid}-gold)" opacity="0.75">MILK CHOCOLATE · 100 G</text>
       </g>

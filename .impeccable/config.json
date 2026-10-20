@@ -113,6 +113,63 @@
         "value": "rgba(232, 185, 35, 0.12)",
         "createdAt": "2026-09-25T13:02:03.657Z",
         "reason": "Claude: golden-ticket pre-reveal light effect, same warm-gold family as the existing .gt-flash/.gt-stage glow literals; user asked for a more intense glow"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 226, 150, 0.14)",
+        "createdAt": "2026-10-20T13:06:18.576Z",
+        "reason": "Seasonal Halloween theme the user asked to build (date-gated, scoped to html[data-halloween]); this tint was chosen by the assistant, not specified by the user"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(190, 160, 255, 0.10)",
+        "createdAt": "2026-10-20T13:06:18.710Z",
+        "reason": "Seasonal Halloween theme the user asked to build (date-gated, scoped to html[data-halloween]); this tint was chosen by the assistant, not specified by the user"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0a0210",
+        "createdAt": "2026-10-20T13:06:18.887Z",
+        "reason": "Seasonal Halloween theme the user asked to build (date-gated, scoped to html[data-halloween]); this tint was chosen by the assistant, not specified by the user; bat silhouette, same near-black as the existing modal scrim rgba(10,2,16)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fff",
+        "files": [
+          "src/components/EffectsCanvas.svelte"
+        ],
+        "createdAt": "2026-10-20T13:06:19.048Z",
+        "reason": "Placeholder fillStyle for emoji particles (glyphs ignore it); same literal already existed before the Halloween change"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(190, 225, 255, 0.12)",
+        "createdAt": "2026-10-20T13:16:31.921Z",
+        "reason": "Sample Winter event theme (preview-only, no schedule) added to demonstrate swappable themes; icy tints chosen by the assistant"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(122, 182, 232, 0.10)",
+        "createdAt": "2026-10-20T13:16:33.784Z",
+        "reason": "Sample Winter event theme (preview-only, no schedule) added to demonstrate swappable themes; icy tints chosen by the assistant"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(190, 225, 255, 0.35)",
+        "createdAt": "2026-10-20T13:16:33.972Z",
+        "reason": "Sample Winter event theme (preview-only, no schedule) added to demonstrate swappable themes; icy tints chosen by the assistant"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 255, 255, 0.7)",
+        "createdAt": "2026-10-20T13:16:34.160Z",
+        "reason": "Sample Winter event theme (preview-only, no schedule) added to demonstrate swappable themes; icy tints chosen by the assistant"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(190, 225, 255, 0.6)",
+        "createdAt": "2026-10-20T13:16:34.320Z",
+        "reason": "Sample Winter event theme (preview-only, no schedule) added to demonstrate swappable themes; icy tints chosen by the assistant"
       }
     ]
   }

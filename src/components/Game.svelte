@@ -15,6 +15,7 @@
   import GoldenTicket from './GoldenTicket.svelte';
   import PrizeStrip from './PrizeStrip.svelte';
   import Toaster from './Toaster.svelte';
+  import SoundToggle from './SoundToggle.svelte';
   import { isEventDay, isTeaseActive, hasEventPreviewParam } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
   import { UNWRAP_STEPS, DRUMROLL_MS } from '../lib/bars.js';
@@ -488,6 +489,7 @@
                   <span class="timer-caption">{onlineCount < 2 ? 'waiting for players' : 'until auto-start'}</span>
                 </span>
               {/if}
+              <SoundToggle />
             </div>
             {#if showActionBtn}
               <div class="phase-actions">

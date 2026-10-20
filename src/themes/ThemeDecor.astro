@@ -1,0 +1,9 @@
+---
+// Renders the active event's ambient layer, or nothing on the default theme.
+// Put it first inside <body> on every page.
+import { DECOR } from './decor.js';
+
+const { id } = Astro.props as { id: string };
+const Decor = DECOR[id];
+---
+{Decor && <Decor />}

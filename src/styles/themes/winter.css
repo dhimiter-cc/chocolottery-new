@@ -1,0 +1,31 @@
+/* === Theme: Winter ==========================================================
+   Scoped to html[data-theme='winter']. A small proof that a theme is just a file:
+   an icy glow on the wordmark, a pale light in the corner, and snow (Decor.astro). */
+
+html[data-theme='winter'] body {
+  background:
+    radial-gradient(520px 520px at 8% -10%, rgba(190, 225, 255, 0.12), transparent 70%),
+    radial-gradient(1100px 560px at 50% -12%, rgba(122, 182, 232, 0.10), transparent 62%),
+    var(--bg);
+}
+html[data-theme='winter'] .wordmark {
+  text-shadow: 0 0 22px rgba(190, 225, 255, 0.35), 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+.wt-decor { position: fixed; inset: 0; z-index: 40; overflow: hidden; pointer-events: none; }
+.wt-flake {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 6px rgba(190, 225, 255, 0.6);
+  animation: wt-fall linear infinite;
+}
+@keyframes wt-fall {
+  from { transform: translate3d(0, -4vh, 0); }
+  to   { transform: translate3d(var(--drift, 0px), 108vh, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-flake { animation: none; top: 30%; opacity: 0.4; }
+}

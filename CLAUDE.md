@@ -65,6 +65,43 @@ can't reach their bar. After the lobby, bar rounds drop the snack column
 `?event` on a game link, the header nav, snack votes and cupboard are hidden and
 the stage takes their space; the game code moves onto the stage bar.
 
+## Themes and events (`src/themes/`)
+
+The default look is the base. An **event** (Halloween, Winter, …) is a partial override
+on top of it: it can swap copy, change what the confetti throws, add sounds, print extra
+shapes on the bars, add ambient markup and add CSS. Remove an event and everything falls
+back to the default, so nothing is left half-themed.
+
+- **Picking one** (`themes/resolve.ts`, first match wins): `?theme=<id>` (a preview, kept in
+  the `theme_preview` cookie; `?theme=default` forces the base, `?theme=auto` drops the
+  preview), then the `THEME` env var (ops override, see `.env.example`), then an event's date
+  window (Europe/Amsterdam), then the default. Every page calls `themeFor(Astro)` and writes
+  `<html data-theme="id">` on the server, so the first paint is themed and server and
+  client never disagree.
+- **Files per event:** `themes/<id>.ts` (copy, effects, sounds, bar print, window),
+  `styles/themes/<id>.css` (every rule under `html[data-theme='<id>']`, imported by
+  `styles/themes/index.css`), optional `themes/<id>/Decor.astro` (ambient layer, registered
+  in `themes/decor.ts`). Register the event in `EVENTS` in `themes/index.ts`. Retire it by
+  removing it from `EVENTS`. An event with no `window` never starts by date (Winter is that
+  today: preview only).
+- **Where each part is read:** copy is `theme.copy['key']` (all keys in `themes/types.ts`,
+  defaults in `themes/default.ts`); Astro pages use `themeFor(Astro)`, Svelte uses
+  `currentTheme()` from `themes/client.ts`. Components never test for a particular event.
+  `EffectsCanvas` reads `effects`, `BarReveal` plays `sounds.revealStart/barLit`,
+  `ChocolateBar` prints `barPrint` and the two taglines.
+- **Adding a copy key:** add it to `Copy` in `types.ts` and a default in `default.ts`; then
+  any event may override it.
+- **Also themeable:** bar sleeve print (`barPrint`, gold foil shapes; Halloween adds a web,
+  bat and two jack-o'-lanterns), straw-mode reveal copy and sounds (`reveal.straw*`), a glyph
+  before each snack (`snacks.itemIcon`). Extra CSS can reach anything else.
+- **Sound mute:** `SoundToggle.svelte` (stage header) flips `setMuted()` in `lib/sound.ts`;
+  every sound goes through `getAudio()`, so one flag silences them all. Kept in localStorage.
+- **Rules:** gold stays the winner's colour; every animation respects
+  `prefers-reduced-motion`; ambient layers are `position:fixed; pointer-events:none` and
+  low contrast (the stage is projected).
+- **Gotcha:** `.winner-name` is gold gradient on transparent text, so a `text-shadow`
+  paints over it and tints it. Use `filter: drop-shadow` for glows there.
+
 ## Game lifecycle (state machine)
 
 `game.state` moves through four phases. The whole UI keys off this value.

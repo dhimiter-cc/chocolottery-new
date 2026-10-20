@@ -1,0 +1,5 @@
+/* One import per event theme. Each file is scoped to html[data-theme='<id>'],
+   so shipping them all costs a few KB and only the active one ever matches.
+   Add a line here when you add src/themes/<id>.ts; delete it to retire one. */
+@import './halloween.css';
+@import './winter.css';

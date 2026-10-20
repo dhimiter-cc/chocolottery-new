@@ -1,0 +1,257 @@
+/* === Theme: Halloween =======================================================
+   Everything here is scoped to html[data-theme='halloween'], which the server
+   writes from the schedule in themes/halloween.ts (or ?theme=halloween). On any
+   other theme none of it applies. Copy, confetti and bar print live in
+   themes/halloween.ts; the ambient markup in themes/halloween/Decor.astro.
+   The palette stays plum and gold; the only new colour is a violet mist, and
+   gold stays the winner's colour. */
+
+html[data-theme='halloween'] {
+  --hw-violet: 139, 92, 246;
+  --hw-bat-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 32'%3E%3Cpath fill='%23F3CF6E' d='M29 11L30 4L32 8L34 4L35 11C42 8 52 8 62 12Q57 17 52 18Q50 22 46 20Q43 26 38 22L35 28L32 31L29 28L26 22Q21 26 18 20Q14 22 12 18Q7 17 2 12C12 8 22 8 29 11Z'/%3E%3C/svg%3E");
+  --hw-hat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M6 52Q32 62 58 52Q50 47 44 47L40 24Q40 13 47 5Q32 6 29 21L22 47Q14 48 6 52Z' fill='%232A0B35' stroke='%23F3CF6E' stroke-width='2.6' stroke-linejoin='round'/%3E%3Cpath d='M23 42Q33 46 43 42L42 36Q33 40 24 36Z' fill='%23F3CF6E'/%3E%3C/svg%3E");
+}
+
+/* --- Ambient layer: fog, webs, spider, bats ---------------------------------- */
+.hw-decor > * { pointer-events: none; }
+
+/* A harvest moon glowing in the corner, violet mist up top. */
+html[data-theme='halloween'] body {
+  background:
+    radial-gradient(460px 460px at 94% -8%, rgba(255, 226, 150, 0.14), transparent 70%),
+    radial-gradient(1100px 560px at 50% -12%, rgba(var(--hw-violet), 0.12), transparent 62%),
+    var(--bg);
+}
+
+/* Fog hugs the bottom edge and fades to nothing well below mid-screen, so it
+   can't wash out the stage or fight a projector. */
+.hw-fog {
+  position: fixed;
+  left: -20%;
+  right: -20%;
+  bottom: 0;
+  height: 34vh;
+  z-index: 40;
+  background:
+    radial-gradient(60% 100% at 28% 100%, rgba(var(--hw-violet), 0.16), transparent 70%),
+    radial-gradient(48% 85% at 76% 100%, rgba(var(--hw-violet), 0.12), transparent 70%);
+  animation: hw-drift 46s ease-in-out infinite alternate;
+}
+.hw-fog-b {
+  height: 24vh;
+  opacity: 0.8;
+  background:
+    radial-gradient(52% 100% at 60% 100%, rgba(190, 160, 255, 0.10), transparent 70%),
+    radial-gradient(40% 80% at 15% 100%, rgba(var(--hw-violet), 0.12), transparent 70%);
+  animation-duration: 71s;
+  animation-direction: alternate-reverse;
+}
+@keyframes hw-drift {
+  from { transform: translateX(-7%); }
+  to   { transform: translateX(7%); }
+}
+
+/* Cobwebs in the top corners. */
+.hw-web {
+  position: fixed;
+  top: 0;
+  z-index: 45;
+  width: clamp(88px, 11vw, 150px);
+  height: clamp(88px, 11vw, 150px);
+  color: rgba(243, 231, 206, 0.4);
+}
+.hw-web-l { left: 0; }
+.hw-web-r { right: 0; transform: scaleX(-1); }
+
+/* A spider lowering itself on a thread that runs off the top of the screen. */
+.hw-spider {
+  position: fixed;
+  top: 0;
+  left: 62%;
+  z-index: 45;
+  width: 22px;
+  color: rgba(243, 231, 206, 0.5);
+  animation: hw-dangle 11s ease-in-out infinite;
+}
+.hw-spider::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 70%;
+  width: 1px;
+  height: 140px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.hw-spider svg { display: block; }
+@keyframes hw-dangle {
+  0%, 100% { transform: translateY(18px); }
+  45%      { transform: translateY(62px); }
+  60%      { transform: translateY(58px); }
+}
+
+/* Bats: rare. Each crosses the screen during the first few percent of a long
+   cycle and spends the rest of it off-screen. */
+.hw-bat {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 46;
+  width: 46px;
+  color: #0A0210;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(var(--hw-violet), 0.75));
+}
+.hw-bat svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: currentColor;
+  transform-origin: 50% 45%;
+  animation: hw-flap 0.26s ease-in-out infinite alternate;
+}
+@keyframes hw-flap {
+  from { transform: scaleY(1); }
+  to   { transform: scaleY(0.5); }
+}
+.hw-bat-1 { top: 13vh; animation: hw-fly-a 41s linear 5s infinite; }
+.hw-bat-2 { top: 34vh; width: 34px; animation: hw-fly-b 57s linear 21s infinite; }
+.hw-bat-3 { top: 22vh; width: 28px; animation: hw-fly-a 47s linear 36s infinite; }
+@keyframes hw-fly-a {
+  0%    { opacity: 0; transform: translate(-10vw, 0); }
+  0.5%  { opacity: 1; }
+  5%    { transform: translate(18vw, -5vh); }
+  10%   { transform: translate(44vw, 4vh); }
+  15%   { transform: translate(72vw, -4vh); }
+  19.5% { opacity: 1; }
+  20%   { opacity: 0; transform: translate(112vw, 2vh); }
+  100%  { opacity: 0; transform: translate(112vw, 2vh); }
+}
+@keyframes hw-fly-b {
+  0%    { opacity: 0; transform: translate(112vw, 0); }
+  0.5%  { opacity: 1; }
+  5%    { transform: translate(78vw, 6vh); }
+  10%   { transform: translate(50vw, -3vh); }
+  15%   { transform: translate(22vw, 5vh); }
+  19.5% { opacity: 1; }
+  20%   { opacity: 0; transform: translate(-12vw, 0); }
+  100%  { opacity: 0; transform: translate(-12vw, 0); }
+}
+
+/* --- Wordmark: a witch hat on the first letter, a bat on the last ------------ */
+html[data-theme='halloween'] .wordmark {
+  position: relative;
+  text-shadow: 0 0 22px rgba(var(--hw-violet), 0.45), 0 3px 10px rgba(0, 0, 0, 0.35);
+  animation: hw-glow 5.5s ease-in-out infinite;
+}
+html[data-theme='halloween'] .wordmark::before {
+  content: '';
+  position: absolute;
+  left: -0.14em;
+  top: -0.54em;
+  width: 0.86em;
+  height: 0.86em;
+  background: var(--hw-hat) center / contain no-repeat;
+  transform: rotate(-16deg);
+  pointer-events: none;
+}
+html[data-theme='halloween'] .wordmark::after {
+  content: '';
+  position: absolute;
+  right: -0.4em;
+  top: -0.26em;
+  width: 0.78em;
+  height: 0.39em;
+  background: var(--hw-bat-gold) center / contain no-repeat;
+  transform-origin: 50% 50%;
+  animation: hw-flap 0.32s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes hw-glow {
+  0%, 100% { text-shadow: 0 0 22px rgba(var(--hw-violet), 0.4), 0 3px 10px rgba(0, 0, 0, 0.35); }
+  50%      { text-shadow: 0 0 36px rgba(var(--hw-violet), 0.7), 0 0 10px rgba(243, 207, 110, 0.22), 0 3px 10px rgba(0, 0, 0, 0.35); }
+}
+
+/* Small titles (game header, leaderboard) just get a bat to the right. */
+html[data-theme='halloween'] .title::after {
+  content: '';
+  display: inline-block;
+  width: 0.9em;
+  height: 0.45em;
+  margin-left: 0.3em;
+  vertical-align: 0.4em;
+  background: var(--hw-bat-gold) center / contain no-repeat;
+  animation: hw-flap 0.34s ease-in-out infinite alternate;
+}
+
+/* The game code flickers like a candle. */
+html[data-theme='halloween'] .stamp { animation: hw-flicker 3.6s steps(1, end) infinite; }
+@keyframes hw-flicker {
+  0%, 100% { box-shadow: 0 0 10px rgba(243, 207, 110, 0.22); }
+  12%      { box-shadow: 0 0 5px rgba(243, 207, 110, 0.1); }
+  24%      { box-shadow: 0 0 14px rgba(243, 207, 110, 0.32); }
+  41%      { box-shadow: 0 0 7px rgba(243, 207, 110, 0.14); }
+  63%      { box-shadow: 0 0 13px rgba(243, 207, 110, 0.3); }
+  80%      { box-shadow: 0 0 8px rgba(243, 207, 110, 0.16); }
+}
+
+/* --- The cursed reveal -------------------------------------------------------- */
+/* A violet aura behind the golden bar, and a violet rim on the ticket's gold. */
+html[data-theme='halloween'] .bar-reveal-hero { isolation: isolate; }
+html[data-theme='halloween'] .bar-reveal-hero::before {
+  content: '';
+  position: absolute;
+  inset: -40% -90%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(var(--hw-violet), 0.38), rgba(var(--hw-violet), 0.12) 55%, transparent 80%);
+  animation: hw-aura 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hw-aura {
+  0%, 100% { opacity: 0.75; transform: scale(0.96); }
+  50%      { opacity: 1; transform: scale(1.06); }
+}
+html[data-theme='halloween'] .bar-reveal-ticket {
+  filter: drop-shadow(0 0 14px rgba(255, 210, 74, 0.85)) drop-shadow(0 0 28px rgba(var(--hw-violet), 0.75));
+}
+/* The name is gold gradient clipped to transparent text, so a text-shadow would
+   paint over it and tint it. A drop-shadow filter sits behind the rendered glyphs. */
+html[data-theme='halloween'] .winner-name {
+  text-shadow: none;
+  filter: drop-shadow(0 4px 22px rgba(var(--hw-violet), 0.55));
+}
+html[data-theme='halloween'] .bar-reveal-beat-line { text-shadow: 0 0 24px rgba(var(--hw-violet), 0.5); }
+
+/* --- Quiet when asked: no motion for people who opt out ----------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .hw-bat { display: none; }
+  .hw-fog, .hw-spider,
+  html[data-theme='halloween'] .wordmark,
+  html[data-theme='halloween'] .wordmark::after,
+  html[data-theme='halloween'] .title::after,
+  html[data-theme='halloween'] .stamp,
+  html[data-theme='halloween'] .bar-reveal-hero::before { animation: none; }
+  .hw-spider { transform: translateY(40px); }
+}
+
+/* --- Round two: cobwebs on the reveal, a violet glow on the event-day ticket ----- */
+html[data-theme='halloween'] { --hw-web: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M0 0L120.0 0.0M0 0L112.8 41.0M0 0L84.9 84.9M0 0L41.0 112.8M0 0L0.0 120.0M33.6 0.0Q27.8 4.9 31.6 11.5M31.6 11.5Q23.8 15.2 23.8 23.8M23.8 23.8Q15.2 23.8 11.5 31.6M11.5 31.6Q4.9 27.8 0.0 33.6M60.0 0.0Q49.6 8.8 56.4 20.5M56.4 20.5Q42.5 27.1 42.4 42.4M42.4 42.4Q27.1 42.5 20.5 56.4M20.5 56.4Q8.8 49.6 0.0 60.0M88.8 0.0Q73.5 13.0 83.4 30.4M83.4 30.4Q62.9 40.1 62.8 62.8M62.8 62.8Q40.1 62.9 30.4 83.4M30.4 83.4Q13.0 73.5 0.0 88.8M117.6 0.0Q97.3 17.2 110.5 40.2M110.5 40.2Q83.3 53.1 83.2 83.2M83.2 83.2Q53.1 83.3 40.2 110.5M40.2 110.5Q17.2 97.3 0.0 117.6' fill='none' stroke='%23F3E7CE' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E"); }
+
+/* Webs strung across the top corners of the bar reveal stage. */
+html[data-theme='halloween'] .bar-reveal { position: relative; }
+html[data-theme='halloween'] .bar-reveal::before,
+html[data-theme='halloween'] .bar-reveal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: clamp(80px, 22%, 130px);
+  aspect-ratio: 1;
+  background: var(--hw-web) top left / contain no-repeat;
+  opacity: 0.32;
+  pointer-events: none;
+}
+html[data-theme='halloween'] .bar-reveal::before { left: 0; }
+html[data-theme='halloween'] .bar-reveal::after { right: 0; transform: scaleX(-1); }
+
+/* The event-day golden ticket modal gets the same violet halo as the bar reveal. */
+html[data-theme='halloween'] .gt-card { box-shadow: 0 0 70px rgba(var(--hw-violet), 0.35), var(--shadow-2); }

@@ -1,6 +1,10 @@
 ---
 import '../styles/global.css';
 import { loadLeaderboard } from '../lib/game.js';
+import ThemeDecor from '../themes/ThemeDecor.astro';
+import { themeFor } from '../themes/resolve.js';
+
+const theme = themeFor(Astro);
 
 const data = await loadLeaderboard();
 const wins: any[] = data.wins ?? [];
@@ -49,13 +53,14 @@ function fmtMonth(m: string) {
 const title = selectedMonth ? fmtMonth(selectedMonth) : 'All Time';
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme={theme.id}>
 <head>
 <meta charset="UTF-8">
 <title>Leaderboard — Chocolottery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+<ThemeDecor id={theme.id} />
 <div class="parchment">
   <header class="masthead">
     <div>
