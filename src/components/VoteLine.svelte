@@ -128,4 +128,4 @@
 
   {#if extra}{@render extra()}{/if}
 </div>
-{#if error}<p class="vline-error" role="alert">{error}</p>{/if}
+{#if error}<p class="error vline-error" role="alert">{error}</p>{/if}
