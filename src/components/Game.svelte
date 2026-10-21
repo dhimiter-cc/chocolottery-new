@@ -26,6 +26,7 @@
   // read inside the {#if gameState} branches, which the server never renders.
   const trickOrTreat = !!currentTheme().trickOrTreat;
   import { UNWRAP_STEPS, DRUMROLL_MS } from '../lib/bars.js';
+  import { MIN_TRICKS } from '../lib/trickOdds.js';
   import { post } from '../lib/api.js';
   import { showToast } from '../lib/toast.svelte.js';
   import { GameConnection } from '../lib/gameConnection.svelte.js';
@@ -219,11 +220,15 @@
   let showRestartBtn = $derived(isHost && inGame && phase !== 'lobby');
   let actionError = $state('');
 
+  // Trick or treat: the round can't start until the room has written a trick.
+  let needsTrick = $derived(trickOrTreat && (gameState?.tricks?.length ?? 0) < MIN_TRICKS);
+
   let actionBtnText = $derived.by(() => {
     if (!gameState) return 'Start the lottery';
     if (phase === 'lobby') {
       const onlineCount = gameState.players.filter(p => p.online).length;
-      return onlineCount < 2 ? 'Need 2+ players' : `Start the lottery (${onlineCount})`;
+      if (onlineCount < 2) return 'Need 2+ players';
+      return needsTrick ? 'Add a trick first' : `Start the lottery (${onlineCount})`;
     }
     if (phase === 'reveal' || phase === 'done') return 'New game';
     return '';
@@ -232,7 +237,7 @@
   let actionBtnDisabled = $derived.by(() => {
     if (phase === 'lobby') {
       const onlineCount = gameState?.players.filter(p => p.online).length ?? 0;
-      return onlineCount < 2;
+      return onlineCount < 2 || needsTrick;
     }
     return false;
   });
@@ -266,7 +271,7 @@
   // while the poll catches up; the server no-ops duplicate/early calls.
   let autoStarting = $state(false);
   $effect(() => {
-    if (phase === 'lobby' && lobbyTimeLeft === 0 && onlineCount >= 2 && !autoStarting) {
+    if (phase === 'lobby' && lobbyTimeLeft === 0 && onlineCount >= 2 && !needsTrick && !autoStarting) {
       autoStarting = true;
       post('/api/autostart', { code })
         .then(() => conn.refresh())
@@ -306,11 +311,15 @@
       if (!isHost) {
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Waiting for more.`
-          : `${onlineCount} ready. Waiting for ${gameState.host?.name ?? 'the host'} to start.`;
+          : needsTrick
+            ? 'Waiting for someone to write a trick.'
+            : `${onlineCount} ready. Waiting for ${gameState.host?.name ?? 'the host'} to start.`;
       } else {
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Send the link to your colleagues.`
-          : `${onlineCount} ready. Press Start when everyone's in.`;
+          : needsTrick
+            ? 'Write at least one trick (see Trick votes) to unlock Start.'
+            : `${onlineCount} ready. Press Start when everyone's in.`;
       }
     } else if (phase === 'picking') {
       const pickedCount = gameState.players.filter(p => p.picked).length;
@@ -457,19 +466,22 @@
         </p>
       </div>
       <div class="head-actions">
-        <button type="button" class="btn btn-ghost" onclick={() => (showFairness = true)}>⚖️ Fairness</button>
-        <a href="/leaderboard" class="btn btn-ghost">Leaderboard</a>
-        <a href="/" class="btn btn-ghost">Home</a>
+        <!-- On phones these shrink to three icon buttons in one row (see .head-ico / .head-label). -->
+        <button type="button" class="btn btn-ghost" aria-label="Fairness" onclick={() => (showFairness = true)}><span class="head-ico" aria-hidden="true">⚖️</span><span class="head-label"><span class="head-ico-wide" aria-hidden="true">⚖️ </span>Fairness</span></button>
+        <a href="/leaderboard" class="btn btn-ghost" aria-label="Leaderboard"><span class="head-ico" aria-hidden="true">🏆</span><span class="head-label">Leaderboard</span></a>
+        <a href="/" class="btn btn-ghost" aria-label="Home"><span class="head-ico" aria-hidden="true">🏠</span><span class="head-label">Home</span></a>
       </div>
     </header>
     {/if}
 
     {#if gameState}
-      <div class="game-grid" class:stage-wide={bars && phase !== 'lobby'}>
+      <!-- In the lobby the votes live inside the canvas, so the snack column goes. -->
+      {@const votesInStage = phase === 'lobby' && !eventLayout}
+      <div class="game-grid" class:stage-wide={bars && phase !== 'lobby'} class:votes-in-stage={votesInStage}>
         <!-- Snacks: left column on desktop. Dimmed during picking so
              attention goes to the straws, not vote-chasing or cupboard
              browsing — chat stays at full prominence next to it. -->
-        {#if !eventLayout}
+        {#if !eventLayout && !votesInStage}
           <section class="panel snacks-panel" class:dimmed={phase === 'picking' || phase === 'unwrapping'}>
             <Snacks game={gameState} {code} onOpenCupboard={() => (showCupboard = true)} onRefresh={() => conn.refresh()} />
             {#if trickOrTreat}<Tricks game={gameState} {code} onRefresh={() => conn.refresh()} />{/if}
@@ -525,7 +537,13 @@
 
           {#if phase === 'lobby'}
             <div class="cup-stage" class:bar-stage={bars} data-phase="lobby">
-              <LobbyPhase game={gameState} joinUrl={isHost ? joinUrl : ''} />
+              <LobbyPhase
+                game={gameState}
+                joinUrl={isHost ? joinUrl : ''}
+                code={eventLayout ? '' : code}
+                onRefresh={() => conn.refresh()}
+                onOpenCupboard={() => (showCupboard = true)}
+              />
               <div class="straws"></div>
               <div class="cup"></div>
             </div>

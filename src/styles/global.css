@@ -491,6 +491,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 @media (max-width: 560px) {
   .phase-bar { flex-direction: column; align-items: stretch; }
   .phase-actions { justify-content: flex-end; }
+  /* Capped at the bar: with the sound toggle in the status row, their content width
+     was pushing the whole page 29px wider than a phone. */
+  .phase-info, .phase-actions { max-width: 100%; }
 }
 .phase-info {
   display: flex;
@@ -3419,4 +3422,150 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 
 @media (prefers-reduced-motion: reduce) {
   .tot, .tot-door { animation: none; }
+}
+
+/* === Votes inside the lobby canvas ===========================================
+   The treat votes (and trick votes, on themes that have them) sit at the bottom
+   of the lobby stage, where the room is already looking, instead of in a side
+   column. The overlay stops being absolutely positioned so the canvas grows with
+   its content: a full room plus both lists still fits, and scrolls with the stage
+   panel rather than clipping on a phone. */
+.cup-stage[data-phase='lobby'] { display: flex; flex-direction: column; padding: 0; }
+.cup-stage[data-phase='lobby'] .stage-overlay.lobby { position: relative; inset: auto; flex: 1; }
+.lobby-room { flex: 1; justify-content: center; width: 100%; }
+
+/* The votes: two slim lines (VoteLine.svelte) rather than two tall boxes. */
+.lobby-votes {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.vline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.vline-label {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.vline-count { font: 600 0.75rem var(--font-mono); color: var(--text-dim); }
+.vline-strip, .vline-form { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+/* Pills scroll sideways, the scrollbar stays out of sight. */
+.vline-strip {
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+  /* The right edge fades, which says "there is more" when pills run past it. */
+  -webkit-mask-image: linear-gradient(90deg, var(--bg) calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, var(--bg) calc(100% - 28px), transparent);
+}
+.vline-strip::-webkit-scrollbar { display: none; }
+.vline-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.vline-pill:hover { border-color: var(--border-hover); }
+.vline-pill.voted { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); }
+.vline-n { font: 700 0.75rem var(--font-mono); color: var(--text-mute); }
+.vline-pill.voted .vline-n { color: var(--accent-deep); }
+.vline-quick { border-style: dashed; color: var(--text-mute); }
+.vline-empty { color: var(--text-mute); font-style: italic; white-space: nowrap; }
+.vline-form input { flex: 1; min-width: 0; margin: 0; min-height: 36px; }
+.vline-go, .vline-x, .vline-plus, .vline-ghost {
+  flex: none;
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.vline-go { padding: 0 12px; background: var(--gold); border-color: transparent; color: var(--on-gold); font-weight: 700; }
+.vline-go:disabled { opacity: 0.5; cursor: not-allowed; }
+.vline-plus { font-weight: 700; font-size: 1.25rem; line-height: 1; }
+.vline-plus.attention { background: var(--gold); border-color: transparent; color: var(--on-gold); }
+.vline-plus:hover, .vline-x:hover, .vline-ghost:hover { border-color: var(--border-hover); }
+.vline-error { margin: 2px 4px 0; min-height: 0; }
+
+/* Lobby, desktop: no snack column, the stage takes the width. */
+@media (min-width: 1100px) {
+  .game-grid.votes-in-stage {
+    grid-template-columns: 1fr 300px;
+    grid-template-areas: "stage chat";
+  }
+  .game-grid.votes-in-stage .cup-stage { max-width: 860px; }
+}
+
+/* === Phones: lobby ===========================================================
+   Three fixes from the mobile critique: (1) nothing covers anything, (2) the vote
+   lines get the width and 44px touch targets, (3) the header is one short row so
+   the room, the votes and Start fit the first screen. */
+.head-ico { display: none; }
+
+@media (max-width: 560px) {
+  /* 3. Header: title and code on the left, three icon buttons on the right. */
+  .game-head { flex-wrap: nowrap; margin-bottom: 12px; padding-bottom: 10px; }
+  .head-actions { flex-wrap: nowrap; gap: 6px; flex: none; }
+  .head-actions .btn { min-width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+  .head-ico { display: inline; }
+  .head-label { display: none; }
+  .game-head .muted { margin: 2px 0 0; }
+
+  /* Status row and its controls reach 44px too. */
+  .phase-actions .btn, .sound-toggle { min-height: 44px; }
+  .sound-toggle { min-width: 44px; }
+
+  /* 1a. The join QR sits in the flow above the room instead of over it. */
+  .join-qr-chip { position: static; align-self: flex-start; margin-bottom: 10px; }
+  .cup-stage[data-phase='lobby'] .stage-overlay.lobby { padding: 12px; }
+
+  /* 2. Vote lines: label and buttons on one row, the strip full width beneath, so the
+     pills have the whole line instead of what's left beside the label. */
+  .vline {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas: "label plus ghost" "strip strip strip";
+    gap: 6px 8px;
+    padding: 8px 10px;
+  }
+  .vline-label { grid-area: label; }
+  .vline-rest { display: none; }
+  .vline-plus { grid-area: plus; }
+  .vline-ghost { grid-area: ghost; }
+  .vline-strip, .vline-form { grid-area: strip; }
+  .vline-pill, .vline-plus, .vline-ghost, .vline-go, .vline-x { min-height: 44px; min-width: 44px; }
+  .vline-form input { min-height: 44px; }
+}
+
+/* 1b. Below the desktop layout a floating chat button sits at the bottom right; leave
+   room under the last controls so it never covers them. */
+@media (max-width: 1099px) {
+  .game-room:not(.event-layout) { padding-bottom: 88px; }
 }

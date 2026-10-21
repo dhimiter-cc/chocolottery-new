@@ -76,6 +76,8 @@ export interface BarPrintGeometry {
 export interface TrickOrTreatCopy {
   title: string;
   intro: string;
+  /** One line for the compact lobby version. May use {odds}. */
+  hint: string;
   placeholder: string;
   empty: string;
   knocking: string;

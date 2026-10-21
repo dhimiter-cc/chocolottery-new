@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import { withGame, beginPicking } from '../../lib/game.js';
+import { themeFor } from '../../themes/resolve.js';
+import { MIN_TRICKS } from '../../lib/trickOdds.js';
 
 type AutostartResult = { ok: true; started: boolean };
 
@@ -7,7 +9,7 @@ type AutostartResult = { ok: true; started: boolean };
 // it's idempotent — it only acts while the game is still in `lobby`, the
 // deadline has passed, and at least 2 players are online. Deliberately NOT
 // host-gated so the round still starts even if the host has wandered off.
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, url, cookies }) => {
   const body = await request.json();
   const code = (body.code ?? '').trim();
 
@@ -18,6 +20,8 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
+  const needsTricks = !!themeFor({ url, cookies }).trickOrTreat;
+
   const outcome = await withGame<AutostartResult>(code, (game) => {
     const now = Math.floor(Date.now() / 1000);
     const due =
@@ -26,6 +30,11 @@ export const POST: APIRoute = async ({ request }) => {
       now >= game.lobby_deadline;
 
     if (!due) {
+      return { result: { ok: true, started: false }, noWrite: true };
+    }
+
+    // Like a near-empty lobby, a lobby with no tricks yet keeps waiting.
+    if (needsTricks && (game.tricks?.length ?? 0) < MIN_TRICKS) {
       return { result: { ok: true, started: false }, noWrite: true };
     }
 

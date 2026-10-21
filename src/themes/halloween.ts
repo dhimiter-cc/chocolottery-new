@@ -95,6 +95,7 @@ export const HALLOWEEN: EventTheme = {
     title: 'Trick votes',
     intro:
       'One winner in {odds} opens a trick door: they do the most-voted trick, then take the prize anyway. You write the tricks, so nothing here is a surprise you did not vote for.',
+    hint: 'One winner in {odds} opens a trick door.',
     placeholder: 'Do a ghost impression, hum the Jaws theme…',
     empty: 'No tricks yet. The house keeps a few mild ones in reserve.',
     knocking: 'Knock, knock…',
