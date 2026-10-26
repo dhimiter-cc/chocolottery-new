@@ -2547,6 +2547,61 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Dmj",
+      "game_code": "BEAN-6275",
+      "timestamp": 1793015386,
+      "month": "2026-10",
+      "participants": 4,
+      "player_names": [
+        "Joey",
+        "aliii",
+        "Natalia",
+        "Dmj"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "e62fa87f6784322da90c1ca7de99d46858ea5b4558d45617a5b32a576f4b75ae",
+        "salt": "cecf89070c9cf0a1c5c0cb2d98b121f7",
+        "straws": [
+          100,
+          35,
+          54,
+          49
+        ],
+        "drawn_at": 1793015308149
+      },
+      "audit": [
+        {
+          "name": "aliii",
+          "bar": 2,
+          "value": 54,
+          "picked_at": 1793015313279,
+          "opened_at": 1793015359063
+        },
+        {
+          "name": "Natalia",
+          "bar": 1,
+          "value": 35,
+          "picked_at": 1793015354210,
+          "opened_at": 1793015368930
+        },
+        {
+          "name": "Joey",
+          "bar": 3,
+          "value": 49,
+          "picked_at": 1793015354210,
+          "opened_at": null
+        },
+        {
+          "name": "Dmj",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1793015313456,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
