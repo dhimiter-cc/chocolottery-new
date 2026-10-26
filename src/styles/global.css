@@ -3544,7 +3544,25 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 
   /* 1a. The join QR sits in the flow above the room instead of over it. */
   .join-qr-chip { position: static; align-self: flex-start; margin-bottom: 10px; }
-  .cup-stage[data-phase='lobby'] .stage-overlay.lobby { padding: 12px; }
+  .cup-stage[data-phase='lobby'] .stage-overlay.lobby { padding: 16px 14px; }
+
+  /* 4. Fill the screen. The lobby stage was only as tall as its content, which left a
+     dark void under it on a phone; the page now stretches to the viewport and the
+     canvas takes what the status row and the controls leave. */
+  .game-room:has(.votes-in-stage) {
+    min-height: calc(100vh - 64px);
+    min-height: calc(100dvh - 64px);
+  }
+  .game-grid.votes-in-stage { flex: 1; grid-template-rows: minmax(0, 1fr); }
+  .votes-in-stage .stage-panel { padding: 14px; }
+  .votes-in-stage .phase-bar { gap: 12px; margin-bottom: 14px; }
+  .votes-in-stage .cup-stage { min-height: 0; }
+
+  /* 5. Room to breathe between the QR, the room, the two vote lines and the controls. */
+  .join-qr-chip { margin-bottom: 14px; }
+  .lobby-votes { margin-top: 20px; gap: 12px; }
+  .vline { padding: 10px 12px; }
+  .lobby-status { margin-top: 16px; }
 
   /* 2. Vote lines: label and buttons on one row, the strip full width beneath, so the
      pills have the whole line instead of what's left beside the label. */
