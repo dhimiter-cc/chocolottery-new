@@ -2602,6 +2602,115 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Nadim",
+      "game_code": "COCO-9468",
+      "timestamp": 1793105913,
+      "month": "2026-10",
+      "participants": 10,
+      "player_names": [
+        "sofiasofisof",
+        "Joey",
+        "Dmj",
+        "aliii",
+        "Nadim",
+        "Ali OG",
+        "Princess D",
+        "Burak",
+        "Christelle",
+        "Kadir"
+      ],
+      "prize_snack": "Raisins",
+      "draw": {
+        "commit": "339dd8a90e3acf0279ff35ba3d73186c5739c46e18416f7cb2c7c8bcb9eae0e2",
+        "salt": "b6067bfb460bd4cad079b9df75dfbddf",
+        "straws": [
+          100,
+          22,
+          57,
+          20,
+          58,
+          52,
+          17,
+          33,
+          62,
+          64
+        ],
+        "drawn_at": 1793105815171
+      },
+      "audit": [
+        {
+          "name": "aliii",
+          "bar": 3,
+          "value": 20,
+          "picked_at": 1793105819599,
+          "opened_at": 1793105877458
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 17,
+          "picked_at": 1793105820138,
+          "opened_at": 1793105877822
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1793105819443,
+          "opened_at": 1793105878099
+        },
+        {
+          "name": "Dmj",
+          "bar": 4,
+          "value": 58,
+          "picked_at": 1793105821516,
+          "opened_at": 1793105879203
+        },
+        {
+          "name": "Christelle",
+          "bar": 8,
+          "value": 62,
+          "picked_at": 1793105820559,
+          "opened_at": 1793105879494
+        },
+        {
+          "name": "Burak",
+          "bar": 1,
+          "value": 22,
+          "picked_at": 1793105819905,
+          "opened_at": 1793105879700
+        },
+        {
+          "name": "Kadir",
+          "bar": 2,
+          "value": 57,
+          "picked_at": 1793105820085,
+          "opened_at": 1793105881161
+        },
+        {
+          "name": "Princess D",
+          "bar": 7,
+          "value": 33,
+          "picked_at": 1793105827655,
+          "opened_at": 1793105888224
+        },
+        {
+          "name": "Ali OG",
+          "bar": 9,
+          "value": 64,
+          "picked_at": 1793105874910,
+          "opened_at": 1793105905062
+        },
+        {
+          "name": "sofiasofisof",
+          "bar": 5,
+          "value": 52,
+          "picked_at": 1793105874910,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
