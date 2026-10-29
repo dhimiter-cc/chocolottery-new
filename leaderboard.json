@@ -2829,6 +2829,70 @@
           "opened_at": 1793192411934
         }
       ]
+    },
+    {
+      "name": "Kayla",
+      "game_code": "COCO-8204",
+      "timestamp": 1793281564,
+      "month": "2026-10",
+      "participants": 5,
+      "player_names": [
+        "Dmj",
+        "Ali OG",
+        "Sofia",
+        "po",
+        "Kayla"
+      ],
+      "prize_snack": "Snickers",
+      "draw": {
+        "commit": "f0001724cacd58f44f05abdc88263fc269e1904524b7b08f6ac6920694a18c02",
+        "salt": "487598db15fbe201cfbd7c51eaf9cd32",
+        "straws": [
+          48,
+          30,
+          100,
+          29,
+          27
+        ],
+        "drawn_at": 1793281500441
+      },
+      "audit": [
+        {
+          "name": "po",
+          "bar": 4,
+          "value": 27,
+          "picked_at": 1793281507024,
+          "opened_at": 1793281538837
+        },
+        {
+          "name": "Sofia",
+          "bar": 1,
+          "value": 30,
+          "picked_at": 1793281507637,
+          "opened_at": 1793281540324
+        },
+        {
+          "name": "Ali OG",
+          "bar": 3,
+          "value": 29,
+          "picked_at": 1793281507417,
+          "opened_at": 1793281540834
+        },
+        {
+          "name": "Dmj",
+          "bar": 0,
+          "value": 48,
+          "picked_at": 1793281535055,
+          "opened_at": null
+        },
+        {
+          "name": "Kayla",
+          "bar": 2,
+          "value": 100,
+          "picked_at": 1793281535055,
+          "opened_at": null
+        }
+      ]
     }
   ]
 }
