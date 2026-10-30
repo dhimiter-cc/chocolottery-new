@@ -2893,6 +2893,133 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Theresa",
+      "game_code": "BEAN-3981",
+      "timestamp": 1793361725,
+      "month": "2026-10",
+      "participants": 12,
+      "player_names": [
+        "Christelle",
+        "Kayla",
+        "André",
+        "Joey",
+        "Burak",
+        "Dmj",
+        "Bart",
+        "laufey",
+        "po",
+        "Nadim",
+        "Kadir",
+        "Theresa"
+      ],
+      "prize_snack": "All treats available",
+      "draw": {
+        "commit": "a8ecee5c8db10dcd8be638b08e4f989a6b580bc57ef07bbdc8f8d4e01063622a",
+        "salt": "e8949b4573f85c81bc272d72288e4538",
+        "straws": [
+          63,
+          32,
+          40,
+          25,
+          15,
+          40,
+          55,
+          100,
+          62,
+          59,
+          32,
+          52
+        ],
+        "drawn_at": 1793361702023
+      },
+      "audit": [
+        {
+          "name": "laufey",
+          "bar": 3,
+          "value": 25,
+          "picked_at": 1793361707681,
+          "opened_at": 1793361715605
+        },
+        {
+          "name": "Kayla",
+          "bar": 1,
+          "value": 32,
+          "picked_at": 1793361706663,
+          "opened_at": 1793361716250
+        },
+        {
+          "name": "Theresa",
+          "bar": 7,
+          "value": 100,
+          "picked_at": 1793361709333,
+          "opened_at": 1793361716963
+        },
+        {
+          "name": "Dmj",
+          "bar": 5,
+          "value": 40,
+          "picked_at": 1793361706448,
+          "opened_at": 1793361717405
+        },
+        {
+          "name": "po",
+          "bar": 11,
+          "value": 52,
+          "picked_at": 1793361713199,
+          "opened_at": 1793361717725
+        },
+        {
+          "name": "Christelle",
+          "bar": 4,
+          "value": 15,
+          "picked_at": 1793361706993,
+          "opened_at": 1793361717739
+        },
+        {
+          "name": "Kadir",
+          "bar": 10,
+          "value": 32,
+          "picked_at": 1793361707466,
+          "opened_at": 1793361717770
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 55,
+          "picked_at": 1793361706494,
+          "opened_at": 1793361717868
+        },
+        {
+          "name": "Burak",
+          "bar": 2,
+          "value": 40,
+          "picked_at": 1793361708362,
+          "opened_at": 1793361718825
+        },
+        {
+          "name": "André",
+          "bar": 8,
+          "value": 62,
+          "picked_at": 1793361709790,
+          "opened_at": 1793361718909
+        },
+        {
+          "name": "Bart",
+          "bar": 9,
+          "value": 59,
+          "picked_at": 1793361713199,
+          "opened_at": 1793361720891
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 63,
+          "picked_at": 1793361706879,
+          "opened_at": 1793361725389
+        }
+      ]
     }
   ]
 }
