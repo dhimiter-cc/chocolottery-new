@@ -3084,6 +3084,52 @@
           "opened_at": 1793966924199
         }
       ]
+    },
+    {
+      "name": "Geo",
+      "game_code": "WRAP-1380",
+      "timestamp": 1794003380,
+      "month": "2026-11",
+      "participants": 3,
+      "player_names": [
+        "Dhim",
+        "Jawad",
+        "Geo"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "2c4479ca91fe0156b63a75c53fb90080ce353f655e32f58a898d47c7caacfa25",
+        "salt": "8e7401b1ad3e841c72820fec4fa8f1d9",
+        "straws": [
+          43,
+          39,
+          100
+        ],
+        "drawn_at": 1794003364001
+      },
+      "audit": [
+        {
+          "name": "Jawad",
+          "bar": 0,
+          "value": 43,
+          "picked_at": 1794003371354,
+          "opened_at": 1794003378481
+        },
+        {
+          "name": "Dhim",
+          "bar": 1,
+          "value": 39,
+          "picked_at": 1794003371354,
+          "opened_at": 1794003379060
+        },
+        {
+          "name": "Geo",
+          "bar": 2,
+          "value": 100,
+          "picked_at": 1794003368791,
+          "opened_at": 1794003380071
+        }
+      ]
     }
   ]
 }
