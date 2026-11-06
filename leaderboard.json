@@ -3020,6 +3020,70 @@
           "opened_at": 1793361725389
         }
       ]
+    },
+    {
+      "name": "po",
+      "game_code": "COCO-0290",
+      "timestamp": 1793966924,
+      "month": "2026-11",
+      "participants": 5,
+      "player_names": [
+        "Princess D",
+        "Sofia",
+        "Nadim",
+        "po",
+        "Kayla"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "95e1f763f546ed504b40e10ec6cf707c06d598127e0a90a509bfc6a782c018b7",
+        "salt": "d3e239f1877df4b9ad6cd7cc9aea19d8",
+        "straws": [
+          100,
+          67,
+          60,
+          25,
+          45
+        ],
+        "drawn_at": 1793966869859
+      },
+      "audit": [
+        {
+          "name": "Nadim",
+          "bar": 4,
+          "value": 45,
+          "picked_at": 1793966912670,
+          "opened_at": 1793966915291
+        },
+        {
+          "name": "Kayla",
+          "bar": 3,
+          "value": 25,
+          "picked_at": 1793966874659,
+          "opened_at": 1793966915950
+        },
+        {
+          "name": "Sofia",
+          "bar": 1,
+          "value": 67,
+          "picked_at": 1793966912670,
+          "opened_at": 1793966916536
+        },
+        {
+          "name": "po",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1793966875408,
+          "opened_at": 1793966917711
+        },
+        {
+          "name": "Princess D",
+          "bar": 2,
+          "value": 60,
+          "picked_at": 1793966880370,
+          "opened_at": 1793966924199
+        }
+      ]
     }
   ]
 }
