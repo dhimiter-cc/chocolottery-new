@@ -3130,6 +3130,115 @@
           "opened_at": 1794003380071
         }
       ]
+    },
+    {
+      "name": "laufey",
+      "game_code": "CHOC-5829",
+      "timestamp": 1794314470,
+      "month": "2026-11",
+      "participants": 10,
+      "player_names": [
+        "aliii",
+        "Kayla",
+        "Nadim",
+        "Thea",
+        "Sofia",
+        "Joey",
+        "Burak",
+        "laufey",
+        "Dmj",
+        "André"
+      ],
+      "prize_snack": "Keek",
+      "draw": {
+        "commit": "ecc75d7cfcec3ef10f2cf9746e996d724c086ff2e3b61177af83da57332aef9b",
+        "salt": "4c1483551ee15a816bb4c0fa8997d811",
+        "straws": [
+          44,
+          25,
+          100,
+          25,
+          69,
+          50,
+          33,
+          40,
+          59,
+          65
+        ],
+        "drawn_at": 1794314435292
+      },
+      "audit": [
+        {
+          "name": "Nadim",
+          "bar": 4,
+          "value": 69,
+          "picked_at": 1794314439560,
+          "opened_at": 1794314454588
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 33,
+          "picked_at": 1794314440263,
+          "opened_at": 1794314454879
+        },
+        {
+          "name": "aliii",
+          "bar": 3,
+          "value": 25,
+          "picked_at": 1794314439689,
+          "opened_at": 1794314455421
+        },
+        {
+          "name": "Thea",
+          "bar": 1,
+          "value": 25,
+          "picked_at": 1794314451637,
+          "opened_at": 1794314455993
+        },
+        {
+          "name": "laufey",
+          "bar": 2,
+          "value": 100,
+          "picked_at": 1794314442416,
+          "opened_at": 1794314456384
+        },
+        {
+          "name": "Dmj",
+          "bar": 7,
+          "value": 40,
+          "picked_at": 1794314444155,
+          "opened_at": 1794314456386
+        },
+        {
+          "name": "André",
+          "bar": 5,
+          "value": 50,
+          "picked_at": 1794314440754,
+          "opened_at": 1794314457345
+        },
+        {
+          "name": "Sofia",
+          "bar": 8,
+          "value": 59,
+          "picked_at": 1794314446455,
+          "opened_at": 1794314457996
+        },
+        {
+          "name": "Burak",
+          "bar": 0,
+          "value": 44,
+          "picked_at": 1794314441215,
+          "opened_at": 1794314458740
+        },
+        {
+          "name": "Kayla",
+          "bar": 9,
+          "value": 65,
+          "picked_at": 1794314451638,
+          "opened_at": 1794314470358
+        }
+      ]
     }
   ]
 }
