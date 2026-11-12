@@ -3357,6 +3357,61 @@
           "opened_at": null
         }
       ]
+    },
+    {
+      "name": "Sofia - 2",
+      "game_code": "CHOC-7529",
+      "timestamp": 1794485926,
+      "month": "2026-11",
+      "participants": 4,
+      "player_names": [
+        "Dhim",
+        "Joey",
+        "Sofia - 2",
+        "Bart"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "185e63be228a89de5a1e8c0ae79c55d043b6473c6b3b59af953d090a84514715",
+        "salt": "fe9326244dc64e61f09e1c89bfa4dbc0",
+        "straws": [
+          54,
+          52,
+          100,
+          28
+        ],
+        "drawn_at": 1794485851148
+      },
+      "audit": [
+        {
+          "name": "Sofia - 2",
+          "bar": 2,
+          "value": 100,
+          "picked_at": 1794485909326,
+          "opened_at": 1794485912788
+        },
+        {
+          "name": "Joey",
+          "bar": 3,
+          "value": 28,
+          "picked_at": 1794485859929,
+          "opened_at": 1794485913633
+        },
+        {
+          "name": "Dhim",
+          "bar": 1,
+          "value": 52,
+          "picked_at": 1794485858144,
+          "opened_at": 1794485920973
+        },
+        {
+          "name": "Bart",
+          "bar": 0,
+          "value": 54,
+          "picked_at": 1794485909326,
+          "opened_at": 1794485926216
+        }
+      ]
     }
   ]
 }
