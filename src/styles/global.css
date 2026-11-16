@@ -2259,25 +2259,21 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   100% { transform: translate(calc(var(--dir) * 150px), 90px) rotate(calc(var(--dir) * 260deg)); opacity: 0; }
 }
 
-/* The opened-but-unknown bar: a glowing light with a black question mark. It
-   breathes in four stop-motion frames and the rays turn in twelve, like the rest
-   of the bar's animation. */
-.cb-qmark { font: 900 76px var(--font-sans); font-stretch: 118%; fill: #0A0210; }
+/* The opened-but-unknown bar: the bar itself glowing gold from inside, with a
+   black question mark. The halo is the bar's outline and breathes in four
+   stop-motion frames, like the rest of the bar's animation. */
+.cb-qmark { font: 900 96px var(--font-sans); font-stretch: 118%; fill: #2A0B35; }
 .cb-mystery-halo {
   transform-box: fill-box;
   transform-origin: center;
   animation: cb-mystery-breathe 1.6s steps(4, end) infinite alternate;
 }
-.cb-mystery-rays {
-  transform-box: view-box;
-  transform-origin: 100px 170px;
-  animation: cb-mystery-spin 6s steps(12, end) infinite;
-}
+.cb-mystery-rim { animation: cb-mystery-rim 1.6s steps(4, end) infinite alternate; }
 @keyframes cb-mystery-breathe {
-  from { transform: scale(0.86); opacity: 0.7; }
-  to   { transform: scale(1.08); opacity: 1; }
+  from { transform: scale(0.97); opacity: 0.65; }
+  to   { transform: scale(1.03); opacity: 1; }
 }
-@keyframes cb-mystery-spin { to { transform: rotate(30deg); } }
+@keyframes cb-mystery-rim { from { opacity: 0.55; } to { opacity: 1; } }
 
 .cb-ticket { animation: cb-ticket-glow 1.2s steps(3, end) infinite alternate; }
 @keyframes cb-ticket-glow {

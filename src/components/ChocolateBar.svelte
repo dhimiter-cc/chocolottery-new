@@ -199,12 +199,6 @@
     </linearGradient>
     <!-- Torn edges and curled flaps stay inside their own layer's outline, so
          a tear that runs off the end of the bar doesn't draw on the table. -->
-    <radialGradient id="{uid}-glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#FFF6D2" stop-opacity="1" />
-      <stop offset="0.38" stop-color="#F8D983" stop-opacity="0.85" />
-      <stop offset="0.7" stop-color="#E0B04A" stop-opacity="0.28" />
-      <stop offset="1" stop-color="#E0B04A" stop-opacity="0" />
-    </radialGradient>
     <clipPath id="{uid}-foil-box"><rect x={FOIL.x} y={FOIL.y - 4} width={FOIL.w} height={FOIL.h + 4} rx="5" /></clipPath>
     <clipPath id="{uid}-sleeve-box"><rect x={SLEEVE.x} y={SLEEVE.y - 16} width={SLEEVE.w} height={SLEEVE.h + 16} /></clipPath>
     {#if sleevePts}
@@ -219,14 +213,23 @@
 
   {#if mystery}
     <g class="cb-mystery">
-      <circle class="cb-mystery-halo" cx="100" cy="170" r="118" fill="url(#{uid}-glow)" />
-      <g class="cb-mystery-rays" stroke="#F8D983" stroke-width="3" stroke-linecap="round">
-        {#each Array.from({ length: 12 }, (_, i) => i) as i (i)}
-          <line x1="100" y1="170" x2="100" y2={i % 2 ? 78 : 62} transform="rotate({i * 30} 100 170)" opacity={i % 2 ? 0.45 : 0.75} />
+      <!-- The glow is the bar's own outline, grown in three soft steps. -->
+      <g class="cb-mystery-halo">
+        {#each [24, 15, 7] as grow, i (grow)}
+          <rect
+            x={SLAB.x - grow} y={SLAB.y - grow}
+            width={SLAB.w + grow * 2} height={SLAB.h + grow * 2}
+            rx={6 + grow} fill="#F8D983" opacity={[0.14, 0.22, 0.34][i]}
+          />
         {/each}
       </g>
-      <circle cx="100" cy="170" r="50" fill="url(#{uid}-gold)" />
-      <circle cx="100" cy="170" r="50" fill="none" stroke="#FFF6D2" stroke-width="2" opacity="0.7" />
+      <!-- The bar itself, lit from inside: same slab and 3 × 6 squares. -->
+      <rect x={SLAB.x} y={SLAB.y} width={SLAB.w} height={SLAB.h} rx="6" fill="url(#{uid}-gold)" />
+      {#each squares as q, i (i)}
+        <rect x={q.x} y={q.y} width={q.w} height={q.h} rx="2" fill="#FFF6D2" opacity="0.38" />
+        <rect x={q.x + BEVEL} y={q.y + BEVEL} width={q.w - BEVEL * 2} height={q.h - BEVEL * 2} fill="#FDE7A4" opacity="0.55" />
+      {/each}
+      <rect class="cb-mystery-rim" x={SLAB.x} y={SLAB.y} width={SLAB.w} height={SLAB.h} rx="6" fill="none" stroke="#FFF6D2" stroke-width="2.5" />
       <text class="cb-qmark" x="100" y="196">?</text>
     </g>
   {:else}
