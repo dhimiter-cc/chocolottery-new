@@ -8,13 +8,14 @@
 
 import type { EventTheme, Theme } from './types.js';
 import { DEFAULT_THEME } from './default.js';
-import { HALLOWEEN } from './halloween.js';
 import { WINTER } from './winter.js';
 
 export { DEFAULT_THEME };
 export type { Theme, EventTheme, Copy, CopyKey } from './types.js';
 
-export const EVENTS: EventTheme[] = [HALLOWEEN, WINTER];
+// Halloween is retired (its files stay in themes/halloween* to bring back next
+// October: import HALLOWEEN and add it here).
+export const EVENTS: EventTheme[] = [WINTER];
 
 /** The default theme with an event's overrides merged on top. */
 export function buildTheme(event?: EventTheme): Theme {
