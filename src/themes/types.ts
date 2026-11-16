@@ -52,7 +52,7 @@ export interface Effects {
 }
 
 /** Names of the sound functions in lib/sound.ts that a theme may trigger. */
-export type SoundName = 'playKnock' | 'playCreak' | 'playSpookyStinger' | 'playSparkleChime' | 'playPartyHorn' | 'playTada';
+export type SoundName = 'playKnock' | 'playCreak' | 'playSpookyStinger' | 'playSparkleChime' | 'playPartyPopper' | 'playTada';
 
 /** One drawn shape printed on a bar's sleeve. 'gold' means the sleeve's gold foil. */
 export interface PrintItem {

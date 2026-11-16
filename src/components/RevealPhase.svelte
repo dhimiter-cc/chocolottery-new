@@ -10,7 +10,7 @@
     playRisingRumble: () => void;
     playApplause: (ms?: number) => void;
     playCheer: (ms?: number) => void;
-    playPartyHorn: () => void;
+    playPartyPopper: () => void;
     playTada: () => void;
     playSparkleChime: () => void;
   }
@@ -101,7 +101,7 @@
         if (iWon) {
           // Big celebratory stack: horn + fanfare, a roaring crowd, fireworks
           // and confetti — then a final round of applause + a second pop.
-          sounds.playPartyHorn();
+          sounds.playPartyPopper();
           sounds.playWinFanfare();
           sounds.playCheer(2400);
           sounds.playApplause(3000);
