@@ -3052,6 +3052,19 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   right: 10px;
   top: 7px;
   border-top: 2px dashed rgba(42, 11, 53, 0.34);
+/* "choco" sits on a gold block, as if the word were half selected: it splits
+   the name without cutting it. The block is the same gold as ::selection. */
+.wordmark-choco {
+  background: var(--gold);
+  color: var(--on-gold);
+  text-shadow: none;
+  /* Room around the glyphs, taken back with a negative margin so the letters
+     keep their spacing. */
+  padding: 0.04em 0 0.1em 0.12em;
+  margin-left: -0.12em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
   pointer-events: none;
 }
 .tear-perf-b { top: auto; bottom: 7px; }
