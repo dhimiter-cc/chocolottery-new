@@ -15,9 +15,11 @@
     playWinFanfare: () => void;
     playApplause: (ms?: number) => void;
     playCheer: (ms?: number) => void;
-    playPartyHorn: () => void;
+    playPartyPopper: () => void;
     playTada: () => void;
     playSparkleChime: () => void;
+    /** The roll and riser that fill the drumroll, unless the theme brings its own. */
+    playRevealBuild: (ms: number) => void;
   }
 
   let {
@@ -81,7 +83,10 @@
 
     // The drumroll. `later` collapses to 0ms under reduced motion, so these
     // run back to back there and the bar simply appears.
-    playThemed(theme.sounds.revealStart);
+    // A theme may bring its own opening sound; otherwise the stage isn't left
+    // silent for the whole drumroll.
+    if (theme.sounds.revealStart) playThemed(theme.sounds.revealStart);
+    else if (!reducedMotion) sounds.playRevealBuild(DRUMROLL_MS);
     later(() => { beat = 1; }, DRUMROLL_MS / 2 - 50);
     later(() => {
       started = true;
@@ -93,7 +98,7 @@
     later(() => { lifted = true; }, DRUMROLL_MS + 350);
     later(() => {
       showName = true;
-      sounds.playPartyHorn();
+      sounds.playPartyPopper();
       // Confetti for the whole room — the win is the event, not just for the winner.
       onFireConfetti(true);
       if (iWon) {

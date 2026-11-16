@@ -2259,25 +2259,21 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   100% { transform: translate(calc(var(--dir) * 150px), 90px) rotate(calc(var(--dir) * 260deg)); opacity: 0; }
 }
 
-/* The opened-but-unknown bar: a glowing light with a black question mark. It
-   breathes in four stop-motion frames and the rays turn in twelve, like the rest
-   of the bar's animation. */
-.cb-qmark { font: 900 76px var(--font-sans); font-stretch: 118%; fill: #0A0210; }
+/* The opened-but-unknown bar: the bar itself glowing gold from inside, with a
+   black question mark. The halo is the bar's outline and breathes in four
+   stop-motion frames, like the rest of the bar's animation. */
+.cb-qmark { font: 900 96px var(--font-sans); font-stretch: 118%; fill: #2A0B35; }
 .cb-mystery-halo {
   transform-box: fill-box;
   transform-origin: center;
   animation: cb-mystery-breathe 1.6s steps(4, end) infinite alternate;
 }
-.cb-mystery-rays {
-  transform-box: view-box;
-  transform-origin: 100px 170px;
-  animation: cb-mystery-spin 6s steps(12, end) infinite;
-}
+.cb-mystery-rim { animation: cb-mystery-rim 1.6s steps(4, end) infinite alternate; }
 @keyframes cb-mystery-breathe {
-  from { transform: scale(0.86); opacity: 0.7; }
-  to   { transform: scale(1.08); opacity: 1; }
+  from { transform: scale(0.97); opacity: 0.65; }
+  to   { transform: scale(1.03); opacity: 1; }
 }
-@keyframes cb-mystery-spin { to { transform: rotate(30deg); } }
+@keyframes cb-mystery-rim { from { opacity: 0.55; } to { opacity: 1; } }
 
 .cb-ticket { animation: cb-ticket-glow 1.2s steps(3, end) infinite alternate; }
 @keyframes cb-ticket-glow {
@@ -2745,6 +2741,48 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
 .style-toggle button[aria-pressed="true"] { background: var(--cb-plum); color: var(--cb-gold); }
 .host-plays { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .host-plays input { accent-color: var(--cb-plum); }
+/* Join form: the opt-in to watch instead of play. */
+.join-spectate {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 18px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+}
+.join-spectate input { flex: none; width: 18px; height: 18px; margin-top: 1px; accent-color: var(--cb-plum); }
+.join-spectate small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--text-mute);
+}
+/* "Watching" marker in a spectator's phase bar, and the list under the room. */
+.watch-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--text-mute);
+  background: var(--bg-soft);
+}
+.lobby-watchers {
+  margin-top: 8px;
+  font: 600 0.72rem var(--font-mono);
+  letter-spacing: 0.06em;
+  color: rgba(255, 230, 160, 0.5);
+}
 .lobby-host {
   margin-top: 14px;
   font: 600 0.72rem var(--font-mono);
@@ -3013,6 +3051,19 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   /* Foil blocked into paper: a soft, offset drop into the sleeve. */
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
   text-wrap: balance;
+}
+/* "choco" sits on a gold block, as if the word were half selected: it splits
+   the name without cutting it. The block is the same gold as ::selection. */
+.wordmark-choco {
+  background: var(--gold);
+  color: var(--on-gold);
+  text-shadow: none;
+  /* Room around the glyphs, taken back with a negative margin so the letters
+     keep their spacing. */
+  padding: 0.04em 0 0.1em 0.12em;
+  margin-left: -0.12em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 .front-claim {
   max-width: 36ch;
@@ -3586,4 +3637,22 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
      lines grow on a tall screen and stay snug on a short one, so the controls under the
      canvas never drop below the fold. */
   .lobby-votes { margin-top: clamp(12px, 2.4dvh, 24px); gap: clamp(8px, 1.6dvh, 14px); }
+}
+
+/* === Spectators ===============================================================
+   Chat is for the people in the round, so a spectator's screen has none: the
+   panel is hidden (its own display rule would otherwise win over [hidden]) and,
+   on desktop, its column goes too, so the stage takes the width. */
+.chat-panel[hidden] { display: none; }
+@media (min-width: 1100px) {
+  .game-room .game-grid.no-chat {
+    grid-template-columns: 300px 1fr;
+    grid-template-areas: "snacks stage";
+  }
+  .game-room .game-grid.no-chat.stage-wide,
+  .game-room .game-grid.no-chat.votes-in-stage,
+  .game-room.event-layout .game-grid.no-chat {
+    grid-template-columns: 1fr;
+    grid-template-areas: "stage";
+  }
 }

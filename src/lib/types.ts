@@ -12,6 +12,9 @@ export interface Player {
   opened_at?: number | null;
   /** Costume emoji handed out at join (Halloween avatars). Absent on older games. */
   costume?: string;
+  /** Joined to watch only: never in the draw, no straw or bar, and no chat,
+   *  suggestions or votes. Can join at any point in a round. Never the host. */
+  spectator?: boolean;
 }
 export interface Suggestion {
   id: string; text: string; author_token: string; author_name: string;
@@ -88,6 +91,10 @@ export interface PublicPlayer {
   unwrap: number;
   costume: string | null;
 }
+/** Someone watching the round without being in it. */
+export interface PublicSpectator {
+  token: string; name: string; online: boolean; is_me: boolean;
+}
 export interface PublicSuggestion {
   id: string; text: string; author_name: string; mine: boolean;
   votes: number; voted_tokens: string[]; voted: boolean; created_at: number;
@@ -117,6 +124,12 @@ export interface GameStateResponse {
    *  out of `players` entirely, so every count and grid on every screen is
    *  about the people in the draw. */
   host: { name: string; online: boolean; is_me: boolean } | null;
+  /** People watching, left out of `players` like a host who only oversees. */
+  spectators: PublicSpectator[];
+  /** I joined as a spectator. */
+  is_spectator: boolean;
+  /** This screen has nothing to pick: a spectator, or a host who only oversees. */
+  spectating: boolean;
   /** Sealed draw fingerprint, from Start on. The salt only arrives with the
    *  reveal, when the straws are public too. */
   draw_commit: string | null;

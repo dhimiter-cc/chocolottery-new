@@ -29,8 +29,9 @@
   let pickInFlight = $state(false);
   let remaining = $derived(game.players.filter(p => !p.picked).length);
 
-  // The host's screen when the host only oversees: same shelf, nothing to tap.
-  let spectating = $derived(game.is_host && !game.host_plays);
+  // A spectator's screen, or the host's when the host only oversees: same
+  // shelf, nothing to tap.
+  let spectating = $derived(game.spectating);
 
   let phaseText = $derived.by(() => {
     if (remaining === 0) return 'Handing out the bars…';

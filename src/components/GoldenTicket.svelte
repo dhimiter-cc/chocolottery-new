@@ -61,7 +61,7 @@
     }
 
     sounds.playSparkleChime();
-    sounds.playPartyHorn();
+    sounds.playPartyPopper();
     later(() => sounds.playTada(), 420);
 
     if (mode === 'payoff') {

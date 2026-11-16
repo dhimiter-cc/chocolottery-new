@@ -18,6 +18,7 @@
     placeholder,
     empty,
     attention = false,
+    readonly = false,
     onRefresh,
     extra,
   }: {
@@ -34,6 +35,8 @@
     empty: string;
     /** Draw the eye to the "+" (the round can't start until something is added). */
     attention?: boolean;
+    /** A spectator sees the votes but can't add or cast one. */
+    readonly?: boolean;
     onRefresh?: () => void;
     extra?: Snippet;
   } = $props();
@@ -106,29 +109,34 @@
           class="vline-pill"
           class:voted={s.voted}
           aria-pressed={s.voted}
-          title={s.voted ? `Your vote is in (${s.votes}). Tap to take it back` : `Vote (${s.votes}) · ${s.author_name}`}
+          disabled={readonly}
+          title={readonly ? `${s.votes} vote${s.votes === 1 ? '' : 's'} · ${s.author_name}` : s.voted ? `Your vote is in (${s.votes}). Tap to take it back` : `Vote (${s.votes}) · ${s.author_name}`}
           onclick={() => vote(s.id)}
         >
           <span class="vline-n">▲ {s.votes}</span>{s.text}
         </button>
       {/each}
-      {#each unlisted as name (name)}
-        <button type="button" class="vline-pill vline-quick" title="In stock: tap to add and vote" disabled={busy} onclick={() => add(name)}>
-          + {name}
-        </button>
-      {/each}
-      {#if items.length === 0 && unlisted.length === 0}
-        <span class="vline-empty">{empty}</span>
+      {#if !readonly}
+        {#each unlisted as name (name)}
+          <button type="button" class="vline-pill vline-quick" title="In stock: tap to add and vote" disabled={busy} onclick={() => add(name)}>
+            + {name}
+          </button>
+        {/each}
+      {/if}
+      {#if items.length === 0 && (readonly || unlisted.length === 0)}
+        <span class="vline-empty">{readonly ? 'Nothing yet.' : empty}</span>
       {/if}
     </div>
-    <button
-      type="button"
-      class="vline-plus"
-      class:attention
-      aria-label={`Add: ${placeholder}`}
-      title="Add your own"
-      onclick={() => (adding = true)}
-    >+</button>
+    {#if !readonly}
+      <button
+        type="button"
+        class="vline-plus"
+        class:attention
+        aria-label={`Add: ${placeholder}`}
+        title="Add your own"
+        onclick={() => (adding = true)}
+      >+</button>
+    {/if}
   {/if}
 
   {#if extra}{@render extra()}{/if}

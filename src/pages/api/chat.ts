@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { withGame, generateId, getPlayerToken } from '../../lib/game.js';
+import { withGame, generateId, getPlayerToken, isSpectator } from '../../lib/game.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
@@ -24,6 +24,9 @@ export const POST: APIRoute = async ({ request }) => {
   const outcome = await withGame(code, (game) => {
     if (!game.players[token]) {
       return { result: { error: 'Not in game', code: 403 }, noWrite: true };
+    }
+    if (isSpectator(game, token)) {
+      return { result: { error: 'Spectators just watch', code: 403 }, noWrite: true };
     }
 
     if (!Array.isArray(game.chat)) game.chat = [];

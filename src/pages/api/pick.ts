@@ -4,6 +4,7 @@ import {
   afterAllPicked,
   drawEntries,
   hostPlays,
+  isSpectator,
   appendLeaderboard,
   getPlayerToken,
 } from '../../lib/game.js';
@@ -32,6 +33,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if (!game.players[token]) {
       return { result: { error: 'Not in game', code: 403 }, noWrite: true };
+    }
+    if (isSpectator(game, token)) {
+      return { result: { error: 'Spectators just watch', code: 403 }, noWrite: true };
     }
     if (!hostPlays(game) && token === game.creator_token) {
       return { result: { error: 'The host only oversees this round', code: 403 }, noWrite: true };
