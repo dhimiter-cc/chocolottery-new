@@ -71,6 +71,11 @@
   {#if game.host && !game.host_plays}
     <div class="lobby-host">Hosted by {game.host.is_me ? 'you' : game.host.name} · not in the draw</div>
   {/if}
+    {#if game.spectators.length > 0}
+      <div class="lobby-watchers" title="Watching, not in the draw">
+        👀 Watching: {game.spectators.map((s) => (s.is_me ? `${s.name} (you)` : s.name)).join(', ')}
+      </div>
+    {/if}
   </div>
   {#if code}
     <div class="lobby-votes">
@@ -84,6 +89,7 @@
         quick={stocked}
         placeholder="Tim Tams, Speculoos…"
         empty="Nothing yet. Tap + to suggest."
+        readonly={game.is_spectator}
         {onRefresh}
       >
         {#snippet extra()}
@@ -103,6 +109,7 @@
           placeholder={trickWords.placeholder}
           empty="Add a trick: the round needs one."
           attention={game.tricks.length === 0}
+          readonly={game.is_spectator}
           {onRefresh}
         />
       {/if}

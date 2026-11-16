@@ -82,7 +82,7 @@
 <p class="muted">Pitch ideas. Upvote favourites. Highest-voted wins. Tie or no votes? Random. (Dwight, no beets.)</p>
 
 <!-- Quick-pick chips from cupboard -->
-{#if availableCupboard.length > 0}
+{#if availableCupboard.length > 0 && !game.is_spectator}
   <div class="snack-quick-wrap">
     <div class="snack-quick-label">In stock — click to add &amp; vote</div>
     <div class="snack-quick-picks">
@@ -107,18 +107,20 @@
   </div>
 {/if}
 
-<div class="snack-form-divider">or type your own</div>
+{#if !game.is_spectator}
+  <div class="snack-form-divider">or type your own</div>
 
-<form class="snack-form" onsubmit={handleSuggestSubmit}>
-  <input
-    type="text"
-    bind:value={suggestText}
-    maxlength="80"
-    placeholder="Tim Tams, Speculoos, that weird Schrute beet thing…"
-    autocomplete="off"
-  />
-  <button type="submit" class="btn" disabled={suggestLoading || !suggestText.trim()}>Add</button>
-</form>
+  <form class="snack-form" onsubmit={handleSuggestSubmit}>
+    <input
+      type="text"
+      bind:value={suggestText}
+      maxlength="80"
+      placeholder="Tim Tams, Speculoos, that weird Schrute beet thing…"
+      autocomplete="off"
+    />
+    <button type="submit" class="btn" disabled={suggestLoading || !suggestText.trim()}>Add</button>
+  </form>
+{/if}
 
 <div class="snacks-list">
   {#if game.suggestions.length === 0}
@@ -130,6 +132,7 @@
           type="button"
           class="snack-vote"
           aria-pressed={s.voted}
+          disabled={game.is_spectator}
           aria-label={s.voted ? `Voted for ${s.text} (${s.votes} votes) — click to remove your vote` : `Vote for ${s.text} (${s.votes} votes)`}
           onclick={() => vote(s.id)}
         >

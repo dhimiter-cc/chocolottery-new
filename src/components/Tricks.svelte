@@ -47,10 +47,12 @@
     </div>
     <p class="muted">{words.intro.replace('{odds}', String(TRICK_ODDS))}</p>
 
-    <form class="snack-form" onsubmit={suggest}>
-      <input type="text" bind:value={text} maxlength="100" placeholder={words.placeholder} autocomplete="off" />
-      <button type="submit" class="btn" disabled={loading || !text.trim()}>Add</button>
-    </form>
+    {#if !game.is_spectator}
+      <form class="snack-form" onsubmit={suggest}>
+        <input type="text" bind:value={text} maxlength="100" placeholder={words.placeholder} autocomplete="off" />
+        <button type="submit" class="btn" disabled={loading || !text.trim()}>Add</button>
+      </form>
+    {/if}
 
     <div class="snacks-list">
       {#if game.tricks.length === 0}
@@ -62,6 +64,7 @@
               type="button"
               class="snack-vote"
               aria-pressed={t.voted}
+              disabled={game.is_spectator}
               aria-label={t.voted ? `Voted for ${t.text} (${t.votes} votes) — click to remove your vote` : `Vote for ${t.text} (${t.votes} votes)`}
               onclick={() => vote(t.id)}
             >

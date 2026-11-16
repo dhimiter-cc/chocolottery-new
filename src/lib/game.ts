@@ -8,7 +8,7 @@ import { UNWRAP_STEPS } from './bars.js';
 import { doorFor, pickTrick } from './trickOrTreat.js';
 import type {
   Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack, AuditEntry, Suggestion,
-  PublicPlayer, PublicSuggestion, PublicChatMessage
+  PublicPlayer, PublicSpectator, PublicSuggestion, PublicChatMessage
 } from './types.js';
 
 // ── Paths ────────────────────────────────────────────────────────────────────
@@ -126,11 +126,17 @@ export function hostPlays(game: Game): boolean {
 }
 
 /** The players in the draw: everyone, minus the host when the host only
- *  oversees. Anything that counts the draw — the two needed to start, straws
- *  dealt, who's still unpicked, the win record — goes through this. */
+ *  oversees and minus spectators. Anything that counts the draw — the two
+ *  needed to start, straws dealt, who's still unpicked, the win record — goes
+ *  through this. */
 export function drawEntries(game: Game): [string, Player][] {
   const skip = hostPlays(game) ? null : game.creator_token;
-  return Object.entries(game.players).filter(([t]) => t !== skip);
+  return Object.entries(game.players).filter(([t, p]) => t !== skip && !p.spectator);
+}
+
+/** Watching only. The host can't be one: they run the round. */
+export function isSpectator(game: Game, token: string | null): boolean {
+  return !!(token && token !== game.creator_token && game.players[token]?.spectator);
 }
 
 export function isOnline(player: { last_seen: number }, now = Math.floor(Date.now() / 1000)): boolean {
@@ -439,6 +445,11 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
   }
   const revealed = game.state === 'reveal' || game.state === 'done';
   const inGame  = !!(myToken && game.players[myToken]);
+  const iAmSpectator = isSpectator(game, myToken);
+  const isHostMe = !!(myToken && game.creator_token === myToken);
+  const spectators: PublicSpectator[] = Object.entries(game.players)
+    .filter(([t, p]) => p.spectator && t !== game.creator_token)
+    .map(([token, p]) => ({ token, name: p.name, online: isOnline(p, now), is_me: token === myToken }));
 
   const publicSuggestions = (list: Suggestion[] | undefined): PublicSuggestion[] => (list ?? [])
     .map(s => ({
@@ -454,8 +465,9 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     .sort((a, b) => b.votes - a.votes || a.created_at - b.created_at);
   const suggestions = publicSuggestions(game.suggestions);
 
-  const chat: PublicChatMessage[] = inGame
-    ? (game.chat ?? []).map(m => ({
+  // The room's chat is for the people in it; spectators only watch.
+  const chat: PublicChatMessage[] = inGame && !iAmSpectator
+    ?(game.chat ?? []).map(m => ({
         id:   m.id,
         name: m.name,
         text: m.text,
@@ -490,7 +502,10 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     style:            gameStyle(game),
     host_plays:       hostPlays(game),
     host:             hostInfo(game, myToken, now),
-    draw_commit:      game.state === 'lobby' ? null : game.draw_commit ?? null,
+    spectators,
+    is_spectator:     iAmSpectator,
+    spectating:       iAmSpectator || (isHostMe && !hostPlays(game)),
+    draw_commit:     game.state === 'lobby' ? null : game.draw_commit ?? null,
     draw_salt:        revealed ? game.draw_salt ?? null : null,
   };
 }

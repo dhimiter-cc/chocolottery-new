@@ -52,9 +52,10 @@
   let joined = $state(alreadyJoined);
   let playerName = $state(presetName || rememberedName);
   let joinError = $state('');
-  // Skip the name form entirely when a remembered name exists — join right away.
-  let autoJoining = $state(!alreadyJoined && !!rememberedName);
-  let joinLoading = $state(autoJoining);
+  // Opt-in on the join form: watch the round instead of playing. Never
+  // remembered, so every new round starts from "play".
+  let joinAsSpectator = $state(false);
+  let joinLoading = $state(false);
   let showCupboard = $state(false);
   let chatOpen = $state(false);
   let copied = $state(false);
@@ -87,17 +88,15 @@
     joinLoading = true;
     joinError = '';
     try {
-      const { ok, data } = await post('/api/join', { code, name });
+      const { ok, data } = await post('/api/join', { code, name, spectator: joinAsSpectator });
       if (ok) {
         joined = true;
         localStorage.setItem(REMEMBERED_NAME_KEY, name);
       } else {
         joinError = data?.error || 'Failed to join';
-        autoJoining = false;
       }
     } catch {
       joinError = 'Network error';
-      autoJoining = false;
     } finally {
       joinLoading = false;
     }
@@ -109,11 +108,6 @@
     if (!name) return;
     join(name);
   }
-
-  // Join immediately with the remembered name, without showing the form.
-  $effect(() => {
-    if (autoJoining) join(playerName.trim());
-  });
 
   async function handleStart() {
     if (!gameState) return;
@@ -217,6 +211,9 @@
   let bars = $derived(style === 'bars');
   let isHost = $derived(gameState?.is_host ?? false);
   let inGame = $derived(gameState?.in_game ?? false);
+  let isSpectator = $derived(gameState?.is_spectator ?? false);
+  // Chat is for the people in the round; spectators only watch.
+  let canChat = $derived(inGame && !isSpectator);
   let showRestartBtn = $derived(isHost && inGame && phase !== 'lobby');
   let actionError = $state('');
 
@@ -308,7 +305,9 @@
     if (!gameState) { phaseDetailText = 'Waiting for the brave to gather…'; return; }
     const onlineCount = gameState.players.filter(p => p.online).length;
     if (phase === 'lobby') {
-      if (!isHost) {
+      if (isSpectator) {
+        phaseDetailText = `${onlineCount} in the draw. Waiting for ${gameState.host?.name ?? 'the host'} to start.`;
+      } else if (!isHost) {
         phaseDetailText = onlineCount < 2
           ? `${onlineCount} here. Waiting for more.`
           : needsTrick
@@ -325,7 +324,7 @@
       const pickedCount = gameState.players.filter(p => p.picked).length;
       const remaining = gameState.players.length - pickedCount;
       if (remaining === 0) phaseDetailText = '🥁 The drumroll, please…';
-      else if (hostOnly) phaseDetailText = `${remaining} still to pick.`;
+      else if (watching) phaseDetailText = `${remaining} still to pick.`;
       else if (gameState.my_straw == null) phaseDetailText = '';
       else phaseDetailText = `Locked in. Waiting for ${remaining} more brave soul${remaining === 1 ? '' : 's'}.`;
     } else if (phase === 'unwrapping') {
@@ -343,8 +342,8 @@
 
   let phaseDetail = $derived(phaseDetailText);
 
-  // This screen is the host's and the host isn't in the draw.
-  let hostOnly = $derived(isHost && !(gameState?.host_plays ?? true));
+  // This screen has nothing to pick: a spectator's, or a host who isn't in the draw.
+  let watching = $derived(gameState?.spectating ?? false);
 
   let showGiveCard = $derived((phase === 'reveal' || phase === 'done') && (isHost || !!gameState?.prize_given_id));
 
@@ -410,20 +409,22 @@
     <div class="modal-card">
       <h2>Join the round</h2>
       <p class="muted">Game <span class="stamp">{code}</span></p>
-      {#if autoJoining}
-        <p class="muted" style="margin-top:18px;">Joining as <strong>{playerName}</strong>…</p>
+      <form onsubmit={handleJoin} style="margin-top:18px;">
+        <label>Display name
+          <input type="text" bind:value={playerName} maxlength="30" required placeholder="your name" autofocus>
+        </label>
+        <label class="join-spectate">
+          <input type="checkbox" bind:checked={joinAsSpectator} />
+          <span>
+            Just watching
+            <small>See the round on your screen without taking part: no straw or bar, no chat, no votes.</small>
+          </span>
+        </label>
+        <button type="submit" class="btn btn-primary" disabled={joinLoading || !playerName.trim()}>
+          {joinLoading ? 'Joining…' : joinAsSpectator ? 'Watch' : 'Join'}
+        </button>
         {#if joinError}<p class="error">{joinError}</p>{/if}
-      {:else}
-        <form onsubmit={handleJoin} style="margin-top:18px;">
-          <label>Display name
-            <input type="text" bind:value={playerName} maxlength="30" required placeholder="your name" autofocus>
-          </label>
-          <button type="submit" class="btn btn-primary" disabled={joinLoading || !playerName.trim()}>
-            {joinLoading ? 'Joining…' : 'Join'}
-          </button>
-          {#if joinError}<p class="error">{joinError}</p>{/if}
-        </form>
-      {/if}
+      </form>
     </div>
   </div>
 {/if}
@@ -477,7 +478,7 @@
     {#if gameState}
       <!-- In the lobby the votes live inside the canvas, so the snack column goes. -->
       {@const votesInStage = phase === 'lobby' && !eventLayout}
-      <div class="game-grid" class:stage-wide={bars && phase !== 'lobby'} class:votes-in-stage={votesInStage}>
+      <div class="game-grid" class:stage-wide={bars && phase !== 'lobby'} class:votes-in-stage={votesInStage} class:no-chat={!canChat}>
         <!-- Snacks: left column on desktop. Dimmed during picking so
              attention goes to the straws, not vote-chasing or cupboard
              browsing — chat stays at full prominence next to it. -->
@@ -489,7 +490,7 @@
         {/if}
 
         <!-- Chat: right column on desktop, bottom drawer on mobile -->
-        <section class="panel chat-panel" class:drawer-open={chatOpen} hidden={!inGame || undefined}>
+        <section class="panel chat-panel" class:drawer-open={chatOpen} hidden={!canChat || undefined}>
           <Chat game={gameState} {code} onClose={closeChatDrawer} onRefresh={() => conn.refresh()} />
         </section>
 
@@ -503,6 +504,7 @@
                 </button>
               {/if}
               <span class="phase-pill {phase}">{phase.charAt(0).toUpperCase() + phase.slice(1)}</span>
+              {#if isSpectator}<span class="watch-pill" title="You're watching this round, not in it">👀 Watching</span>{/if}
               <span class="phase-detail">{phaseDetail}</span>
               {#if lobbyTimeLeft != null}
                 <span class="pick-timer" class:urgent={lobbyTimeLeft <= 10}>
@@ -684,7 +686,7 @@
   <!-- Mobile chat backdrop -->
   <div id="chat-backdrop" class="chat-backdrop" hidden={!chatOpen || undefined} onclick={closeChatDrawer}></div>
   <!-- Mobile chat FAB -->
-  {#if inGame}
+  {#if canChat}
     <button
       class="chat-fab"
       aria-label="Open chat"

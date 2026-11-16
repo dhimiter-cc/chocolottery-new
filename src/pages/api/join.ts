@@ -5,6 +5,7 @@ import {
   isOnline,
   getPlayerToken,
   setPlayerCookie,
+  isSpectator,
 } from '../../lib/game.js';
 import { pickCostume } from '../../lib/costumes.js';
 
@@ -27,30 +28,45 @@ export const POST: APIRoute = async ({ request }) => {
   }
   if (name.length > 30) name = name.slice(0, 30);
 
+  // Opt-in: joins to watch the round without being in it. Players are the default.
+  const wantsSpectator = body.spectator === true;
+
   const existingToken = getPlayerToken(request);
 
-  let resultData: { token: string; name: string; code: string } | null = null;
+  let resultData: { token: string; name: string; code: string; spectator: boolean } | null = null;
 
   const outcome = await withGame(code, (game) => {
+    // The first one in is the host, who runs the round and can't just watch.
+    const spectator = wantsSpectator && !!game.creator_token;
+
     if (game.state !== 'lobby') {
-      // Allow rejoin if already a player (handles reload during play)
+      // Allow rejoin if already in the game (handles reload during play)
       if (existingToken && game.players[existingToken]) {
         game.players[existingToken].last_seen = Math.floor(Date.now() / 1000);
         resultData = {
           token: existingToken,
           name: game.players[existingToken].name,
           code: game.code,
+          spectator: isSpectator(game, existingToken),
         };
         return { game, result: resultData };
       }
-      return { result: { error: 'Game already started', code: 409 }, noWrite: true };
+      // A round under way can't take a new player, but anyone can come and watch.
+      if (!spectator) {
+        return { result: { error: 'Game already started', code: 409 }, noWrite: true };
+      }
     }
 
     // Existing token already in this game — update name + last_seen
     if (existingToken && game.players[existingToken]) {
-      game.players[existingToken].last_seen = Math.floor(Date.now() / 1000);
-      game.players[existingToken].name = name;
-      resultData = { token: existingToken, name, code: game.code };
+      const me = game.players[existingToken];
+      me.last_seen = Math.floor(Date.now() / 1000);
+      me.name = name;
+      if (existingToken !== game.creator_token) {
+        if (spectator) me.spectator = true;
+        else delete me.spectator;
+      }
+      resultData = { token: existingToken, name, code: game.code, spectator: isSpectator(game, existingToken) };
       return { game, result: resultData };
     }
 
@@ -70,11 +86,15 @@ export const POST: APIRoute = async ({ request }) => {
     if (existingEntry) {
       const [existingToken, existingPlayer] = existingEntry;
       const now = Math.floor(Date.now() / 1000);
-      const reclaimable = existingToken !== game.creator_token && !isOnline(existingPlayer, now);
+      // Only their own seat: a watcher can't take over a player's, or the reverse.
+      const reclaimable =
+        existingToken !== game.creator_token &&
+        !isOnline(existingPlayer, now) &&
+        !!existingPlayer.spectator === spectator;
       if (reclaimable) {
         existingPlayer.last_seen = now;
         existingPlayer.name = name;
-        resultData = { token: existingToken, name, code: game.code };
+        resultData = { token: existingToken, name, code: game.code, spectator };
         return { game, result: resultData };
       }
       const taken = new Set(Object.values(game.players).map((p) => p.name.toLowerCase()));
@@ -91,11 +111,12 @@ export const POST: APIRoute = async ({ request }) => {
       last_seen: Math.floor(Date.now() / 1000),
       straw_index: null,
       costume: pickCostume(Object.values(game.players).map((p) => p.costume)),
+      ...(spectator ? { spectator: true } : {}),
     };
     if (!game.creator_token) {
       game.creator_token = token;
     }
-    resultData = { token, name, code: game.code };
+    resultData = { token, name, code: game.code, spectator };
     return { game, result: resultData };
   });
 

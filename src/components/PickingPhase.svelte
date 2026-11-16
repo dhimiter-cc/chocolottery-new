@@ -27,8 +27,9 @@
   let remaining = $derived(total - pickedCount);
   let allPicked = $derived(remaining === 0);
 
-  // The host's screen when the host only oversees: same cup, nothing to draw.
-  let spectating = $derived(game.is_host && !game.host_plays);
+  // A spectator's screen, or the host's when the host only oversees: same cup,
+  // nothing to draw.
+  let spectating = $derived(game.spectating);
 
   let phaseText = $derived.by(() => {
     if (allPicked) return '🥁 The drumroll, please…';
