@@ -3666,6 +3666,88 @@
           "opened_at": 1794578747421
         }
       ]
+    },
+    {
+      "name": "Sofia",
+      "game_code": "CHOC-0436",
+      "timestamp": 1794917297,
+      "month": "2026-11",
+      "participants": 7,
+      "player_names": [
+        "Burak",
+        "Ali OG",
+        "Kayla",
+        "Kadir",
+        "Hamza",
+        "André",
+        "Sofia"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "357cfed6f12ba75f0b3a9fad83f6a74fdfcd10c02a1e3d970956e57746ebdd72",
+        "salt": "3ebe1b6b5ad5bec5cd7594731819bb67",
+        "straws": [
+          100,
+          43,
+          65,
+          57,
+          43,
+          24,
+          38
+        ],
+        "drawn_at": 1794917283058
+      },
+      "audit": [
+        {
+          "name": "Kadir",
+          "bar": 4,
+          "value": 43,
+          "picked_at": 1794917288256,
+          "opened_at": 1794917294198
+        },
+        {
+          "name": "André",
+          "bar": 6,
+          "value": 38,
+          "picked_at": 1794917291683,
+          "opened_at": 1794917295413
+        },
+        {
+          "name": "Ali OG",
+          "bar": 2,
+          "value": 65,
+          "picked_at": 1794917288352,
+          "opened_at": 1794917295515
+        },
+        {
+          "name": "Hamza",
+          "bar": 5,
+          "value": 24,
+          "picked_at": 1794917290128,
+          "opened_at": 1794917295833
+        },
+        {
+          "name": "Burak",
+          "bar": 1,
+          "value": 43,
+          "picked_at": 1794917288502,
+          "opened_at": 1794917296346
+        },
+        {
+          "name": "Kayla",
+          "bar": 3,
+          "value": 57,
+          "picked_at": 1794917290029,
+          "opened_at": 1794917296934
+        },
+        {
+          "name": "Sofia",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1794917291683,
+          "opened_at": 1794917297767
+        }
+      ]
     }
   ]
 }
