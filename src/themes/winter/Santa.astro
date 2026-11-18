@@ -1,0 +1,18 @@
+---
+// Santa, from art/santa.svg (CC0, see art/CREDITS.md). The drawing is 144 flat
+// paths with no groups, so the glove is picked out by index and put in its own
+// group: it tilts from the wrist (styles/themes/winter.css, .wt-glove) while the
+// sleeve and the rest of him stay put. Tilting the whole arm tore it apart, since
+// outlines and fills for it are spread over many paths.
+import raw from './art/santa.svg?raw';
+
+/** Paths 3, 10, 20, 21, 111 and 116: the green glove and its outline. */
+const GLOVE = new Set([3, 10, 20, 21, 111, 116]);
+const paths = raw.match(/<path\b[^>]*?\/>/gs) ?? [];
+const body = paths.filter((_, i) => !GLOVE.has(i)).join('');
+const glove = paths.filter((_, i) => GLOVE.has(i)).join('');
+---
+<svg class="wt-santa-art" viewBox="0 0 267.76 506.378" aria-hidden="true" focusable="false">
+  <g set:html={body} />
+  <g class="wt-glove" set:html={glove} />
+</svg>

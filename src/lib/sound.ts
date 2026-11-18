@@ -10,46 +10,22 @@
 // The cheerful ones are all in C major, so a fanfare, a "ta-da" and a chime that
 // overlap during a reveal land on the same chord.
 
-let audioCtx: AudioContext | null = null;
+import { getAudio, ready, isMuted, setMuted, useAudioContext, onContextChange } from './soundCore.js';
+import * as classic from './soundClassic.js';
 
-// Mute is remembered per browser. Every sound goes through getAudio(), so one
-// flag silences all of them; muting also suspends the context so sounds that
-// are already scheduled stop at once.
-const MUTE_KEY = 'chocolottery-muted';
-let muted = false;
-try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch { /* server render or storage blocked */ }
+export { isMuted, setMuted, useAudioContext };
 
-export function isMuted(): boolean {
-  return muted;
-}
-
-export function setMuted(value: boolean) {
-  muted = value;
-  try { localStorage.setItem(MUTE_KEY, value ? '1' : '0'); } catch { /* storage blocked: mute lasts for this visit */ }
-  if (audioCtx) void (value ? audioCtx.suspend() : audioCtx.resume());
-}
-
-function getAudio(): AudioContext | null {
-  if (muted) return null;
-  if (audioCtx) return audioCtx;
-  try { audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)(); }
-  catch { audioCtx = null; }
-  return audioCtx;
-}
-
-/** Swap in another context, e.g. an OfflineAudioContext to render a sound to a
- *  buffer (the /dev/sounds page uses it to check levels). Pass null to go back
- *  to the live one. */
-export function useAudioContext(ctx: BaseAudioContext | null) {
-  audioCtx = ctx as unknown as AudioContext | null;
-  bus = null;
-  busCtx = null;
-}
-
-/** Browsers start the context suspended until a gesture; an offline one is
- *  rendered by startRendering() and can't be resumed. */
-function ready(ctx: AudioContext) {
-  if (ctx.state === 'suspended' && !('startRendering' in ctx)) void ctx.resume();
+// ── Packs ─────────────────────────────────────────────────────────────────
+// This file is the "cheerful" pack. The original sounds live in soundClassic.ts
+// and the admin dashboard picks between them: the server writes the choice to
+// <html data-sound-pack>, and the effects that differ between packs hand over
+// at the top of their function. Halloween's creaks and the paper and foil
+// tearing are the same in both.
+export type SoundPack = 'cheerful' | 'classic';
+let forced: SoundPack | null = null;
+function useClassic(): boolean {
+  if (forced) return forced === 'classic';
+  return typeof document !== 'undefined' && document.documentElement.dataset.soundPack === 'classic';
 }
 
 /** Run a sound against the shared context, starting a hair from now. */
@@ -69,6 +45,7 @@ function play(fn: (ctx: AudioContext, t0: number) => void) {
 interface Bus { wet: GainNode; dry: GainNode }
 let bus: Bus | null = null;
 let busCtx: AudioContext | null = null;
+onContextChange(() => { bus = null; busCtx = null; });
 
 /** A room made of decaying stereo noise: no file to load. */
 function impulse(ctx: AudioContext, seconds: number): AudioBuffer {
@@ -369,6 +346,7 @@ export function tone(
 // ── Round start and picking ───────────────────────────────────────────────
 /** The 3-2-1 beeps and the GO: step 0, 1, 2 climb C, E, G on a mallet; 3 is GO. */
 export function playCountdownBeep(step: number) {
+  if (useClassic()) return classic.playCountdownBeep(step);
   play((ctx, t) => {
     if (step < 3) {
       mallet(ctx, t, [C5, E5, G5][step], 0.26, 0.4);
@@ -383,6 +361,7 @@ export function playCountdownBeep(step: number) {
 
 /** Taking a straw or a bar: a quick, happy pop. */
 export function playPick() {
+  if (useClassic()) return classic.playPick();
   play((ctx, t) => {
     mallet(ctx, t, G5, 0.22, 0.28);
     mallet(ctx, t + 0.07, C6, 0.2, 0.4);
@@ -392,6 +371,7 @@ export function playPick() {
 // ── The build to the reveal ───────────────────────────────────────────────
 /** A snare roll that speeds up and swells, landing on a crash. */
 export function playDrumroll(durationMs: number) {
+  if (useClassic()) return classic.playDrumroll(durationMs);
   play((ctx, t) => {
     const dur = durationMs / 1000;
     let at = 0;
@@ -410,6 +390,7 @@ export function playDrumroll(durationMs: number) {
 
 /** A riser: a sweeping noise wash under a climbing tone, cut off clean at the top. */
 export function playRisingRumble(durationMs = 3000) {
+  if (useClassic()) return classic.playRisingRumble();
   play((ctx, t) => {
     const dur = durationMs / 1000;
     const out = getBus(ctx);
@@ -450,12 +431,14 @@ export function playRisingRumble(durationMs = 3000) {
 /** The default build to a bar reveal: roll and riser together, as long as the
  *  stage waits. A theme can swap this for its own (see theme.sounds). */
 export function playRevealBuild(durationMs: number) {
+  if (useClassic()) return classic.playRevealBuild(durationMs);
   playDrumroll(durationMs);
   playRisingRumble(durationMs);
 }
 
 // Ascending bell sparkle for the moment things light up.
 export function playSparkleChime() {
+  if (useClassic()) return classic.playSparkleChime();
   play((ctx, t) => {
     [C6, E6, G6, C7, E6 * 2].forEach((f, i) => bell(ctx, t + i * 0.07, f, 0.07, 1.1, i % 2 ? 0.35 : -0.35));
   });
@@ -465,6 +448,7 @@ export function playSparkleChime() {
 /** A three-note brass pickup into a big held C major chord, with a crash and a
  *  bell on top. Says "somebody won!" */
 export function playWinFanfare() {
+  if (useClassic()) return classic.playWinFanfare();
   play((ctx, t) => {
     [G4, C5, E5].forEach((f, i) => brass(ctx, t + i * 0.12, f, 0.11, 0.1, { open: 4, close: 3 }));
     const hit = t + 0.4;
@@ -478,6 +462,7 @@ export function playWinFanfare() {
 
 /** "Ta-da!": a quick two-note lift into a sparkling chord. */
 export function playTada() {
+  if (useClassic()) return classic.playTada();
   play((ctx, t) => {
     mallet(ctx, t, G5, 0.2, 0.3);
     mallet(ctx, t + 0.11, C6, 0.2, 0.3);
@@ -494,6 +479,7 @@ export function playTada() {
 /** A party popper: a crack and a thump, then confetti hissing down while a
  *  handful of little bells scatter across the room. Cheerful, not squeaky. */
 export function playPartyPopper() {
+  if (useClassic()) return classic.playPartyPopper();
   play((ctx, t) => {
     // The crack.
     const crack = ctx.createBufferSource();
@@ -555,6 +541,7 @@ export function playPartyPopper() {
 /** A rising crowd "wooo": a breathy wash through vowel formants, with a few
  *  voices whooping over the top. */
 export function playCheer(durationMs = 2200) {
+  if (useClassic()) return classic.playCheer(durationMs);
   play((ctx, t) => {
     const dur = durationMs / 1000;
     const src = ctx.createBufferSource();
@@ -611,6 +598,7 @@ function clapAt(ctx: AudioContext, t: number, vol: number, pan: number) {
 /** A whole crowd clapping: many overlapping claps, spread across the room, that
  *  swell in and fade out. */
 export function playApplause(durationMs = 2600) {
+  if (useClassic()) return classic.playApplause(durationMs);
   play((ctx, t0) => {
     const dur = durationMs / 1000;
     let t = t0;
@@ -627,6 +615,7 @@ export function playApplause(durationMs = 2600) {
 // ── The loss ──────────────────────────────────────────────────────────────
 /** Wah-wah-wah-waaah: a muted brass slide down, played for laughs, not for blood. */
 export function playLoseTrombone() {
+  if (useClassic()) return classic.playLoseTrombone();
   play((ctx, t) => {
     const wah = { open: 3, close: 1.1 };
     brass(ctx, t, 233.08, 0.27, 0.13, wah);
@@ -769,6 +758,41 @@ export function playSpookyStinger() {
   tone(110, 1.4, 'sine', 0.14, 0.05);
 }
 
+// ── Winter ────────────────────────────────────────────────────────────────
+/** Sleigh bells: a strap of little bells shaken in four bursts, bright and close,
+ *  with a soft bell chord under the last shake. Plays as the winning bar lights up
+ *  on a theme that asks for it. */
+export function playSleighBells() {
+  play((ctx, t0) => {
+    // Little bells are bright and inharmonic: random pitches between 2.6 and 5.4 kHz.
+    const shakes = [0, 0.26, 0.52, 0.86];
+    shakes.forEach((at, k) => {
+      const grains = k === shakes.length - 1 ? 14 : 9;
+      for (let i = 0; i < grains; i++) {
+        const t = t0 + at + Math.random() * 0.07;
+        const f = 2600 + Math.random() * 2800;
+        bell(ctx, t, f, 0.028 + Math.random() * 0.03, 0.22 + Math.random() * 0.18, (Math.random() - 0.5) * 1.2);
+      }
+    });
+    // A warm chord under the last shake, so it lands rather than stops.
+    [C6, E6, G6].forEach((f, i) => bell(ctx, t0 + 0.86 + i * 0.03, f, 0.05, 1.3, (i - 1) * 0.3));
+  });
+}
+
+/** A short taste of a pack for the admin dashboard, whichever one is live: the
+ *  go, a chime, the fanfare with confetti, then a ta-da. */
+export function playPackSample(pack: SoundPack) {
+  const at = (ms: number, fn: () => void) => setTimeout(() => {
+    const before = forced;
+    forced = pack;
+    try { fn(); } finally { forced = before; }
+  }, ms);
+  at(0, () => playCountdownBeep(3));
+  at(900, () => playSparkleChime());
+  at(1500, () => { playWinFanfare(); playPartyPopper(); playCheer(1800); });
+  at(3000, () => playTada());
+}
+
 // Bundle handed to the reveal components via the `sounds` prop.
 export const sounds = {
   playDrumroll,
@@ -785,4 +809,5 @@ export const sounds = {
   playKnock,
   playCreak,
   playSpookyStinger,
+  playSleighBells,
 };

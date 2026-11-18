@@ -2,6 +2,7 @@
   import type { GameStateResponse } from '../lib/types.js';
   import { currentTheme } from '../themes/client.js';
   import type { SoundName } from '../themes/types.js';
+  import RevealCameo from './RevealCameo.svelte';
 
   interface Sounds {
     playDrumroll: (ms: number) => void;
@@ -22,6 +23,7 @@
     onFireTears,
     onFireSparkles,
     onFireFireworks,
+    onFireDrop,
   }: {
     game: GameStateResponse;
     sounds: Sounds;
@@ -29,6 +31,8 @@
     onFireTears: () => void;
     onFireSparkles: () => void;
     onFireFireworks: (bursts?: number) => void;
+    /** Confetti from a point, for the theme's cameo. */
+    onFireDrop?: (x: number, y: number) => void;
   } = $props();
 
   // The active event theme swaps copy and adds sounds, never structure.
@@ -154,6 +158,11 @@
 <!-- Flash overlay -->
 {#if flashing}
   <div class="cup-stage flash" style="position:absolute;inset:0;pointer-events:none;z-index:2;"></div>
+{/if}
+
+<!-- The theme's guest at the reveal (Santa, at Winter) -->
+{#if theme.cameo && winnerPlayer && revealed}
+  <RevealCameo cameo={theme.cameo} active={showWinner} winnerName={winnerPlayer.name} {iWon} {onFireDrop} />
 {/if}
 
 <!-- Winner overlay -->

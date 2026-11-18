@@ -1,24 +1,47 @@
 /* === Theme: Winter ==========================================================
-   Scoped to html[data-theme='winter']. A small proof that a theme is just a file:
-   an icy glow on the wordmark, a pale light in the corner, and snow (Decor.astro). */
+   Scoped to html[data-theme='winter'], which the server writes from the calendar
+   (themes/winter.ts, adjustable in /admin) or ?theme=winter. The wrapper stays
+   aubergine and gold; the new colours are a cold ice blue, a little candy red,
+   and warm window light. Copy, confetti and bar print live in themes/winter.ts;
+   the ambient markup in themes/winter/Decor.astro; the art in themes/winter/art
+   (CC0, see CREDITS.md). Gold stays the winner's colour. */
+
+html[data-theme='winter'] {
+  --wt-ice: 190, 225, 255;
+  --wt-red: #C62E3A;
+  --wt-cream: #FFF8E7;
+  /* A fluffy drift of snow: one soft mass with a cloud-like top, white where the light
+     hits and pale blue low down and in the creases between puffs, fading into whatever
+     it lies on. */
+  --wt-cap: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 34'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23FFFFFF'/%3E%3Cstop offset='0.45' stop-color='%23F1F6FF'/%3E%3Cstop offset='0.78' stop-color='%23D9E5F7'/%3E%3Cstop offset='1' stop-color='%23D9E5F7' stop-opacity='0'/%3E%3C/linearGradient%3E%3CradialGradient id='s'%3E%3Cstop offset='0' stop-color='%239DB4DD' stop-opacity='0.7'/%3E%3Cstop offset='1' stop-color='%239DB4DD' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M0 22 A13.0 11.8 0 0 1 26.0 22 C28.1 9.7 49.9 9.7 52.0 22 C54.6 7.2 81.4 7.2 84.0 22 A13.0 4.0 0 0 1 110.0 22 C111.0 15.9 121.0 15.9 122.0 22 C125.2 17.9 158.8 17.9 162.0 22 A6.0 3.0 0 0 1 174.0 22 A27.0 17.0 0 0 1 228.0 22 C230.6 10.3 257.4 10.3 260.0 22 A6.0 4.0 0 0 1 272.0 22 A27.0 12.3 0 0 1 326.0 22 C328.6 16.7 355.4 16.7 358.0 22 A27.0 3.0 0 0 1 412.0 22 C413.3 16.3 426.7 16.3 428.0 22 A20.0 3.6 0 0 1 468.0 22 C469.6 13.9 486.4 13.9 488.0 22 C490.1 17.9 511.9 17.9 514.0 22 A6.0 4.1 0 0 1 526.0 22 A8.0 5.3 0 0 1 542.0 22 C543.3 15.0 556.7 15.0 558.0 22 A8.0 3.3 0 0 1 574.0 22 C576.6 9.4 603.4 9.4 606.0 22 A17.0 16.7 0 0 1 640.0 22 L640 34 L0 34 Z' fill='url(%23b)'/%3E%3Cellipse cx='26.0' cy='23' rx='5.3' ry='4.8' fill='url(%23s)'/%3E%3Cellipse cx='52.0' cy='23' rx='5.9' ry='5.2' fill='url(%23s)'/%3E%3Cellipse cx='84.0' cy='23' rx='5.3' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='110.0' cy='23' rx='4.1' ry='3.6' fill='url(%23s)'/%3E%3Cellipse cx='122.0' cy='23' rx='6.6' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='162.0' cy='23' rx='4.1' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='174.0' cy='23' rx='7.0' ry='6.0' fill='url(%23s)'/%3E%3Cellipse cx='228.0' cy='23' rx='5.9' ry='4.7' fill='url(%23s)'/%3E%3Cellipse cx='260.0' cy='23' rx='4.1' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='272.0' cy='23' rx='7.0' ry='5.6' fill='url(%23s)'/%3E%3Cellipse cx='326.0' cy='23' rx='5.9' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='358.0' cy='23' rx='7.0' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='412.0' cy='23' rx='4.4' ry='3.6' fill='url(%23s)'/%3E%3Cellipse cx='428.0' cy='23' rx='6.6' ry='3.4' fill='url(%23s)'/%3E%3Cellipse cx='468.0' cy='23' rx='4.8' ry='4.0' fill='url(%23s)'/%3E%3Cellipse cx='488.0' cy='23' rx='5.3' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='514.0' cy='23' rx='4.1' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='526.0' cy='23' rx='4.4' ry='3.8' fill='url(%23s)'/%3E%3Cellipse cx='542.0' cy='23' rx='4.4' ry='3.8' fill='url(%23s)'/%3E%3Cellipse cx='558.0' cy='23' rx='4.4' ry='3.3' fill='url(%23s)'/%3E%3Cellipse cx='574.0' cy='23' rx='5.9' ry='4.8' fill='url(%23s)'/%3E%3Cellipse cx='606.0' cy='23' rx='6.1' ry='6.0' fill='url(%23s)'/%3E%3Cpath d='M5.2 15.5 A8.3 9.4 0 0 1 16.1 11.1' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M31.2 17.0 A8.3 7.3 0 0 1 42.1 13.6' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M58.4 16.0 A10.2 8.7 0 0 1 71.8 11.9' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M89.2 19.8 A8.3 3.2 0 0 1 100.1 18.3' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M130.0 20.4 A12.8 2.4 0 0 1 146.8 19.2' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M184.8 12.6 A17.3 13.6 0 0 1 207.5 6.4' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M234.4 17.2 A10.2 7.0 0 0 1 247.8 14.0' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M282.8 15.2 A17.3 9.9 0 0 1 305.5 10.7' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M332.4 19.8 A10.2 3.1 0 0 1 345.8 18.4' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M368.8 20.4 A17.3 2.4 0 0 1 391.5 19.2' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M436.0 20.0 A12.8 2.9 0 0 1 452.8 18.7' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M472.0 18.7 A6.4 4.8 0 0 1 480.4 16.5' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M493.2 20.4 A8.3 2.4 0 0 1 504.1 19.2' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M580.4 16.9 A10.2 7.5 0 0 1 593.8 13.4' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M612.8 12.8 A10.9 13.4 0 0 1 627.1 6.6' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Ccircle cx='121' cy='15' r='1.0' fill='%23fff'/%3E%3Ccircle cx='132' cy='13' r='1.0' fill='%23fff'/%3E%3Ccircle cx='307' cy='13' r='0.9' fill='%23fff'/%3E%3Ccircle cx='166' cy='16' r='1.0' fill='%23fff'/%3E%3Ccircle cx='429' cy='17' r='1.2' fill='%23fff'/%3E%3Ccircle cx='597' cy='11' r='0.9' fill='%23fff'/%3E%3Ccircle cx='467' cy='14' r='0.9' fill='%23fff'/%3E%3Ccircle cx='431' cy='18' r='1.2' fill='%23fff'/%3E%3Ccircle cx='143' cy='11' r='0.8' fill='%23fff'/%3E%3Ccircle cx='617' cy='10' r='1.2' fill='%23fff'/%3E%3Ccircle cx='344' cy='15' r='1.1' fill='%23fff'/%3E%3Ccircle cx='523' cy='15' r='1.0' fill='%23fff'/%3E%3C/svg%3E");
+  /* The same, smaller and bluer, behind it, on a different length so they never line up. */
+  --wt-cap-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 470 34'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23E6EFFC'/%3E%3Cstop offset='0.45' stop-color='%23C5D5EE'/%3E%3Cstop offset='0.78' stop-color='%23A5BBE0'/%3E%3Cstop offset='1' stop-color='%23A5BBE0' stop-opacity='0'/%3E%3C/linearGradient%3E%3CradialGradient id='s'%3E%3Cstop offset='0' stop-color='%239DB4DD' stop-opacity='0.7'/%3E%3Cstop offset='1' stop-color='%239DB4DD' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M0 24 C1.1 19.3 12.9 19.3 14.0 24 C15.8 14.3 34.2 14.3 36.0 24 C36.6 19.9 43.4 19.9 44.0 24 C44.6 18.4 51.4 18.4 52.0 24 A9.0 4.0 0 0 1 70.0 24 C70.9 18.0 80.1 18.0 81.0 24 A7.0 7.2 0 0 1 95.0 24 A11.0 5.3 0 0 1 117.0 24 C118.8 10.4 137.2 10.4 139.0 24 C139.9 18.4 149.1 18.4 150.0 24 C151.8 19.9 170.2 19.9 172.0 24 C173.8 15.0 192.2 15.0 194.0 24 C195.1 16.8 206.9 16.8 208.0 24 A5.5 3.2 0 0 1 219.0 24 A9.0 5.2 0 0 1 237.0 24 C238.8 16.7 257.2 16.7 259.0 24 C259.6 19.9 266.4 19.9 267.0 24 A5.5 4.7 0 0 1 278.0 24 A4.0 3.0 0 0 1 286.0 24 C287.1 19.8 298.9 19.8 300.0 24 C300.6 19.9 307.4 19.9 308.0 24 C309.4 11.7 324.6 11.7 326.0 24 A11.0 9.1 0 0 1 348.0 24 A5.5 3.2 0 0 1 359.0 24 C360.4 13.1 375.6 13.1 377.0 24 C377.9 16.7 387.1 16.7 388.0 24 C388.9 18.3 398.1 18.3 399.0 24 C400.8 19.9 419.2 19.9 421.0 24 A5.5 3.5 0 0 1 432.0 24 C432.9 19.9 442.1 19.9 443.0 24 A13.5 6.8 0 0 1 470.0 24 L470 34 L0 34 Z' fill='url(%23b)'/%3E%3Cellipse cx='14.0' cy='25' rx='5.0' ry='4.3' fill='url(%23s)'/%3E%3Cellipse cx='36.0' cy='25' rx='3.7' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='44.0' cy='25' rx='3.7' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='52.0' cy='25' rx='4.6' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='70.0' cy='25' rx='4.0' ry='3.6' fill='url(%23s)'/%3E%3Cellipse cx='81.0' cy='25' rx='4.3' ry='4.3' fill='url(%23s)'/%3E%3Cellipse cx='95.0' cy='25' rx='5.0' ry='3.8' fill='url(%23s)'/%3E%3Cellipse cx='117.0' cy='25' rx='5.0' ry='5.0' fill='url(%23s)'/%3E%3Cellipse cx='139.0' cy='25' rx='4.0' ry='3.5' fill='url(%23s)'/%3E%3Cellipse cx='150.0' cy='25' rx='5.0' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='172.0' cy='25' rx='5.0' ry='4.2' fill='url(%23s)'/%3E%3Cellipse cx='194.0' cy='25' rx='4.3' ry='3.8' fill='url(%23s)'/%3E%3Cellipse cx='208.0' cy='25' rx='4.0' ry='3.3' fill='url(%23s)'/%3E%3Cellipse cx='219.0' cy='25' rx='4.6' ry='3.8' fill='url(%23s)'/%3E%3Cellipse cx='237.0' cy='25' rx='5.0' ry='3.9' fill='url(%23s)'/%3E%3Cellipse cx='259.0' cy='25' rx='3.7' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='267.0' cy='25' rx='4.0' ry='3.7' fill='url(%23s)'/%3E%3Cellipse cx='278.0' cy='25' rx='3.7' ry='3.3' fill='url(%23s)'/%3E%3Cellipse cx='286.0' cy='25' rx='4.3' ry='3.3' fill='url(%23s)'/%3E%3Cellipse cx='300.0' cy='25' rx='3.7' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='308.0' cy='25' rx='4.6' ry='4.8' fill='url(%23s)'/%3E%3Cellipse cx='326.0' cy='25' rx='5.0' ry='4.8' fill='url(%23s)'/%3E%3Cellipse cx='348.0' cy='25' rx='4.0' ry='3.3' fill='url(%23s)'/%3E%3Cellipse cx='359.0' cy='25' rx='4.6' ry='4.5' fill='url(%23s)'/%3E%3Cellipse cx='377.0' cy='25' rx='4.0' ry='3.8' fill='url(%23s)'/%3E%3Cellipse cx='388.0' cy='25' rx='4.0' ry='3.6' fill='url(%23s)'/%3E%3Cellipse cx='399.0' cy='25' rx='5.0' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='421.0' cy='25' rx='4.0' ry='3.4' fill='url(%23s)'/%3E%3Cellipse cx='432.0' cy='25' rx='4.0' ry='3.2' fill='url(%23s)'/%3E%3Cellipse cx='443.0' cy='25' rx='5.4' ry='4.2' fill='url(%23s)'/%3E%3Cpath d='M2.8 22.1 A4.5 2.8 0 0 1 8.7 20.8' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M18.4 20.1 A7.0 5.7 0 0 1 27.6 17.4' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M55.6 21.8 A5.8 3.2 0 0 1 63.2 20.4' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M83.8 20.1 A4.5 5.7 0 0 1 89.7 17.4' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M99.4 21.1 A7.0 4.3 0 0 1 108.6 19.1' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M121.4 18.5 A7.0 8.1 0 0 1 130.6 14.7' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M154.4 22.4 A7.0 2.4 0 0 1 163.6 21.2' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M176.4 20.3 A7.0 5.3 0 0 1 185.6 17.9' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M196.8 21.1 A4.5 4.3 0 0 1 202.7 19.1' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M222.6 21.1 A5.8 4.2 0 0 1 230.2 19.2' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M241.4 21.0 A7.0 4.3 0 0 1 250.6 19.0' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M288.8 22.3 A4.5 2.5 0 0 1 294.7 21.2' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M311.6 19.0 A5.8 7.3 0 0 1 319.2 15.6' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M330.4 19.0 A7.0 7.3 0 0 1 339.6 15.6' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M362.6 19.6 A5.8 6.5 0 0 1 370.2 16.6' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M403.4 22.4 A7.0 2.4 0 0 1 412.6 21.2' fill='none' stroke='%23fff' stroke-width='1.2' stroke-linecap='round' opacity='0.92'/%3E%3Cpath d='M448.4 20.3 A8.6 5.4 0 0 1 459.7 17.8' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='0.92'/%3E%3Ccircle cx='253' cy='13' r='0.8' fill='%23fff'/%3E%3Ccircle cx='305' cy='12' r='0.9' fill='%23fff'/%3E%3Ccircle cx='188' cy='17' r='1.3' fill='%23fff'/%3E%3Ccircle cx='218' cy='21' r='1.3' fill='%23fff'/%3E%3Ccircle cx='118' cy='11' r='0.9' fill='%23fff'/%3E%3Ccircle cx='390' cy='17' r='1.3' fill='%23fff'/%3E%3Ccircle cx='449' cy='17' r='1.1' fill='%23fff'/%3E%3Ccircle cx='39' cy='10' r='1.2' fill='%23fff'/%3E%3C/svg%3E");
+  /* A snowman in a plum and gold top hat. */
+  --wt-snowman: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 96'%3E%3Cdefs%3E%3CradialGradient id='w' cx='0.38' cy='0.3' r='0.85'%3E%3Cstop offset='0' stop-color='%23FFFFFF'/%3E%3Cstop offset='0.6' stop-color='%23EEF4FF'/%3E%3Cstop offset='1' stop-color='%23B9CCEA'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='32' cy='93' rx='24' ry='3.2' fill='%230A0210' opacity='0.35'/%3E%3Cg stroke='%236B4423' stroke-width='2.2' stroke-linecap='round' fill='none'%3E%3Cpath d='M18 49L3 39M9 43L5 34'/%3E%3Cpath d='M46 49L61 39M55 43L59 34'/%3E%3C/g%3E%3Ccircle cx='32' cy='74' r='20' fill='url(%23w)' stroke='%23B7C9E8' stroke-width='0.8'/%3E%3Ccircle cx='32' cy='50' r='15' fill='url(%23w)' stroke='%23B7C9E8' stroke-width='0.8'/%3E%3Ccircle cx='32' cy='28' r='11.5' fill='url(%23w)' stroke='%23B7C9E8' stroke-width='0.8'/%3E%3Cpath d='M19 38.5Q32 45 45 38.5L44 43.5Q32 50 20 43.5Z' fill='%23C62E3A'/%3E%3Cpath d='M24 41.5l1.4 5M30 43.6l1.2 5M36 43.6l1.2 5M42 41.5l1 5' stroke='%23FFF8E7' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M41 42l5 13l-5 1l-2.5 -10Z' fill='%23C62E3A'/%3E%3Cpath d='M43.4 49l-3 .8' stroke='%23FFF8E7' stroke-width='1.4'/%3E%3Cellipse cx='32' cy='19' rx='15' ry='3.4' fill='%232A0B35'/%3E%3Crect x='23' y='3' width='18' height='16' rx='1.5' fill='%232A0B35'/%3E%3Crect x='23' y='12.5' width='18' height='3.4' fill='%23F3CF6E'/%3E%3Cellipse cx='32' cy='3.2' rx='9' ry='1.6' fill='%233B1549'/%3E%3Ccircle cx='27.6' cy='26' r='1.5' fill='%231B0A22'/%3E%3Ccircle cx='36.4' cy='26' r='1.5' fill='%231B0A22'/%3E%3Cpath d='M32 29l10.5 2.6l-10.5 1.8Z' fill='%23F28C28'/%3E%3Cg fill='%231B0A22'%3E%3Ccircle cx='26.4' cy='33.4' r='0.9'/%3E%3Ccircle cx='29' cy='35' r='0.9'/%3E%3Ccircle cx='32' cy='35.5' r='0.9'/%3E%3Ccircle cx='35' cy='35' r='0.9'/%3E%3Ccircle cx='37.6' cy='33.4' r='0.9'/%3E%3Ccircle cx='32' cy='54' r='1.6'/%3E%3Ccircle cx='32' cy='60' r='1.6'/%3E%3Ccircle cx='32' cy='72' r='1.7'/%3E%3Ccircle cx='32' cy='80' r='1.7'/%3E%3C/g%3E%3C/svg%3E");
+  /* A Santa hat: red cone with a bent tip, white brim, white pom. */
+  --wt-hat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 56'%3E%3Cpath d='M7 45C9 26 20 9 42 7C51 7 55 15 49 20C42 23 39 35 57 45Z' fill='%23C62E3A'/%3E%3Cpath d='M17 43C19 30 25 19 36 13C30 24 29 34 33 44Z' fill='%239E1F2B'/%3E%3Crect x='3' y='40' width='58' height='13' rx='6.5' fill='%23FFF8E7'/%3E%3Ccircle cx='52' cy='13' r='7' fill='%23FFF8E7'/%3E%3C/svg%3E");
+}
 
 html[data-theme='winter'] body {
   background:
-    radial-gradient(520px 520px at 8% -10%, rgba(190, 225, 255, 0.12), transparent 70%),
+    radial-gradient(520px 520px at 8% -10%, rgba(var(--wt-ice), 0.12), transparent 70%),
     radial-gradient(1100px 560px at 50% -12%, rgba(122, 182, 232, 0.10), transparent 62%),
     var(--bg);
 }
 html[data-theme='winter'] .wordmark {
-  text-shadow: 0 0 22px rgba(190, 225, 255, 0.35), 0 3px 10px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 0 22px rgba(var(--wt-ice), 0.35), 0 3px 10px rgba(0, 0, 0, 0.35);
 }
 
+/* --- Ambient layer: snow, lights, Santa on a rope, the sleigh -------------------- */
 .wt-decor { position: fixed; inset: 0; z-index: 40; overflow: hidden; pointer-events: none; }
+.wt-decor > * { pointer-events: none; }
+
 .wt-flake {
   position: absolute;
   top: -12px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 6px rgba(190, 225, 255, 0.6);
+  box-shadow: 0 0 6px rgba(var(--wt-ice), 0.6);
   animation: wt-fall linear infinite;
 }
 @keyframes wt-fall {
@@ -26,6 +49,296 @@ html[data-theme='winter'] .wordmark {
   to   { transform: translate3d(var(--drift, 0px), 108vh, 0); }
 }
 
+/* Warm lights, like windows along a canal at night: soft, slow and faint. */
+.wt-glow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(243, 207, 110, 0.2), transparent 70%);
+  filter: blur(6px);
+  animation: wt-float ease-in-out infinite alternate;
+}
+@keyframes wt-float {
+  from { transform: translate(-14px, 8px); opacity: 0.55; }
+  to   { transform: translate(14px, -10px); opacity: 1; }
+}
+
+/* The string of lights across the top edge. */
+.wt-garland {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  display: flex;
+  height: 26px;
+  color: rgba(243, 231, 206, 0.36);
+}
+.wt-swag { position: relative; flex: 1; height: 26px; }
+.wt-swag svg { display: block; width: 100%; height: 26px; overflow: visible; }
+.wt-bulb {
+  position: absolute;
+  width: 6px;
+  height: 8px;
+  margin-left: -3px;
+  border-radius: 50% 50% 46% 46%;
+  background: var(--c);
+  box-shadow: 0 0 7px 1px var(--c);
+  animation: wt-twinkle 3.1s ease-in-out infinite alternate;
+}
+.wt-bulb-gold  { --c: #F3CF6E; }
+.wt-bulb-cream { --c: #FFF3D6; }
+.wt-bulb-ruby  { --c: #E5484D; }
+.wt-bulb-mint  { --c: #6FD6AE; }
+.wt-bulb-ice   { --c: #9CC8EE; }
+@keyframes wt-twinkle {
+  from { opacity: 0.45; box-shadow: 0 0 3px 0 var(--c); }
+  to   { opacity: 1;    box-shadow: 0 0 9px 2px var(--c); }
+}
+
+/* Candy canes and baubles on short threads, swaying. */
+.wt-hang {
+  position: absolute;
+  left: 50%;
+  top: 31px;
+  margin-left: -8px;
+  transform-origin: 50% -11px;
+  animation: wt-sway 5.4s ease-in-out infinite alternate;
+}
+.wt-hang::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 1px;
+  height: 11px;
+  background: rgba(243, 231, 206, 0.45);
+}
+.wt-hang svg { display: block; }
+.wt-hang-b { animation-duration: 6.6s; animation-delay: -2s; }
+@keyframes wt-sway {
+  from { transform: rotate(-6deg); }
+  to   { transform: rotate(6deg); }
+}
+
+/* Santa lowers himself on a candy-striped rope that runs off the top of the
+   screen, waves, and climbs back up. Like Halloween's spider, but friendlier. */
+.wt-rope {
+  position: absolute;
+  top: 0;
+  left: 56%;
+  z-index: 45;
+  width: 54px;
+  animation: wt-lower 22s ease-in-out infinite;
+}
+.wt-rope-line {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 4px);
+  width: 2px;
+  height: 200px;
+  margin-left: -1px;
+  background: repeating-linear-gradient(180deg, var(--wt-red) 0 4px, var(--wt-cream) 4px 8px);
+  opacity: 0.85;
+}
+.wt-santa {
+  display: block;
+  transform-origin: 50% 0;
+  animation: wt-turn 4.6s ease-in-out infinite alternate;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
+}
+.wt-santa-art { display: block; width: 100%; height: auto; }
+/* The glove tilts from the wrist: a wave. */
+.wt-glove {
+  transform-box: view-box;
+  transform-origin: 70px 84px;
+  animation: wt-wave 0.9s ease-in-out infinite alternate;
+}
+@keyframes wt-lower {
+  0%, 100% { transform: translateY(-70px); }
+  16%      { transform: translateY(44px); }
+  66%      { transform: translateY(50px); }
+  84%      { transform: translateY(-70px); }
+}
+@keyframes wt-turn {
+  from { transform: rotate(-4deg); }
+  to   { transform: rotate(4deg); }
+}
+@keyframes wt-wave {
+  from { transform: rotate(-16deg); }
+  to   { transform: rotate(7deg); }
+}
+
+/* The sleigh: once every 30 seconds it crosses the sky, right to left, a dark
+   shape with a faint gold rim so it reads against the aubergine. It spends the
+   rest of the cycle off-screen. The same layer is on every page, so the room
+   sees it during the game too. */
+.wt-sleigh {
+  position: absolute;
+  top: 5vh;
+  left: 0;
+  z-index: 46;
+  width: clamp(130px, 14vw, 230px);
+  color: #0A0210;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(243, 207, 110, 0.8)) drop-shadow(0 0 14px rgba(var(--wt-ice), 0.28));
+  animation: wt-fly 30s linear 3s infinite;
+}
+.wt-sleigh-art { display: block; width: 100%; height: auto; fill: currentColor; }
+@keyframes wt-fly {
+  0%    { opacity: 0; transform: translate(105vw, 0); }
+  1%    { opacity: 1; }
+  7%    { transform: translate(78vw, -2.2vh); }
+  14%   { transform: translate(50vw, 1.6vh); }
+  21%   { transform: translate(22vw, -1.8vh); }
+  27%   { opacity: 1; }
+  28%   { opacity: 0; transform: translate(-24vw, 1vh); }
+  100%  { opacity: 0; transform: translate(-24vw, 1vh); }
+}
+
+/* --- Snow on top of things --------------------------------------------------------- */
+/* A fluffy drift sitting on the top edge of panels, dialogs and the tear strip. It is
+   two layers, a bigger bright one in front and a smaller, bluer one behind, each a
+   long run of puffs of mixed size (the tiles are 640 and 470 wide, so the pattern is
+   far too long to notice), and every panel starts at its own offset, so no two
+   drifts match. The lumps stand above the edge and the shaded underside runs down
+   over it, with a soft shadow so it lifts off the surface. */
+html[data-theme='winter'] .panel::before,
+html[data-theme='winter'] .modal-card::before,
+html[data-theme='winter'] .tear-strip::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: -28px;
+  height: 43px;
+  z-index: 1;
+  background:
+    var(--wt-cap) repeat-x var(--wt-off-a, 0px) 0 / 800px 43px,
+    var(--wt-cap-b) repeat-x var(--wt-off-b, 0px) 0 / 588px 43px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, var(--bg) 14px, var(--bg) calc(100% - 14px), transparent);
+  mask-image: linear-gradient(90deg, transparent, var(--bg) 14px, var(--bg) calc(100% - 14px), transparent);
+  filter: drop-shadow(0 2px 1.5px rgba(10, 2, 16, 0.5));
+  pointer-events: none;
+}
+html[data-theme='winter'] .modal-card { position: relative; --wt-off-a: 310px; --wt-off-b: 120px; }
+/* The hat sits on the tab at the right end of the strip, so the snow stops short. */
+html[data-theme='winter'] .tear-strip::before { right: 84px; --wt-off-a: 90px; --wt-off-b: 400px; }
+html[data-theme='winter'] .game-grid > .panel:nth-child(1) { --wt-off-a: 0px;   --wt-off-b: 0px; }
+html[data-theme='winter'] .game-grid > .panel:nth-child(2) { --wt-off-a: 330px; --wt-off-b: 210px; }
+html[data-theme='winter'] .game-grid > .panel:nth-child(3) { --wt-off-a: 560px; --wt-off-b: 330px; }
+/* On desktop the game screen's panels scroll or clip, which would shear a drift off
+   the top: there it lies just inside the edge, a little smaller, and the panels get
+   a little more room at the top so it never covers the header pill or a title. Below
+   1100px nothing clips, so the drift sits on the edge like everywhere else. */
+@media (min-width: 1100px) {
+  html[data-theme='winter'] .game-grid > .panel { padding-top: 26px; }
+  html[data-theme='winter'] .game-grid > .panel::before {
+    top: 0;
+    height: 27px;
+    background-size: 512px 27px, 376px 27px;
+  }
+}
+
+/* --- A snowman -------------------------------------------------------------------------- */
+/* He stands on the snow along the top of the stage on the game screen, in the empty
+   middle of the header, and on the tear strip on the landing page. Left out where the
+   header is full (tablets and phones). */
+html[data-theme='winter'] .game-head { position: relative; }
+html[data-theme='winter'] .game-head::after {
+  content: '';
+  position: absolute;
+  left: 31%;
+  bottom: -40px;
+  width: 58px;
+  height: 87px;
+  background: var(--wt-snowman) center bottom / contain no-repeat;
+  z-index: 3;
+  pointer-events: none;
+}
+html[data-theme='winter'] .tear { position: relative; }
+html[data-theme='winter'] .tear::after {
+  content: '';
+  position: absolute;
+  left: 44px;
+  top: -76px;
+  width: 58px;
+  height: 87px;
+  background: var(--wt-snowman) center bottom / contain no-repeat;
+  z-index: 2;
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  html[data-theme='winter'] .game-head::after,
+  html[data-theme='winter'] .tear::after { display: none; }
+}
+
+/* --- Hats ----------------------------------------------------------------------------- */
+/* On the first block of the name, like Halloween's witch hat. */
+html[data-theme='winter'] .wordmark-choco { position: relative; }
+html[data-theme='winter'] .wordmark-choco::before {
+  content: '';
+  position: absolute;
+  left: -0.12em;
+  top: -0.46em;
+  width: 0.78em;
+  height: 0.68em;
+  background: var(--wt-hat) center / contain no-repeat;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+/* On the tab of the tear strip, the page's one action. */
+html[data-theme='winter'] .tear-tab { position: relative; }
+html[data-theme='winter'] .tear-tab::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: -24px;
+  width: 38px;
+  height: 33px;
+  background: var(--wt-hat) center / contain no-repeat;
+  transform: rotate(14deg);
+  pointer-events: none;
+}
+/* On the big Start button in the lobby. */
+html[data-theme='winter'] .btn-primary.big { position: relative; }
+html[data-theme='winter'] .btn-primary.big::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: -17px;
+  width: 30px;
+  height: 26px;
+  background: var(--wt-hat) center / contain no-repeat;
+  transform: rotate(14deg);
+  pointer-events: none;
+}
+/* And on everyone in the room. */
+html[data-theme='winter'] .lobby-player .avatar::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -17px;
+  width: 32px;
+  height: 28px;
+  margin-left: -13px;
+  background: var(--wt-hat) center / contain no-repeat;
+  transform: rotate(-10deg);
+  z-index: 2;
+  pointer-events: none;
+}
+html[data-theme='winter'] .lobby-player.offline .avatar::before { opacity: 0.5; }
+
+/* --- Small screens: keep the header readable ------------------------------------- */
+/* On a phone the title and the buttons fill the top, so the hanging candy would
+   land on the title and Santa on the buttons. The lights, snow, hats and the sleigh
+   stay; the candy goes at 900px, Santa at 720px. */
+@media (max-width: 900px) { .wt-hang { display: none; } }
+@media (max-width: 720px) { .wt-rope { display: none; } }
+
+/* --- Quiet when asked: no motion for people who opt out ------------------------ */
 @media (prefers-reduced-motion: reduce) {
+  .wt-sleigh { display: none; }
   .wt-flake { animation: none; top: 30%; opacity: 0.4; }
+  .wt-glow, .wt-bulb, .wt-hang, .wt-santa, .wt-glove { animation: none; }
+  .wt-rope { animation: none; transform: translateY(40px); }
 }

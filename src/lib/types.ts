@@ -47,6 +47,9 @@ export interface Game {
    *  on restart. `trick_pick` is the trick to do, only when the door is 'trick'. */
   door?: 'trick' | 'treat' | null;
   trick_pick?: PrizeSnack | null;
+  /** Advent calendar: the door this round's winner opened (lib/advent.ts), set at
+   *  the reveal, cleared on restart. */
+  advent?: { door: number; title: string } | null;
   prize_given_id: string | null; prize_given_name: string | null;
   chat: ChatMessage[];
   // Timers (absolute Unix-second deadlines). `timer_seconds` is the host's
@@ -84,6 +87,8 @@ export interface LeaderboardWin {
    *  Absent on wins recorded before the sealed draw existed. */
   draw?: { commit: string; salt: string; straws: number[]; drawn_at: number | null };
   audit?: AuditEntry[];
+  /** The advent door this win opened. Which doors are open is read back from here. */
+  advent?: { year: number; door: number; title: string };
 }
 export interface PublicPlayer {
   token: string; name: string; online: boolean; picked: boolean;
@@ -134,4 +139,10 @@ export interface GameStateResponse {
    *  reveal, when the straws are public too. */
   draw_commit: string | null;
   draw_salt: string | null;
+  /** Advent: the door the winner opened, once the reveal is out. `icon` says
+   *  whether /api/advent/<door> has a picture. */
+  advent: { door: number; title: string; icon: boolean } | null;
+  /** Advent, before the reveal: the door this round will open, and how many are
+   *  waiting today (more than one on a Friday or Monday, or after a missed day). */
+  advent_next: { door: number; waiting: number } | null;
 }

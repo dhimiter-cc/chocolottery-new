@@ -29,6 +29,7 @@
   const theme = currentTheme();
   const copy = theme.copy;
   const trickWords = theme.trickOrTreat;
+  const adventWords = theme.advent;
   let stocked = $derived(game.cupboard.filter((c) => c.stock > 0).map((c) => c.name));
   // The cupboard button's leading emoji, as a compact icon button.
   const cupboardIcon = copy['snacks.cupboardBtn'].split(' ')[0];
@@ -71,6 +72,14 @@
   {#if game.host && !game.host_plays}
     <div class="lobby-host">Hosted by {game.host.is_me ? 'you' : game.host.name} · not in the draw</div>
   {/if}
+    <!-- Advent calendar: the door this round opens, linked to the whole calendar. -->
+    {#if game.advent_next && adventWords}
+      <a class="lobby-advent" href="/advent" target="_blank" rel="noreferrer">
+        {adventWords.lobbyNext.replace('{door}', String(game.advent_next.door))}{game.advent_next.waiting > 1
+          ? ` · ${adventWords.lobbyWaiting.replace('{n}', String(game.advent_next.waiting))}`
+          : ''}
+      </a>
+    {/if}
     {#if game.spectators.length > 0}
       <div class="lobby-watchers" title="Watching, not in the draw">
         👀 Watching: {game.spectators.map((s) => (s.is_me ? `${s.name} (you)` : s.name)).join(', ')}

@@ -1,6 +1,15 @@
 ---
-// Winter ambience: a light fall of snowflakes. Only rendered while Winter is the
-// active theme; styled in styles/themes/winter.css. Fixed, pointer-events:none.
+// Winter ambience, only while Winter is the active theme (ThemeDecor.astro);
+// styled in styles/themes/winter.css. Like Halloween's, all of it is
+// position:fixed, pointer-events:none and out of layout, so it can never push the
+// stage around or clip a bar:
+//   snow            a light fall of flakes, plus a few warm lights drifting
+//   a string of lights across the top, with candy canes and baubles hanging
+//   Santa           lowering himself on a rope, waving as he hangs
+//   the sleigh      crossing the sky every 30 seconds, on every page
+import Santa from './Santa.astro';
+import sleighRaw from './art/sleigh.svg?raw';
+
 const flakes = Array.from({ length: 18 }, (_, i) => ({
   left: ((i * 37) % 100) + (i % 3) * 1.3,
   size: 5 + ((i * 7) % 6),
@@ -8,9 +17,75 @@ const flakes = Array.from({ length: 18 }, (_, i) => ({
   delay: -((i * 3.1) % 20),
   drift: ((i % 5) - 2) * 14,
 }));
+
+// Warm lights drifting at the edges, like the lit windows on a canal at night.
+const lights = [
+  { left: 3, top: 62, size: 70, dur: 19, delay: 0 },
+  { left: 94, top: 48, size: 90, dur: 24, delay: -7 },
+  { left: 8, top: 18, size: 54, dur: 21, delay: -12 },
+  { left: 89, top: 82, size: 64, dur: 26, delay: -3 },
+  { left: 50, top: 94, size: 80, dur: 23, delay: -15 },
+];
+
+// The sleigh file starts with an XML header and a DOCTYPE; inline just the <svg>.
+const sleigh = sleighRaw
+  .slice(sleighRaw.indexOf('<svg'))
+  .replace('<svg', '<svg class="wt-sleigh-art" aria-hidden="true" focusable="false"')
+  .replace(/\sx="0px"\s+y="0px"/, '');
+
+// One swag of the string of lights is 100 wide and 26 tall; the wire dips by 20 in
+// the middle. Bulbs sit on the same curve (y = 1 + 80·t·(1 − t)), as HTML so they
+// stay round however wide the screen is.
+const SWAGS = 8;
+const COLORS = ['gold', 'cream', 'ruby', 'mint', 'ice'];
+const bulbs = [0.12, 0.31, 0.5, 0.69, 0.88];
+const swags = Array.from({ length: SWAGS }, (_, i) => ({
+  bulbs: bulbs.map((t, j) => ({ left: t * 100, top: 1 + 80 * t * (1 - t), color: COLORS[(i * 2 + j) % COLORS.length], delay: -((i * 5 + j * 3) % 7) * 0.45 })),
+  // Something hangs from the middle of every other swag, away from the header.
+  hang: i === 1 || i === 5 ? 'cane' : i === 3 ? 'bauble' : null,
+}));
 ---
 <div class="wt-decor" aria-hidden="true">
+  {lights.map((l) => (
+    <i class="wt-glow" style={`left:${l.left}%;top:${l.top}%;width:${l.size}px;height:${l.size}px;animation-duration:${l.dur}s;animation-delay:${l.delay}s`}></i>
+  ))}
+
   {flakes.map((f) => (
     <i class="wt-flake" style={`left:${f.left}%;width:${f.size}px;height:${f.size}px;animation-duration:${f.dur}s;animation-delay:${f.delay}s;--drift:${f.drift}px`}></i>
   ))}
+
+  <div class="wt-garland">
+    {swags.map((s) => (
+      <div class="wt-swag">
+        <svg viewBox="0 0 100 26" preserveAspectRatio="none" focusable="false"><path d="M0 1Q50 41 100 1" fill="none" stroke="currentColor" stroke-width="1.4" vector-effect="non-scaling-stroke" /></svg>
+        {s.bulbs.map((b) => (
+          <i class={`wt-bulb wt-bulb-${b.color}`} style={`left:${b.left}%;top:${b.top}px;animation-delay:${b.delay}s`}></i>
+        ))}
+        {s.hang === 'cane' && (
+          <span class="wt-hang">
+            <svg viewBox="0 0 20 34" width="16" height="27" focusable="false">
+              <path d="M5 33V13a5 5 0 0 1 10 0" fill="none" stroke="#FFF8E7" stroke-width="4.2" stroke-linecap="round" />
+              <path d="M5 33V13a5 5 0 0 1 10 0" fill="none" stroke="#C62E3A" stroke-width="4.2" stroke-linecap="round" stroke-dasharray="3 3.2" />
+            </svg>
+          </span>
+        )}
+        {s.hang === 'bauble' && (
+          <span class="wt-hang wt-hang-b">
+            <svg viewBox="0 0 20 26" width="17" height="22" focusable="false">
+              <rect x="7" y="0" width="6" height="4" rx="1" fill="#D9A43A" />
+              <circle cx="10" cy="15" r="9" fill="#C62E3A" />
+              <path d="M4 14a6 6 0 0 1 6-6" fill="none" stroke="#FFF8E7" stroke-width="1.6" stroke-linecap="round" opacity="0.7" />
+            </svg>
+          </span>
+        )}
+      </div>
+    ))}
+  </div>
+
+  <div class="wt-rope">
+    <span class="wt-rope-line"></span>
+    <span class="wt-santa"><Santa /></span>
+  </div>
+
+  <span class="wt-sleigh" set:html={sleigh}></span>
 </div>

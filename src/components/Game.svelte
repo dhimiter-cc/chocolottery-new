@@ -18,8 +18,9 @@
   import SoundToggle from './SoundToggle.svelte';
   import Tricks from './Tricks.svelte';
   import TrickOrTreat from './TrickOrTreat.svelte';
+  import AdventDoor from './AdventDoor.svelte';
   import { currentTheme } from '../themes/client.js';
-  import { isEventDay, isTeaseActive, hasEventPreviewParam } from '../lib/specialPrize.js';
+  import { isEventDay, isTeaseActive, hasEventPreviewParam, type OutingDates } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
 
   // Trick or treat exists only while the active theme provides its words. Only
@@ -37,11 +38,14 @@
     initialToken = null,
     alreadyJoined = false,
     presetName = '',
+    outing,
   }: {
     code: string;
     initialToken?: string | null;
     alreadyJoined?: boolean;
     presetName?: string;
+    /** The outing's dates (admin setting). Absent = the shipped defaults. */
+    outing?: OutingDates;
   } = $props();
 
   const REMEMBERED_NAME_KEY = 'chocolottery_player_name';
@@ -354,8 +358,8 @@
   // ── Golden ticket (MOVION special edition) ────────────────────────────────
   // Both flags are read once: the window only matters at page load, and nobody
   // is going to have the tab open across midnight into the outing.
-  const ticketActive = isTeaseActive();
-  const ticketIsEventDay = isEventDay();
+  const ticketActive = isTeaseActive(new Date(), outing);
+  const ticketIsEventDay = isEventDay(new Date(), outing);
 
   // Event-day layout: the room on the wall only needs the game. No nav header,
   // no snack votes or cupboard — the stage takes their space; the game code
@@ -439,6 +443,7 @@
 {#snippet barPrize()}
   {#if gameState}
     {#if trickOrTreat}<TrickOrTreat game={gameState} {sounds} />{/if}
+    <AdventDoor game={gameState} delay={500} />
     {#if gameState.prize_snack}
       <p class="bar-prize-snack">
         <b>🍫 Prize snack</b> {gameState.prize_snack.text}
@@ -613,6 +618,7 @@
                 onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
                 onFireSparkles={() => effectsCanvas?.fireSparkles()}
                 onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
+                onFireDrop={(x, y) => effectsCanvas?.fireDrop(x, y)}
                 prize={eventLayout ? undefined : barPrize}
               />
             </div>
@@ -625,6 +631,7 @@
                 onFireTears={() => effectsCanvas?.fireTears()}
                 onFireSparkles={() => effectsCanvas?.fireSparkles()}
                 onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
+                onFireDrop={(x, y) => effectsCanvas?.fireDrop(x, y)}
               />
             </div>
           {/if}
@@ -647,6 +654,11 @@
           <!-- Trick or treat door (straw mode; bar mode shows it inside the reveal canvas) -->
           {#if trickOrTreat && !eventLayout && !bars && (phase === 'reveal' || phase === 'done')}
             <TrickOrTreat game={gameState} {sounds} delay={5200} />
+          {/if}
+
+          <!-- Advent door (straw mode; bar mode shows it inside the reveal canvas) -->
+          {#if !eventLayout && !bars && (phase === 'reveal' || phase === 'done')}
+            <AdventDoor game={gameState} delay={5200} />
           {/if}
 
           <!-- Prize snack card -->

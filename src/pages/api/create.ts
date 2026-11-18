@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { generateGameCode, saveGame } from '../../lib/game.js';
-import { DEFAULT_STYLE, DEFAULT_HOST_PLAYS } from '../../lib/bars.js';
+import { getSettings } from '../../lib/settings.js';
 import type { Game } from '../../lib/types.js';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -45,8 +45,9 @@ export const POST: APIRoute = async ({ request }) => {
       timer_seconds: timerSeconds,
       lobby_deadline: timerSeconds ? createdAt + timerSeconds : null,
       picking_deadline: null,
-      style: DEFAULT_STYLE,
-      host_plays: DEFAULT_HOST_PLAYS,
+      // What a new game starts as is an admin setting (/admin).
+      style: getSettings().defaults.style,
+      host_plays: getSettings().defaults.hostPlays,
     };
 
     await saveGame(game);

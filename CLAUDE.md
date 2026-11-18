@@ -82,8 +82,8 @@ back to the default, so nothing is left half-themed.
   `styles/themes/<id>.css` (every rule under `html[data-theme='<id>']`, imported by
   `styles/themes/index.css`), optional `themes/<id>/Decor.astro` (ambient layer, registered
   in `themes/decor.ts`). Register the event in `EVENTS` in `themes/index.ts`. Retire it by
-  removing it from `EVENTS`. An event with no `window` never starts by date (Winter is that
-  today: preview only).
+  removing it from `EVENTS`, or switch it off in `/admin`. An event with no `window` never
+  starts by date. Winter runs Dec 1 to Jan 6 (`themes/winter.ts`, movable in `/admin`).
 - **Where each part is read:** copy is `theme.copy['key']` (all keys in `themes/types.ts`,
   defaults in `themes/default.ts`); Astro pages use `themeFor(Astro)`, Svelte uses
   `currentTheme()` from `themes/client.ts`. Components never test for a particular event.
@@ -104,6 +104,28 @@ back to the default, so nothing is left half-themed.
   trick), so it is sealed until the reveal and recomputable afterwards. Treat = the usual prize.
   Trick = the top-voted trick (a house trick if nobody wrote any), then the prize anyway.
   `TrickOrTreat.svelte` shows the knock and the result on every screen; it never touches who wins.
+- **Reveal cameo** (`cameo` on a theme, today Winter's Santa): a guest at the reveal,
+  `RevealCameo.svelte`, mounted by `BarReveal` and `RevealPhase` inside `.cup-stage`. A figure
+  (an SVG of paths; the theme names the ones that wave and their pivot) comes up in the
+  stage's bottom-left corner with a speech bubble, and a silhouette (`flyer`) crosses the top
+  of the stage in gold, dropping confetti through `EffectsCanvas.fireDrop()`. Images are
+  `?url` imports so they only load on a theme that uses them, and only drawing attributes
+  are copied from the SVG. On desktop `.bar-reveal:has(.cameo-slot)` widens the bar's left
+  lane so the figure has room; on phones the figure is hidden and only the flyer plays. It
+  never touches who wins.
+- **Advent calendar** (`advent` words on a theme, today Winter; `lib/advent.ts`). While the
+  *live* theme (`baseThemeId`, never a visitor's preview) has it, each win opens one door:
+  the oldest door that has opened and is still shut (door N is N December; a Saturday's door
+  opens the Friday before, a Sunday's the Monday after, so those days take two rounds; a
+  missed day rolls over). `finalizePicking` claims it (`claimDoor`, taken in memory at once)
+  and records it on the win (`LeaderboardWin.advent`), so the durable leaderboard is where
+  open doors live; `noteWins` indexes them as the leaderboard loads. `sanitiseState` sends
+  `advent` (the opened door, after the reveal) and `advent_next` (before it, for the lobby
+  line). Prizes (a title and an optional SVG per door) are a setting edited in `/admin`;
+  icons are cleaned on save (`lib/svgClean.ts`) and only shown through `<img>` or
+  `/api/advent/<door>`, which forbids scripts. `/advent` draws the doors as canal houses in a
+  shuffled order fixed per year; `AdventDoor.svelte` swings the door open at the reveal. In
+  dev, `ADVENT_TODAY=YYYY-MM-DD` pretends it is that day.
 - **Costume avatars** (`costumes: true` on a theme): each player gets a random costume emoji at
   join (`lib/costumes.ts`, `player.costume`), shown as their lobby avatar.
 - **Rules:** gold stays the winner's colour; every animation respects
@@ -111,6 +133,37 @@ back to the default, so nothing is left half-themed.
   low contrast (the stage is projected).
 - **Gotcha:** `.winner-name` is gold gradient on transparent text, so a `text-shadow`
   paints over it and tints it. Use `filter: drop-shadow` for glows there.
+
+## Admin dashboard and settings (`/admin`)
+
+Things that used to be edited in code or env vars are settings (`lib/settings.ts`),
+changed from `/admin`: the **sound pack** (cheerful = `lib/sound.ts`, classic =
+`lib/soundClassic.ts`, both on the shared context and mute of `lib/soundCore.ts`),
+a **forced theme** (or `auto` = follow the calendar), per event **enabled + dates**
+(an event whose own window has ended starts switched off), what **new games**
+default to (style, host plays) and the **outing dates** of the golden-ticket teaser.
+
+- **Storage:** `data/settings.json` is the fast local copy; the durable copy is
+  `settings.json` on the `GITHUB_SETTINGS_BRANCH` branch (default
+  `chocolottery-settings`, ⚠️ never the deploy branch), one commit per save with the
+  changed keys in the message, so the branch history is the audit log. Boot pulls
+  it and the newer of local and remote wins (`lib/githubStore.ts` does the Contents
+  API work and is failure-tolerant like the leaderboard mirror).
+- **Reads are synchronous** (`getSettings()`); the first moments after boot may
+  serve the local copy before GitHub has been asked.
+- **Auth:** `ADMIN_PASSWORD` (`lib/adminAuth.ts`), traded for an HttpOnly HMAC
+  cookie. No password: open in dev, 404 in production. Wrong guesses lock logins
+  for a minute. The page is always drawn in the default theme.
+- **Where settings are read:** `themes/resolve.ts` (`baseThemeId`: forced theme, then
+  the `THEME` env var, then the calendar with the dashboard's dates), `api/create.ts`
+  (defaults), `game/[code].astro` (`<html data-sound-pack>` and the outing dates
+  passed to `Game.svelte`), `index.astro` (event-day check).
+- **Previews:** `?theme=<id>&embed` renders any registered theme without setting the
+  preview cookie, which is how the dashboard's thumbnails work. Plain `?theme=<id>`
+  only works for themes that are switched on.
+- **Adding a setting:** add it to `Settings`, `defaultSettings()` and `normalise()`
+  in `lib/settings.ts` (unknown or invalid input falls back, so a hand-edited
+  commit can't break pages), then a control in `AdminDashboard.svelte`.
 
 ## Game lifecycle (state machine)
 

@@ -10,6 +10,7 @@
   import { currentTheme } from '../themes/client.js';
   import type { SoundName } from '../themes/types.js';
   import ChocolateBar from './ChocolateBar.svelte';
+  import RevealCameo from './RevealCameo.svelte';
 
   interface Sounds {
     playWinFanfare: () => void;
@@ -28,6 +29,7 @@
     onFireConfetti,
     onFireSparkles,
     onFireFireworks,
+    onFireDrop,
     prize,
   }: {
     game: GameStateResponse;
@@ -38,6 +40,8 @@
     onFireConfetti: (big: boolean) => void;
     onFireSparkles: () => void;
     onFireFireworks: (bursts?: number) => void;
+    /** Confetti from a point, for the theme's cameo. */
+    onFireDrop?: (x: number, y: number) => void;
   } = $props();
 
   let winner = $derived(game.players.find(p => p.token === game.winner_token) ?? null);
@@ -156,6 +160,12 @@
     </div>
   {:else}
     <p class="bar-phase-text">Round over.</p>
+  {/if}
+
+  <!-- The theme's guest at the reveal (Santa, at Winter). Loaded once the bar lights
+       up, plays when the name lands. -->
+  {#if theme.cameo && winner && started}
+    <RevealCameo cameo={theme.cameo} active={showName} winnerName={winner.name} {iWon} {onFireDrop} />
   {/if}
 
   {#if others.length && started}

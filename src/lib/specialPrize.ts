@@ -5,11 +5,16 @@
 // nothing renders — no button, no banner, no auto-opening modal — so the app goes
 // back to normal on its own and nobody has to remember to deploy a removal.
 
-/** Day of the outing. The golden ticket only pays off on this date. */
+/** Day of the outing. The golden ticket only pays off on this date. These two
+ *  are the shipped defaults: the admin dashboard (lib/settings.ts) can move them,
+ *  and the pages hand the current dates to the checks below. */
 export const EVENT_DATE = '2026-09-25';
 
 /** First day the teaser is shown. Before this, the feature is invisible. */
 export const TEASE_FROM = '2026-09-21';
+
+export interface OutingDates { eventDate: string; teaseFrom: string }
+const SHIPPED: OutingDates = { eventDate: EVENT_DATE, teaseFrom: TEASE_FROM };
 
 // Measurements are the manufacturer's for the XXL personalised bar
 // (42.6 x 11.4 x 10 cm, 1800 g, 18 x 100 g inside) — not estimates. The reveal
@@ -37,14 +42,14 @@ function localDate(d: Date): string {
 }
 
 /** Teaser window: from the first office day through the end of the outing. */
-export function isTeaseActive(now: Date = new Date()): boolean {
+export function isTeaseActive(now: Date = new Date(), dates: OutingDates = SHIPPED): boolean {
   const today = localDate(now);
-  return today >= TEASE_FROM && today <= EVENT_DATE;
+  return today >= dates.teaseFrom && today <= dates.eventDate;
 }
 
 /** The day itself — gates the post-reveal payoff. */
-export function isEventDay(now: Date = new Date()): boolean {
-  return localDate(now) === EVENT_DATE;
+export function isEventDay(now: Date = new Date(), dates: OutingDates = SHIPPED): boolean {
+  return localDate(now) === dates.eventDate;
 }
 
 /** `?event` on a game link previews the event-day layout on any other day.

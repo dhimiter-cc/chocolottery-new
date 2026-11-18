@@ -2687,6 +2687,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .bar-reveal-text { min-height: 0; margin-top: 0; }
   .bar-reveal .winner-name { font-size: clamp(2.2rem, 3.4vw, 3.6rem); overflow-wrap: anywhere; }
   .bar-reveal-rest { margin-top: 20px; }
+  /* A theme's guest at the reveal (RevealCameo) stands in the bottom-left corner:
+     a wider lane on the left keeps the bar and its ticket clear of him. */
+  .bar-reveal:has(.cameo-slot) .bar-reveal-hero { margin-left: 168px; }
 }
 .bar-reveal-text .overlay-headline { color: var(--cb-gold); }
 .bar-reveal-rest {
@@ -3656,3 +3659,67 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
     grid-template-areas: "stage";
   }
 }
+
+/* === Advent calendar (a theme feature, see lib/advent.ts) ======================== */
+/* Lobby: the door this round opens, under the room. */
+.lobby-advent {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font: 600 0.75rem var(--font-sans);
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  text-decoration: none;
+}
+.lobby-advent:hover { border-color: var(--border-hover); }
+
+/* Reveal: a little door that swings open on the prize behind it. */
+.advent-door {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px auto 0;
+  padding: 8px 14px 8px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--text);
+  text-decoration: none;
+  width: fit-content;
+  max-width: 100%;
+}
+.advent-door:hover { border-color: var(--border-hover); }
+.ad-frame {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 52px;
+  border-radius: var(--radius-sm) var(--radius-sm) 3px 3px;
+  background: var(--on-gold);
+  box-shadow: inset 0 0 0 2px var(--gold-deep);
+  perspective: 220px;
+}
+.ad-prize { display: grid; place-items: center; font-size: 1.2rem; }
+.ad-prize img { width: 34px; height: 34px; object-fit: contain; }
+.ad-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: linear-gradient(160deg, var(--gold), var(--gold-deep));
+  color: var(--on-gold);
+  font: 900 1.2rem var(--font-sans);
+  transform-origin: 0 50%;
+  transition: transform 0.7s steps(6, end);
+}
+.advent-door.open .ad-panel { transform: rotateY(-105deg); }
+.ad-text { display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
+.ad-text b { font: 700 0.75rem var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+.ad-text span { font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .ad-panel { transition: none; } }
+
