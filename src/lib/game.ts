@@ -6,6 +6,8 @@ import { withLock } from './lock.js';
 import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
 import { UNWRAP_STEPS } from './bars.js';
 import { doorFor, pickTrick } from './trickOrTreat.js';
+import { claimDoor, noteWins, nextDoor } from './advent.js';
+import { getSettings } from './settings.js';
 import type {
   Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack, AuditEntry, Suggestion,
   PublicPlayer, PublicSpectator, PublicSuggestion, PublicChatMessage
@@ -235,6 +237,9 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
   // Trick or treat: the door comes from the sealed draw, so it can't be gamed.
   game.door = game.draw_salt ? doorFor(game.draw_salt) : 'treat';
   game.trick_pick = game.door === 'trick' ? pickTrick(game.tricks) : null;
+  // Advent: a win opens the next door, while the live theme runs a calendar.
+  const advent = winnerToken ? claimDoor(game.players[winnerToken].name, game.code) : null;
+  game.advent = advent ? { door: advent.door, title: advent.title } : null;
 
   if (!winnerToken) return null;
   const straws = Array.isArray(game.straws) ? game.straws : [];
@@ -262,6 +267,7 @@ export function finalizePicking(game: Game): LeaderboardWin | null {
       ? { draw: { commit: game.draw_commit, salt: game.draw_salt, straws, drawn_at: game.drawn_at ?? null } }
       : {}),
     audit,
+    ...(advent ? { advent } : {}),
   };
 }
 
@@ -337,6 +343,7 @@ function hydrateLeaderboard(): Promise<void> {
       const local  = await readLocalWins();
       const merged = mergeWins(remote, local);
       await writeLocalWins(merged);
+      noteWins(merged);
       console.log(`[leaderboard] hydrated ${merged.length} wins from ${remoteTarget()}`);
 
       // Local had wins GitHub didn't (e.g. a crash before the mirror landed).
@@ -507,6 +514,10 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
     spectating:       iAmSpectator || (isHostMe && !hostPlays(game)),
     draw_commit:     game.state === 'lobby' ? null : game.draw_commit ?? null,
     draw_salt:        revealed ? game.draw_salt ?? null : null,
+    advent:           revealed && game.advent
+      ? { ...game.advent, icon: !!getSettings().advent.prizes[String(game.advent.door)]?.svg }
+      : null,
+    advent_next:      revealed ? null : nextDoor(),
   };
 }
 

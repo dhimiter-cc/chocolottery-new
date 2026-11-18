@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { isAdmin, adminAvailable } from '../../../lib/adminAuth.js';
 import { getSettings, saveSettings, syncStatus, hydrateSettings } from '../../../lib/settings.js';
 import { baseThemeId } from '../../../themes/resolve.js';
+import { adventView } from '../../../lib/advent.js';
 
 const json = (payload: unknown, status = 200) =>
   new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
@@ -10,7 +11,7 @@ const json = (payload: unknown, status = 200) =>
  *  theme visitors get right now. */
 async function view() {
   await hydrateSettings();
-  return { settings: getSettings(), sync: syncStatus(), activeTheme: baseThemeId() };
+  return { settings: getSettings(), sync: syncStatus(), activeTheme: baseThemeId(), advent: adventView() };
 }
 
 export const GET: APIRoute = async ({ request }) => {

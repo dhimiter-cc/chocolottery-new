@@ -101,6 +101,16 @@ export const WINTER: EventTheme = {
     lineForWinner: 'Ho ho ho! You were on the nice list.',
   },
 
+  // The advent calendar (lib/advent.ts): every win opens the next door.
+  advent: {
+    title: 'Advent calendar',
+    intro: "One door for every day from 1 to 24 December. Every win opens the next door: Saturday's opens on Friday and Sunday's on Monday, so those days have two rounds.",
+    lobbyNext: '🎄 This round opens advent door {door}',
+    lobbyWaiting: '{n} doors waiting today',
+    revealLead: '🎄 Advent door {door}',
+    surprise: 'A surprise from the calendar',
+  },
+
   barPrint: ({ sleeve }): PrintItem[] => [
     { d: FLAKE, transform: `translate(${sleeve.x + sleeve.w - 26} ${sleeve.y + 26})`, stroke: 'gold', strokeWidth: 1.4, fill: 'none', opacity: 0.8 },
     { d: FLAKE, transform: `translate(${sleeve.x + 26} ${sleeve.y + 26}) scale(0.7)`, stroke: 'gold', strokeWidth: 1.6, fill: 'none', opacity: 0.6 },

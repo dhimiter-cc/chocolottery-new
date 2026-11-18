@@ -20,8 +20,11 @@ import { remoteJson, type PushResult } from './githubStore.js';
 import { DEFAULT_STYLE, DEFAULT_HOST_PLAYS } from './bars.js';
 import { EVENT_DATE, TEASE_FROM } from './specialPrize.js';
 import type { GameStyle } from './types.js';
+import { cleanSvg } from './svgClean.js';
+import { DOORS } from './adventDoors.js';
 
 export type SoundPack = 'cheerful' | 'classic';
+export interface AdventPrize { title: string; svg: string }
 export const SOUND_PACKS: SoundPack[] = ['cheerful', 'classic'];
 
 export interface Settings {
@@ -35,6 +38,9 @@ export interface Settings {
   defaults: { style: GameStyle; hostPlays: boolean };
   /** The team outing the golden-ticket teaser counts down to. */
   outing: { eventDate: string; teaseFrom: string };
+  /** The advent calendar's prizes, by door number ("1" to "24"): a title and an
+   *  optional SVG icon. Doors without one show a default gift. */
+  advent: { prizes: Record<string, AdventPrize> };
   /** Unix ms of the last save, and where from. */
   updated_at: number;
   updated_by: string;
@@ -70,6 +76,7 @@ export function defaultSettings(): Settings {
     events,
     defaults: { style: DEFAULT_STYLE, hostPlays: DEFAULT_HOST_PLAYS },
     outing: { eventDate: EVENT_DATE, teaseFrom: TEASE_FROM },
+    advent: { prizes: {} },
     updated_at: 0,
     updated_by: '',
   };
@@ -109,6 +116,19 @@ export function normalise(input: unknown, base: Settings = defaultSettings()): S
     const ev = isDate(i.outing.eventDate) ? i.outing.eventDate : out.outing.eventDate;
     const tease = isDate(i.outing.teaseFrom) ? i.outing.teaseFrom : out.outing.teaseFrom;
     if (tease <= ev) { out.outing.eventDate = ev; out.outing.teaseFrom = tease; }
+  }
+
+  // The dashboard always sends the whole list, so it replaces the old one.
+  if (i.advent && typeof i.advent === 'object' && i.advent.prizes && typeof i.advent.prizes === 'object') {
+    const prizes: Record<string, AdventPrize> = {};
+    for (let d = 1; d <= DOORS; d++) {
+      const p = i.advent.prizes[String(d)];
+      if (!p || typeof p !== 'object') continue;
+      const title = typeof p.title === 'string' ? p.title.trim().slice(0, 60) : '';
+      const svg = cleanSvg(p.svg);
+      if (title || svg) prizes[String(d)] = { title, svg };
+    }
+    out.advent = { prizes };
   }
 
   if (typeof i.updated_at === 'number') out.updated_at = i.updated_at;
@@ -194,7 +214,13 @@ function changes(a: unknown, b: unknown, prefix = ''): string[] {
     const keys = new Set([...Object.keys(a as object), ...Object.keys(b as object)]);
     return [...keys].flatMap((k) => (k === 'updated_at' || k === 'updated_by') ? [] : changes((a as any)[k], (b as any)[k], prefix ? `${prefix}.${k}` : k));
   }
-  return a === b ? [] : [`${prefix} ${JSON.stringify(a)} → ${JSON.stringify(b)}`];
+  // Long values (an uploaded icon) are named, not printed, so the commit message stays readable.
+  const show = (v: unknown) => {
+    if (typeof v === 'string' && v.length > 40) return `(${v.length} chars)`;
+    const j = JSON.stringify(v);
+    return j && j.length > 60 ? `${j.slice(0, 57)}…` : j;
+  };
+  return a === b ? [] : [`${prefix} ${show(a)} → ${show(b)}`];
 }
 
 export interface SaveResult { settings: Settings; changed: string[]; remote: PushResult }

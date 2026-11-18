@@ -1,0 +1,190 @@
+---
+// The advent calendar (lib/advent.ts): 24 doors, each a little Amsterdam canal
+// house, standing in a shuffled order that is the same on every screen for the
+// year. Opened houses light their windows and show the prize and who won it;
+// today's doors glow; the rest show the day they open. Nothing here is
+// interactive: doors open at the reveal of a winning round. Always drawn in the
+// calendar's own theme; 404 when no theme has a calendar.
+import '../styles/global.css';
+import ThemeDecor from '../themes/ThemeDecor.astro';
+import { getTheme } from '../themes/index.js';
+import { adventEvent, adventView } from '../lib/advent.js';
+import { getSettings } from '../lib/settings.js';
+import { seeded } from '../lib/bars.js';
+
+const event = adventEvent();
+if (!event) return new Response(null, { status: 404 });
+const words = getTheme(event.id).advent!;
+const view = adventView();
+const prizes = getSettings().advent.prizes;
+const openedBy = new Map(view.opened.map((o) => [o.door, o]));
+const waiting = new Set(view.waiting);
+
+// The street: the 24 doors shuffled, the same way for everyone, once per year.
+const rand = seeded(view.year * 7919);
+const order = view.schedule.map((d) => d.door);
+for (let i = order.length - 1; i > 0; i--) {
+  const j = Math.floor(rand() * (i + 1));
+  [order[i], order[j]] = [order[j], order[i]];
+}
+
+// Gables, in a 100 x 160 box: the outline of the house and the roofline the snow lies on.
+const GABLES = [
+  { // step gable
+    outline: 'M0 160V60H10V50H20V40H30V30H40V20H60V30H70V40H80V50H90V60H100V160Z',
+    roof: 'M0 60H10V50H20V40H30V30H40V20H60V30H70V40H80V50H90V60H100',
+  },
+  { // bell gable
+    outline: 'M0 160V70Q0 55 15 52Q25 50 25 38Q25 20 50 14Q75 20 75 38Q75 50 85 52Q100 55 100 70V160Z',
+    roof: 'M0 70Q0 55 15 52Q25 50 25 38Q25 20 50 14Q75 20 75 38Q75 50 85 52Q100 55 100 70',
+  },
+  { // neck gable
+    outline: 'M0 160V68Q10 66 18 56H28V26Q50 12 72 26V56H82Q90 66 100 68V160Z',
+    roof: 'M0 68Q10 66 18 56H28V26Q50 12 72 26V56H82Q90 66 100 68',
+  },
+  { // spout gable
+    outline: 'M0 160V60L50 12L100 60V160Z',
+    roof: 'M0 60L50 12L100 60',
+  },
+];
+const FACADES = ['#3B1549', '#4A1F3D', '#2E1A3F', '#5A2E35', '#3A2A4A', '#46233F'];
+
+const dayLabel = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+const houses = order.map((door, i) => {
+  const r = seeded(view.year * 31 + door * 97);
+  const day = view.schedule[door - 1];
+  const won = openedBy.get(door);
+  const prize = prizes[String(door)];
+  return {
+    door,
+    gable: GABLES[Math.floor(r() * GABLES.length)],
+    facade: FACADES[Math.floor(r() * FACADES.length)],
+    // A touch of variety in height, so the street doesn't look stamped out.
+    lift: Math.round(r() * 14),
+    state: won ? 'open' : waiting.has(door) ? 'waiting' : 'shut',
+    opensOn: dayLabel(day.opensOn),
+    won,
+    title: (won?.title || prize?.title || '').trim(),
+    icon: !!(won && prize?.svg),
+    delay: (i % 6) * 0.35,
+  };
+});
+
+const openCount = view.opened.length;
+const firstOpens = view.schedule[0].opensOn;
+const status = !view.live || view.today < firstOpens
+  ? `The first door opens on ${dayLabel(firstOpens)}.`
+  : view.waiting.length
+    ? view.waiting.length === 1
+      ? `Door ${view.waiting[0]} is waiting: the next win opens it.`
+      : `${view.waiting.length} doors are waiting today. The next win opens door ${view.waiting[0]}.`
+    : openCount === 24
+      ? 'Every door is open. Merry Christmas!'
+      : 'Nothing waiting today. Come back tomorrow.';
+---
+<!DOCTYPE html>
+<html lang="en" data-theme={event.id}>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{words.title} — Chocolottery</title>
+</head>
+<body class="advent-page">
+  <ThemeDecor id={event.id} />
+
+  <main class="advent">
+    <header class="advent-head">
+      <a class="advent-back" href="/">← chocolottery</a>
+      <h1>{words.title} <span>{view.year}</span></h1>
+      <p class="advent-intro">{words.intro}</p>
+      <p class="advent-status" aria-live="polite"><b>{openCount}</b> of 24 open · {status}</p>
+    </header>
+
+    <ol class="street" aria-label={`${words.title}: 24 doors`}>
+      {houses.map((h) => (
+        <li class={`house is-${h.state}`} style={`--lift:${h.lift}px;--delay:${h.delay}s`}>
+          <svg viewBox="0 0 100 160" role="img" aria-label={`Door ${h.door}, ${h.state === 'open' ? 'open' : h.state === 'waiting' ? 'waiting to be opened' : `opens ${h.opensOn}`}`}>
+            <path d={h.gable.outline} fill={h.facade} stroke="rgba(243, 207, 110, 0.35)" stroke-width="1.2" />
+            <path d={h.gable.roof} fill="none" stroke="#F5F9FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <circle class="win" cx="50" cy="44" r="5" />
+            <rect class="win" x="18" y="70" width="18" height="20" rx="2" />
+            <rect class="win" x="64" y="70" width="18" height="20" rx="2" />
+            <rect class="win" x="18" y="98" width="18" height="18" rx="2" />
+            <rect class="win" x="64" y="98" width="18" height="18" rx="2" />
+            <path class="door" d="M38 160V132Q38 122 50 122Q62 122 62 132V160Z" />
+            <text class="num" x="50" y="112" text-anchor="middle">{h.door}</text>
+          </svg>
+          <div class="tag">
+            {h.state === 'open' ? (
+              <>
+                {h.icon ? <img src={`/api/advent/${h.door}`} alt="" width="40" height="40" loading="lazy" /> : <span class="gift" aria-hidden="true">🎁</span>}
+                <b>{h.title || words.surprise}</b>
+                <span>{h.won!.name}</span>
+              </>
+            ) : h.state === 'waiting' ? (
+              <b class="today">Today</b>
+            ) : (
+              <span class="when">{h.opensOn}</span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </main>
+
+  <svg class="canal" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 120V64H40V40H52V30H64V40H76V64H110V36L136 14L162 36V64H200V44Q200 30 214 28Q222 10 236 10Q250 10 258 28Q272 30 272 44V64H310V30H322V20H346V30H358V64H400V40L430 16L460 40V64H500V34H512V24H524V14H548V24H560V34H572V64H620V42Q620 30 632 28Q640 12 654 12Q668 12 676 28Q688 30 688 42V64H730V38L756 18L782 38V64H820V30H832V20H856V30H868V64H910V44H922V32H946V44H958V64H1000V40L1028 16L1056 40V64H1100V36H1112V24H1136V36H1148V64H1200V120Z" />
+  </svg>
+</body>
+</html>
+
+<style>
+  .advent-page { padding-bottom: 0; }
+  .advent { max-width: 1120px; margin: 0 auto; padding: 8px 0 160px; position: relative; z-index: 1; }
+  .advent-head { text-align: center; margin: 24px auto 28px; max-width: 64ch; }
+  .advent-back { display: inline-block; margin-bottom: 10px; color: var(--text-mute); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; }
+  .advent-head h1 { margin: 0; font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 900; font-stretch: 118%; letter-spacing: -0.03em; color: var(--gold); }
+  .advent-head h1 span { color: var(--text-mute); font-weight: 700; }
+  .advent-intro { margin: 10px 0 6px; color: var(--text-mute); }
+  .advent-status { margin: 0; color: var(--text); }
+  .advent-status b { color: var(--gold); }
+
+  .street {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 26px 18px; align-items: end;
+  }
+  .house { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .house svg { width: 100%; max-width: 132px; height: auto; transform: translateY(calc(var(--lift) * -1)); overflow: visible; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.45)); }
+  .house .win { fill: #1A0B22; stroke: rgba(243, 207, 110, 0.25); stroke-width: 1; }
+  .house .door { fill: var(--on-gold); stroke: rgba(243, 207, 110, 0.4); stroke-width: 1.2; }
+  .house .num { font: 900 22px var(--font-sans); fill: var(--gold); }
+  .house.is-shut .num { fill: rgba(243, 207, 110, 0.55); }
+
+  .house.is-open .win { fill: var(--gold); stroke: none; filter: drop-shadow(0 0 4px rgba(255, 210, 74, 0.8)); }
+  .house.is-open .door { fill: var(--gold-deep); }
+  .house.is-open .num { fill: var(--cream); }
+
+  .house.is-waiting .door { fill: var(--gold); animation: door-glow 1.6s ease-in-out var(--delay) infinite alternate; }
+  .house.is-waiting .num { fill: var(--cream); }
+  .house.is-waiting .win:nth-of-type(odd) { fill: rgba(243, 207, 110, 0.55); }
+  @keyframes door-glow {
+    from { filter: drop-shadow(0 0 2px rgba(255, 210, 74, 0.5)); }
+    to   { filter: drop-shadow(0 0 12px rgba(255, 210, 74, 1)); }
+  }
+
+  .tag { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 64px; text-align: center; font-size: 0.75rem; color: var(--text-mute); }
+  .tag img { width: 40px; height: 40px; object-fit: contain; }
+  .tag .gift { font-size: 1.6rem; line-height: 1; }
+  .tag b { color: var(--text); font-weight: 700; }
+  .tag .today { color: var(--gold); text-transform: uppercase; letter-spacing: 0.16em; }
+  .tag .when { letter-spacing: 0.04em; }
+
+  /* The canal skyline along the bottom of the page, behind everything. */
+  .canal { position: fixed; left: 0; right: 0; bottom: 0; width: 100%; height: 110px; z-index: 0; fill: var(--bg); filter: brightness(0.45); pointer-events: none; }
+
+  @media (max-width: 900px) { .street { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 560px) { .street { grid-template-columns: repeat(3, 1fr); gap: 20px 10px; } .canal { height: 70px; } }
+  @media (prefers-reduced-motion: reduce) { .house.is-waiting .door { animation: none; } }
+</style>

@@ -18,6 +18,7 @@
   import SoundToggle from './SoundToggle.svelte';
   import Tricks from './Tricks.svelte';
   import TrickOrTreat from './TrickOrTreat.svelte';
+  import AdventDoor from './AdventDoor.svelte';
   import { currentTheme } from '../themes/client.js';
   import { isEventDay, isTeaseActive, hasEventPreviewParam, type OutingDates } from '../lib/specialPrize.js';
   import { sounds } from '../lib/sound.js';
@@ -442,6 +443,7 @@
 {#snippet barPrize()}
   {#if gameState}
     {#if trickOrTreat}<TrickOrTreat game={gameState} {sounds} />{/if}
+    <AdventDoor game={gameState} delay={500} />
     {#if gameState.prize_snack}
       <p class="bar-prize-snack">
         <b>🍫 Prize snack</b> {gameState.prize_snack.text}
@@ -652,6 +654,11 @@
           <!-- Trick or treat door (straw mode; bar mode shows it inside the reveal canvas) -->
           {#if trickOrTreat && !eventLayout && !bars && (phase === 'reveal' || phase === 'done')}
             <TrickOrTreat game={gameState} {sounds} delay={5200} />
+          {/if}
+
+          <!-- Advent door (straw mode; bar mode shows it inside the reveal canvas) -->
+          {#if !eventLayout && !bars && (phase === 'reveal' || phase === 'done')}
+            <AdventDoor game={gameState} delay={5200} />
           {/if}
 
           <!-- Prize snack card -->

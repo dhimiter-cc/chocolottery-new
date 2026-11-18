@@ -109,6 +109,24 @@ export interface RevealCameo {
   lineForWinner?: string;
 }
 
+/** Words for the advent calendar (lib/advent.ts). Having this on a theme turns the
+ *  calendar on while that theme is live: each win opens the next door. `{door}`
+ *  is a door number, `{n}` a count. */
+export interface AdventCopy {
+  /** The calendar's name, on its page and links. */
+  title: string;
+  /** Under the title on its page. */
+  intro: string;
+  /** Lobby: the door this round will open. */
+  lobbyNext: string;
+  /** Lobby, when more than one door is waiting today. */
+  lobbyWaiting: string;
+  /** Reveal: above the prize behind the door. */
+  revealLead: string;
+  /** A door whose prize has not been named yet. */
+  surprise: string;
+}
+
 export interface Theme {
   id: string;
   label: string;
@@ -128,6 +146,8 @@ export interface Theme {
   barPrint?: (g: BarPrintGeometry) => PrintItem[];
   /** A guest at the reveal. */
   cameo?: RevealCameo;
+  /** The advent calendar, on while this theme is live. */
+  advent?: AdventCopy;
 }
 
 /** An event: a partial override of the default theme, plus when it runs. */
@@ -144,4 +164,5 @@ export interface EventTheme {
   sounds?: Theme['sounds'];
   barPrint?: Theme['barPrint'];
   cameo?: RevealCameo;
+  advent?: AdventCopy;
 }

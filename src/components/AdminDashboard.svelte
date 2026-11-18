@@ -6,9 +6,10 @@
   // thumbnail of the real landing page plus what each one changes.
   import { DEFAULT_THEME, EVENTS, getTheme, windowOf, type Theme } from '../themes/index.js';
   import { playPackSample } from '../lib/sound.js';
-  import type { Settings, SyncStatus } from '../lib/settings.js';
+  import type { Settings, SyncStatus, AdventPrize } from '../lib/settings.js';
+  import type { AdventView } from '../lib/advent.js';
 
-  interface View { settings: Settings; sync: SyncStatus; activeTheme: string }
+  interface View { settings: Settings; sync: SyncStatus; activeTheme: string; advent: AdventView }
 
   let { initial, open = false }: { initial: View | null; open?: boolean } = $props();
 
@@ -53,7 +54,11 @@
   }
 
   // ── Saving ────────────────────────────────────────────────────────────────
-  const strip = (s: Settings) => JSON.stringify({ ...s, updated_at: 0, updated_by: '' });
+  // Empty door rows are only there to bind inputs to; they are not a change.
+  const filled = (prizes: Record<string, AdventPrize>) =>
+    Object.fromEntries(Object.entries(prizes).filter(([, p]) => p.title.trim() || p.svg));
+  const strip = (s: Settings) =>
+    JSON.stringify({ ...s, advent: { prizes: filled(s.advent.prizes) }, updated_at: 0, updated_by: '' });
   let dirty = $derived(!!(draft && view && strip(draft) !== strip(view.settings)));
   let note = $state<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
 
@@ -136,6 +141,40 @@
 
   const activeLabel = $derived(view ? (cards.find((c) => c.id === view!.activeTheme)?.label ?? view.activeTheme) : '');
   const when = (ms: number) => (ms ? new Date(ms).toLocaleString() : 'never');
+
+  // ── Advent calendar ───────────────────────────────────────────────────────
+  const adventEvent = EVENTS.find((e) => e.advent);
+  const DOOR_NUMBERS = Array.from({ length: 24 }, (_, i) => String(i + 1));
+  // Every door gets a row to bind to, even before it has a prize.
+  $effect(() => {
+    if (!draft) return;
+    for (const d of DOOR_NUMBERS) draft.advent.prizes[d] ??= { title: '', svg: '' };
+  });
+  let iconError = $state<Record<string, string>>({});
+  const MAX_ICON = 12_000;
+  async function pickIcon(d: string, e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !draft) return;
+    const text = (await file.text()).trim();
+    if (!/^(<\?xml[^>]*>\s*)?(<!DOCTYPE[^>]*>\s*)?<svg[\s>]/i.test(text)) { iconError[d] = 'That is not an SVG.'; return; }
+    if (text.length > MAX_ICON) { iconError[d] = `Too big (${Math.round(text.length / 1000)} KB). Keep it under 12 KB.`; return; }
+    iconError[d] = '';
+    draft.advent.prizes[d].svg = text;
+  }
+  const iconSrc = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  const dayLabel = (iso: string) =>
+    new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  let openedBy = $derived(Object.fromEntries((view?.advent.opened ?? []).map((o) => [String(o.door), o])));
+  let adventStatus = $derived.by(() => {
+    if (!view) return '';
+    const a = view.advent;
+    if (!a.live) return `Not live: the calendar runs while ${adventEvent?.label ?? 'its theme'} is on (1 to 24 December ${a.year}).`;
+    if (a.today < a.schedule[0].opensOn) return `Live, but the first door opens on ${dayLabel(a.schedule[0].opensOn)}.`;
+    if (a.waiting.length) return `Live. ${a.opened.length} of 24 open; the next win opens door ${a.waiting[0]}${a.waiting.length > 1 ? ` (${a.waiting.length} waiting today)` : ''}.`;
+    return `Live. ${a.opened.length} of 24 open; no door is waiting today.`;
+  });
 </script>
 
 <svelte:head><meta name="robots" content="noindex" /></svelte:head>
@@ -297,6 +336,43 @@
       </div>
     </section>
 
+    <!-- Advent calendar -->
+    {#if adventEvent}
+      <section class="block">
+        <h2>Advent calendar</h2>
+        <p class="muted">
+          Every win opens the next door. Give each door a title and, if you like, an SVG picture (up to 12 KB).
+          Doors without a title say "{adventEvent.advent?.surprise}". <a href="/advent" target="_blank" rel="noreferrer">See the calendar</a>
+        </p>
+        <p class="advent-status">{adventStatus}</p>
+        <div class="doors">
+          {#each view.advent.schedule as day (day.door)}
+            {@const d = String(day.door)}
+            {@const p = draft.advent.prizes[d]}
+            {#if p}
+              <div class="door-row" class:opened={!!openedBy[d]}>
+                <span class="door-no">{day.door}</span>
+                <span class="door-day" title={day.opensOn !== day.date ? `Its own day is ${dayLabel(day.date)}` : ''}>
+                  {dayLabel(day.opensOn)}{day.opensOn !== day.date ? ' *' : ''}
+                </span>
+                <span class="door-icon">
+                  {#if p.svg}<img src={iconSrc(p.svg)} alt="" width="34" height="34" />{:else}<span aria-hidden="true">🎁</span>{/if}
+                </span>
+                <input class="door-title" type="text" maxlength="60" placeholder="Prize behind door {day.door}" bind:value={p.title} aria-label={`Door ${day.door} prize`} />
+                <span class="door-actions">
+                  <label class="btn btn-ghost small-btn">SVG<input type="file" accept=".svg,image/svg+xml" onchange={(e) => pickIcon(d, e)} hidden /></label>
+                  {#if p.svg}<button type="button" class="link" onclick={() => (p.svg = '')}>Remove</button>{/if}
+                </span>
+                {#if openedBy[d]}<span class="door-opened">Opened by {openedBy[d].name}</span>{/if}
+                {#if iconError[d]}<span class="door-error">{iconError[d]}</span>{/if}
+              </div>
+            {/if}
+          {/each}
+        </div>
+        <p class="hint">* Weekend doors: Saturday's opens on the Friday before, Sunday's on the Monday after.</p>
+      </section>
+    {/if}
+
     <!-- Outing -->
     <section class="block">
       <h2>Team outing</h2>
@@ -385,6 +461,24 @@
   .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .seg button { font: inherit; color: var(--text); background: var(--bg-soft); border: 0; padding: 9px 16px; cursor: pointer; }
   .seg button[aria-pressed='true'] { background: var(--gold); color: var(--on-gold); font-weight: 700; }
+
+  .advent-status { margin: 0 0 12px; font-weight: 600; }
+  .doors { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 8px; }
+  .door-row {
+    display: grid; grid-template-columns: 30px 92px 36px 1fr auto; align-items: center; gap: 8px;
+    padding: 6px 10px; border: 1px solid var(--border-soft); border-radius: var(--radius); background: var(--bg-soft);
+  }
+  .door-row.opened { border-color: var(--gold-deep); }
+  .door-no { font: 800 1rem var(--font-dot); color: var(--gold); text-align: center; }
+  .door-day { font-size: 0.75rem; color: var(--text-mute); }
+  .door-icon { display: grid; place-items: center; width: 34px; height: 34px; font-size: 1.2rem; }
+  .door-icon img { width: 34px; height: 34px; object-fit: contain; }
+  .door-title { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 8px; min-width: 0; }
+  .door-actions { display: flex; align-items: center; gap: 6px; }
+  .door-opened, .door-error { grid-column: 2 / -1; font-size: 0.75rem; }
+  .door-opened { color: var(--gold); }
+  .door-error { color: var(--red); }
+  @media (max-width: 520px) { .doors { grid-template-columns: 1fr; } .door-row { grid-template-columns: 26px 1fr 36px; } .door-title, .door-actions { grid-column: 1 / -1; } }
 
   .savebar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;

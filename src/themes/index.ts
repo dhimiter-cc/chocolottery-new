@@ -14,7 +14,7 @@ import { HALLOWEEN } from './halloween.js';
 import { WINTER } from './winter.js';
 
 export { DEFAULT_THEME };
-export type { Theme, EventTheme, Copy, CopyKey } from './types.js';
+export type { Theme, EventTheme, Copy, CopyKey, AdventCopy } from './types.js';
 
 export const EVENTS: EventTheme[] = [HALLOWEEN, WINTER];
 
@@ -31,6 +31,7 @@ export function buildTheme(event?: EventTheme): Theme {
     sounds: { ...DEFAULT_THEME.sounds, ...event.sounds },
     barPrint: event.barPrint ?? DEFAULT_THEME.barPrint,
     cameo: event.cameo ?? DEFAULT_THEME.cameo,
+    advent: event.advent ?? DEFAULT_THEME.advent,
   };
 }
 
