@@ -8,6 +8,8 @@
 // the dates), and a preview is always one `?theme=winter` away.
 
 import type { EventTheme, PrintItem } from './types.js';
+import santaUrl from './winter/art/santa.svg?url';
+import sleighUrl from './winter/art/sleigh.svg?url';
 
 /** Six-armed snowflake centred on (0, 0), radius 10. */
 const FLAKE = [0, 60, 120]
@@ -79,6 +81,24 @@ export const WINTER: EventTheme = {
     // Losers get snowmen and frost drifting up out of the floor.
     tearGlyphs: ['☃️', '☃️', '❄️', '❄️', '🥶'],
     tearGlyphCount: 12,
+  },
+
+  // Sleigh bells as the winning bar lights up.
+  sounds: { barLit: 'playSleighBells' },
+
+  // Santa delivers: the sleigh sweeps over the stage dropping confetti as the name
+  // lands, and Santa comes up in the corner, waving, with a word for the winner.
+  cameo: {
+    figure: {
+      src: santaUrl,
+      // The glove, tilting from the wrist (same paths as winter/Santa.astro).
+      wave: [3, 10, 20, 21, 111, 116],
+      pivot: [70, 84],
+      label: 'Santa, waving',
+    },
+    flyer: { src: sleighUrl, label: "Santa's sleigh" },
+    line: 'Ho ho ho! {name} was nice this year.',
+    lineForWinner: 'Ho ho ho! You were on the nice list.',
   },
 
   barPrint: ({ sleeve }): PrintItem[] => [

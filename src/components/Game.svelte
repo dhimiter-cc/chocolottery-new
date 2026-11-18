@@ -616,6 +616,7 @@
                 onFireConfetti={(big) => effectsCanvas?.fireConfetti(big)}
                 onFireSparkles={() => effectsCanvas?.fireSparkles()}
                 onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
+                onFireDrop={(x, y) => effectsCanvas?.fireDrop(x, y)}
                 prize={eventLayout ? undefined : barPrize}
               />
             </div>
@@ -628,6 +629,7 @@
                 onFireTears={() => effectsCanvas?.fireTears()}
                 onFireSparkles={() => effectsCanvas?.fireSparkles()}
                 onFireFireworks={(bursts) => effectsCanvas?.fireFireworks(bursts)}
+                onFireDrop={(x, y) => effectsCanvas?.fireDrop(x, y)}
               />
             </div>
           {/if}

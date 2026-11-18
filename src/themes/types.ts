@@ -52,7 +52,7 @@ export interface Effects {
 }
 
 /** Names of the sound functions in lib/sound.ts that a theme may trigger. */
-export type SoundName = 'playKnock' | 'playCreak' | 'playSpookyStinger' | 'playSparkleChime' | 'playPartyPopper' | 'playTada';
+export type SoundName = 'playKnock' | 'playCreak' | 'playSpookyStinger' | 'playSparkleChime' | 'playPartyPopper' | 'playTada' | 'playSleighBells';
 
 /** One drawn shape printed on a bar's sleeve. 'gold' means the sleeve's gold foil. */
 export interface PrintItem {
@@ -86,6 +86,29 @@ export interface TrickOrTreatCopy {
   trickNote: string;
 }
 
+/** A guest who turns up at the reveal (Santa, at Winter): a figure that comes up
+ *  in the corner of the stage and says a line to the winner, and something that
+ *  flies across the stage dropping confetti as the name lands. Having this on a
+ *  theme turns it on; it never changes who wins. Both images are URLs (import
+ *  them with `?url`), so they only load on a theme that uses them. */
+export interface RevealCameo {
+  figure: {
+    /** An SVG made of <path> elements. */
+    src: string;
+    /** Indices of the paths that wave together, and the point they turn around,
+     *  in the SVG's own units (Santa's glove, from the wrist). */
+    wave?: number[];
+    pivot?: [number, number];
+    label: string;
+  };
+  /** A silhouette, drawn in gold as it crosses the stage. */
+  flyer?: { src: string; label: string };
+  /** The speech bubble. `{name}` is the winner. */
+  line: string;
+  /** On the winner's own screen. */
+  lineForWinner?: string;
+}
+
 export interface Theme {
   id: string;
   label: string;
@@ -103,6 +126,8 @@ export interface Theme {
   };
   /** Extra shapes printed on every bar's sleeve (drawn above the lettering). */
   barPrint?: (g: BarPrintGeometry) => PrintItem[];
+  /** A guest at the reveal. */
+  cameo?: RevealCameo;
 }
 
 /** An event: a partial override of the default theme, plus when it runs. */
@@ -118,4 +143,5 @@ export interface EventTheme {
   effects?: Partial<Effects>;
   sounds?: Theme['sounds'];
   barPrint?: Theme['barPrint'];
+  cameo?: RevealCameo;
 }

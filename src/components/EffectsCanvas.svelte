@@ -249,6 +249,31 @@
     ensureLoop();
   }
 
+  /** A little confetti falling from a point, given as fractions of the window: what
+   *  drops off something flying across the stage (the reveal cameo's sleigh). */
+  export function fireDrop(xFrac: number, yFrac: number, n = 9) {
+    const w = canvas.width / (window.devicePixelRatio || 1);
+    const h = canvas.height / (window.devicePixelRatio || 1);
+    const colors = fx().confettiColors;
+    for (let i = 0; i < n; i++) {
+      particles.push(
+        spawnParticle({
+          x: xFrac * w + rand(-16, 16),
+          y: yFrac * h + rand(-6, 6),
+          vx: rand(-1.4, 1.4),
+          vy: rand(-1.2, 1.6),
+          g: 0.11,
+          drag: 0.986,
+          size: rand(5, 9),
+          color: colors[Math.floor(Math.random() * colors.length)],
+          maxLife: rand(130, 210),
+          kind: Math.random() < 0.25 ? 'star' : 'rect',
+        }),
+      );
+    }
+    ensureLoop();
+  }
+
   export function fireSparkles() {
     const colors = fx().sparkleColors;
     const w = canvas.width / (window.devicePixelRatio || 1);

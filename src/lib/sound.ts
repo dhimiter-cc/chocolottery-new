@@ -758,6 +758,27 @@ export function playSpookyStinger() {
   tone(110, 1.4, 'sine', 0.14, 0.05);
 }
 
+// ── Winter ────────────────────────────────────────────────────────────────
+/** Sleigh bells: a strap of little bells shaken in four bursts, bright and close,
+ *  with a soft bell chord under the last shake. Plays as the winning bar lights up
+ *  on a theme that asks for it. */
+export function playSleighBells() {
+  play((ctx, t0) => {
+    // Little bells are bright and inharmonic: random pitches between 2.6 and 5.4 kHz.
+    const shakes = [0, 0.26, 0.52, 0.86];
+    shakes.forEach((at, k) => {
+      const grains = k === shakes.length - 1 ? 14 : 9;
+      for (let i = 0; i < grains; i++) {
+        const t = t0 + at + Math.random() * 0.07;
+        const f = 2600 + Math.random() * 2800;
+        bell(ctx, t, f, 0.028 + Math.random() * 0.03, 0.22 + Math.random() * 0.18, (Math.random() - 0.5) * 1.2);
+      }
+    });
+    // A warm chord under the last shake, so it lands rather than stops.
+    [C6, E6, G6].forEach((f, i) => bell(ctx, t0 + 0.86 + i * 0.03, f, 0.05, 1.3, (i - 1) * 0.3));
+  });
+}
+
 /** A short taste of a pack for the admin dashboard, whichever one is live: the
  *  go, a chime, the fanfare with confetti, then a ta-da. */
 export function playPackSample(pack: SoundPack) {
@@ -788,4 +809,5 @@ export const sounds = {
   playKnock,
   playCreak,
   playSpookyStinger,
+  playSleighBells,
 };

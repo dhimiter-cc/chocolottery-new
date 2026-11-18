@@ -2687,6 +2687,9 @@ input[type=text]::placeholder, input[type=number]::placeholder { color: var(--te
   .bar-reveal-text { min-height: 0; margin-top: 0; }
   .bar-reveal .winner-name { font-size: clamp(2.2rem, 3.4vw, 3.6rem); overflow-wrap: anywhere; }
   .bar-reveal-rest { margin-top: 20px; }
+  /* A theme's guest at the reveal (RevealCameo) stands in the bottom-left corner:
+     a wider lane on the left keeps the bar and its ticket clear of him. */
+  .bar-reveal:has(.cameo-slot) .bar-reveal-hero { margin-left: 168px; }
 }
 .bar-reveal-text .overlay-headline { color: var(--cb-gold); }
 .bar-reveal-rest {

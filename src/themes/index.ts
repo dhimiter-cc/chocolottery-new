@@ -30,6 +30,7 @@ export function buildTheme(event?: EventTheme): Theme {
     effects: { ...DEFAULT_THEME.effects, ...event.effects },
     sounds: { ...DEFAULT_THEME.sounds, ...event.sounds },
     barPrint: event.barPrint ?? DEFAULT_THEME.barPrint,
+    cameo: event.cameo ?? DEFAULT_THEME.cameo,
   };
 }
 

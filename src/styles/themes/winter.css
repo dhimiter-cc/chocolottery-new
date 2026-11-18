@@ -231,7 +231,7 @@ html[data-theme='winter'] .game-grid > .panel:nth-child(3) { --wt-off-a: 560px; 
    a little more room at the top so it never covers the header pill or a title. Below
    1100px nothing clips, so the drift sits on the edge like everywhere else. */
 @media (min-width: 1100px) {
-  html[data-theme='winter'] .game-grid > .panel { padding-top: 30px; }
+  html[data-theme='winter'] .game-grid > .panel { padding-top: 26px; }
   html[data-theme='winter'] .game-grid > .panel::before {
     top: 0;
     height: 27px;
