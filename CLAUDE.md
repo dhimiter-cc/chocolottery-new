@@ -112,6 +112,37 @@ back to the default, so nothing is left half-themed.
 - **Gotcha:** `.winner-name` is gold gradient on transparent text, so a `text-shadow`
   paints over it and tints it. Use `filter: drop-shadow` for glows there.
 
+## Admin dashboard and settings (`/admin`)
+
+Things that used to be edited in code or env vars are settings (`lib/settings.ts`),
+changed from `/admin`: the **sound pack** (cheerful = `lib/sound.ts`, classic =
+`lib/soundClassic.ts`, both on the shared context and mute of `lib/soundCore.ts`),
+a **forced theme** (or `auto` = follow the calendar), per event **enabled + dates**
+(an event whose own window has ended starts switched off), what **new games**
+default to (style, host plays) and the **outing dates** of the golden-ticket teaser.
+
+- **Storage:** `data/settings.json` is the fast local copy; the durable copy is
+  `settings.json` on the `GITHUB_SETTINGS_BRANCH` branch (default
+  `chocolottery-settings`, ⚠️ never the deploy branch), one commit per save with the
+  changed keys in the message, so the branch history is the audit log. Boot pulls
+  it and the newer of local and remote wins (`lib/githubStore.ts` does the Contents
+  API work and is failure-tolerant like the leaderboard mirror).
+- **Reads are synchronous** (`getSettings()`); the first moments after boot may
+  serve the local copy before GitHub has been asked.
+- **Auth:** `ADMIN_PASSWORD` (`lib/adminAuth.ts`), traded for an HttpOnly HMAC
+  cookie. No password: open in dev, 404 in production. Wrong guesses lock logins
+  for a minute. The page is always drawn in the default theme.
+- **Where settings are read:** `themes/resolve.ts` (`baseThemeId`: forced theme, then
+  the `THEME` env var, then the calendar with the dashboard's dates), `api/create.ts`
+  (defaults), `game/[code].astro` (`<html data-sound-pack>` and the outing dates
+  passed to `Game.svelte`), `index.astro` (event-day check).
+- **Previews:** `?theme=<id>&embed` renders any registered theme without setting the
+  preview cookie, which is how the dashboard's thumbnails work. Plain `?theme=<id>`
+  only works for themes that are switched on.
+- **Adding a setting:** add it to `Settings`, `defaultSettings()` and `normalise()`
+  in `lib/settings.ts` (unknown or invalid input falls back, so a hand-edited
+  commit can't break pages), then a control in `AdminDashboard.svelte`.
+
 ## Game lifecycle (state machine)
 
 `game.state` moves through four phases. The whole UI keys off this value.

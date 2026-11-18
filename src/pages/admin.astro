@@ -1,0 +1,30 @@
+---
+// The admin dashboard. Off (404) in production unless ADMIN_PASSWORD is set; in
+// dev it is open when no password is. Always drawn in the default theme, so an
+// event's look never changes the tool that switches it.
+import '../styles/global.css';
+import AdminDashboard from '../components/AdminDashboard.svelte';
+import { adminAvailable, adminOpen, isAdmin } from '../lib/adminAuth.js';
+import { getSettings, syncStatus, hydrateSettings } from '../lib/settings.js';
+import { baseThemeId } from '../themes/resolve.js';
+
+if (!adminAvailable()) return new Response(null, { status: 404 });
+
+let initial = null;
+if (isAdmin(Astro.request)) {
+  await hydrateSettings();
+  initial = { settings: getSettings(), sync: syncStatus(), activeTheme: baseThemeId() };
+}
+---
+<!DOCTYPE html>
+<html lang="en" data-theme="default">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin — Chocolottery</title>
+</head>
+<body>
+  <AdminDashboard initial={initial} open={adminOpen()} client:load />
+</body>
+</html>

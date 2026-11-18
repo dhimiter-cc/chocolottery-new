@@ -3,19 +3,20 @@
 //   2. src/styles/themes/<id>.css  how it looks, every rule under html[data-theme='<id>']
 //   3. src/themes/<id>/Decor.astro optional ambient markup, registered in decor.ts
 //   4. add it to EVENTS below (earlier entries win if windows overlap)
-// To retire one, delete it from EVENTS (the files can stay or go). The default
-// theme is what everything falls back to, so nothing else needs touching.
+// Whether an event runs, and on which dates, is a setting (admin dashboard,
+// lib/settings.ts): EVENTS is only the list of what exists. To remove one for
+// good, delete it from EVENTS. The default theme is what everything falls back
+// to, so nothing else needs touching.
 
 import type { EventTheme, Theme } from './types.js';
 import { DEFAULT_THEME } from './default.js';
+import { HALLOWEEN } from './halloween.js';
 import { WINTER } from './winter.js';
 
 export { DEFAULT_THEME };
 export type { Theme, EventTheme, Copy, CopyKey } from './types.js';
 
-// Halloween is retired (its files stay in themes/halloween* to bring back next
-// October: import HALLOWEEN and add it here).
-export const EVENTS: EventTheme[] = [WINTER];
+export const EVENTS: EventTheme[] = [HALLOWEEN, WINTER];
 
 /** The default theme with an event's overrides merged on top. */
 export function buildTheme(event?: EventTheme): Theme {
@@ -40,7 +41,23 @@ export function getTheme(id: string | null | undefined): Theme {
 /** Ids a visitor may ask for with `?theme=`. */
 export const THEME_IDS: string[] = ['default', ...EVENTS.map((e) => e.id)];
 
-/** The event running on `date` (`YYYY-MM-DD`), if any. */
-export function eventOn(date: string): EventTheme | undefined {
-  return EVENTS.find((e) => e.window && date >= e.window.from && date <= e.window.to);
+/** What the admin dashboard may change about one event. */
+export interface EventSchedule { enabled: boolean; from: string; to: string }
+
+/** The dates an event runs on: the dashboard's override when it has one, else
+ *  the event's own window. `null` = never starts by date. */
+export function windowOf(e: EventTheme, schedule?: EventSchedule): { from: string; to: string } | null {
+  if (schedule?.from && schedule?.to) return { from: schedule.from, to: schedule.to };
+  return e.window ?? null;
+}
+
+/** The event running on `date` (`YYYY-MM-DD`), if any. Events switched off in
+ *  `schedules` never run. */
+export function eventOn(date: string, schedules: Record<string, EventSchedule> = {}): EventTheme | undefined {
+  return EVENTS.find((e) => {
+    const s = schedules[e.id];
+    if (s && !s.enabled) return false;
+    const w = windowOf(e, s);
+    return !!w && date >= w.from && date <= w.to;
+  });
 }

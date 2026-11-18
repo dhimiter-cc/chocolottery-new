@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { loadLeaderboard } from '../lib/game.js';
 import { isEventDay } from '../lib/specialPrize.js';
+import { getSettings } from '../lib/settings.js';
 import ThemeDecor from '../themes/ThemeDecor.astro';
 import { themeFor } from '../themes/resolve.js';
 import type { LeaderboardWin } from '../lib/types.js';
@@ -11,7 +12,7 @@ import type { LeaderboardWin } from '../lib/types.js';
 // the back, where the facts panel and the lot codes of past rounds are printed.
 
 const { wins } = await loadLeaderboard();
-const eventDay = isEventDay();
+const eventDay = isEventDay(new Date(), getSettings().outing);
 const theme = themeFor(Astro);
 
 // ── The back of the wrapper: figures from the real win history ─────────────
