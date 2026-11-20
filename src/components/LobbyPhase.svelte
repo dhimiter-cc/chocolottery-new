@@ -79,6 +79,9 @@
           ? ` · ${adventWords.lobbyWaiting.replace('{n}', String(game.advent_next.waiting))}`
           : ''}
       </a>
+    {:else if game.advent_teaser}
+      <!-- Before the first door, while the teaser runs (/admin): when it opens. -->
+      <a class="lobby-advent" href="/advent" target="_blank" rel="noreferrer">{game.advent_teaser.lobby}</a>
     {/if}
     {#if game.spectators.length > 0}
       <div class="lobby-watchers" title="Watching, not in the draw">

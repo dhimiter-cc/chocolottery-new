@@ -4,12 +4,22 @@
   // (AdventMorph). With `highlight`, that door's house is the winner's: the rest of
   // the street dims, it gets a warm backlight, its door swings open and the
   // winner's name sits on its roof. `lit` switches those effects on, so the
-  // overlay can hold them back until it has scrolled to the house.
+  // overlay can hold them back until it has scrolled to the house. With `soon`
+  // (the teaser, before the first door) the highlighted house is still shut: it
+  // glows, its door stays closed and `pill` (when it opens) sits on its roof.
   import type { Street } from '../lib/adventDoors.js';
 
-  let { street, highlight = null, lit = true }: { street: Street; highlight?: number | null; lit?: boolean } = $props();
+  let {
+    street,
+    highlight = null,
+    lit = true,
+    soon = false,
+    pill,
+  }: { street: Street; highlight?: number | null; lit?: boolean; soon?: boolean; pill?: string } = $props();
 
-  let winner = $derived(highlight ? street.houses.find((h) => h.door === highlight && h.state === 'open') ?? null : null);
+  let winner = $derived(
+    highlight ? street.houses.find((h) => h.door === highlight && (soon || h.state === 'open')) ?? null : null,
+  );
 </script>
 
 <header class="advent-head">
@@ -20,16 +30,18 @@
 
 <ol class="street" class:has-winner={!!winner && lit} aria-label={`${street.title}: 24 doors`}>
   {#each street.houses as h (h.door)}
-    {@const isWinner = winner?.door === h.door}
+    {@const picked = winner?.door === h.door}
+    {@const isWinner = picked && !soon}
     <li
       class="house is-{h.state}"
       class:is-winner={isWinner}
-      class:lit={isWinner && lit}
+      class:is-soon={picked && soon}
+      class:lit={picked && lit}
       data-door={h.door}
       style="--lift:{h.lift}px;--delay:{h.delay}s"
     >
       <div class="hwrap">
-        {#if isWinner}<span class="pill" aria-hidden={!lit}>★ {h.name}</span>{/if}
+        {#if picked}<span class="pill" aria-hidden={!lit}>{pill ?? `★ ${h.name}`}</span>{/if}
         <svg
           viewBox="0 0 100 160"
           role="img"
@@ -100,7 +112,7 @@
 
   /* The winner's house: the street dims around it, a warm light rises behind it,
      its door swings open on the light inside and the winner's name sits on top. */
-  .street.has-winner .house:not(.is-winner) { opacity: 0.42; filter: saturate(0.6); }
+  .street.has-winner .house:not(.lit) { opacity: 0.42; filter: saturate(0.6); }
   .hwrap::before {
     content: '';
     position: absolute;
@@ -120,8 +132,12 @@
   }
   .house.is-winner .doorway { fill: var(--cream); filter: drop-shadow(0 0 6px rgba(255, 210, 74, 0.95)); }
   .house.is-winner .door { transform-box: view-box; transform-origin: 38px 141px; transition: transform 0.9s cubic-bezier(0.5, 0, 0.2, 1) 0.3s; }
-  .house.lit .door { transform: skewY(-12deg) scaleX(0.28); }
-  .house.lit .win { animation: windows-on 0.5s steps(3, end) both; }
+  .house.is-winner.lit .door { transform: skewY(-12deg) scaleX(0.28); }
+  .house.is-winner.lit .win { animation: windows-on 0.5s steps(3, end) both; }
+  /* The teaser's house: a softer light, and a door that glows but stays shut. */
+  .house.is-soon .hwrap::before { inset: -26% -46% -12%; }
+  .house.is-soon.lit .door { fill: var(--gold); animation: door-glow 1.6s ease-in-out infinite alternate; }
+  .house.is-soon.lit .num { fill: var(--cream); }
   @keyframes windows-on { from { fill: #1A0B22; } }
 
   .pill {
@@ -135,7 +151,7 @@
     color: var(--on-gold);
     font: 900 0.95rem var(--font-sans);
     white-space: nowrap;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 210, 74, 0.45);
+    box-shadow: var(--shadow-1), 0 0 18px rgba(255, 210, 74, 0.45);
     opacity: 0;
     transform: translate(-50%, 10px) scale(0.7);
     transition: opacity 0.4s ease 0.5s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
@@ -165,7 +181,7 @@
     .pill { font-size: 0.75rem; padding: 4px 9px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .house.is-waiting .door, .house.lit .hwrap::before, .house.lit .win { animation: none; }
+    .house.is-waiting .door, .house.lit .hwrap::before, .house.lit .win, .house.is-soon.lit .door { animation: none; }
     .house, .hwrap::before, .pill, .house.is-winner .door { transition: none; }
   }
 </style>

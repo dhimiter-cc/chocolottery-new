@@ -125,6 +125,15 @@ export interface AdventCopy {
   revealLead: string;
   /** A door whose prize has not been named yet. */
   surprise: string;
+  /** Before the first door, while the teaser runs (/admin): the lobby line.
+   *  `{date}` is the day the first door opens. */
+  teaserLobby: string;
+  /** Teaser, at the reveal: the card's lead and its countdown (`{n}` days). */
+  teaserLead: string;
+  teaserIn: string;
+  teaserTomorrow: string;
+  /** Teaser: the sign over the first door in the calendar street. */
+  teaserSign: string;
 }
 
 export interface Theme {

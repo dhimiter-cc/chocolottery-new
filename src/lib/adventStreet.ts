@@ -3,7 +3,7 @@
 // out on the server so both draw the same street. The 24 doors stand in a shuffled
 // order that is the same on every screen for the year.
 import { getTheme } from '../themes/index.js';
-import { adventEvent, adventView } from './advent.js';
+import { adventEvent, adventView, dayLabel } from './advent.js';
 import { getSettings } from './settings.js';
 import { seeded } from './bars.js';
 import type { Street, StreetHouse } from './adventDoors.js';
@@ -31,9 +31,6 @@ const GABLES = [
   },
 ];
 const FACADES = ['#3B1549', '#4A1F3D', '#2E1A3F', '#5A2E35', '#3A2A4A', '#46233F'];
-
-const dayLabel = (iso: string) =>
-  new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 
 /** The street, or null when no theme has a calendar. */
 export function adventStreet(): Street | null {

@@ -35,3 +35,16 @@ export interface Street {
   status: string;
   houses: StreetHouse[];
 }
+
+/** The calendar's teaser before its first door (lib/advent.ts adventTeaser). */
+export interface AdventTeaser {
+  /** The door that opens first, the one the teaser points at. */
+  door: number;
+  /** Today: the teaser plays once a day on each device. */
+  today: string;
+  days: number;
+  lobby: string;
+  lead: string;
+  line: string;
+  sign: string;
+}

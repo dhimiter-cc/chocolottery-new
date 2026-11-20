@@ -39,8 +39,10 @@ export interface Settings {
   /** The team outing the golden-ticket teaser counts down to. */
   outing: { eventDate: string; teaseFrom: string };
   /** The advent calendar's prizes, by door number ("1" to "24"): a title and an
-   *  optional SVG icon. Doors without one show a default gift. */
-  advent: { prizes: Record<string, AdventPrize> };
+   *  optional SVG icon. Doors without one show a default gift. `teaseFrom` to
+   *  `teaseTo` (both or neither) is when the game teases the calendar before its
+   *  first door opens (lib/advent.ts adventTeaser). */
+  advent: { prizes: Record<string, AdventPrize>; teaseFrom: string; teaseTo: string };
   /** Unix ms of the last save, and where from. */
   updated_at: number;
   updated_by: string;
@@ -62,6 +64,9 @@ function officeToday(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
 
+/** The advent teaser as it ships: one day, 20 November 2026. Movable in /admin. */
+const ADVENT_TEASE = '2026-11-20';
+
 /** Everything as it ships. An event whose own window has already ended starts
  *  switched off, so a retired event stays retired until someone turns it on. */
 export function defaultSettings(): Settings {
@@ -76,7 +81,7 @@ export function defaultSettings(): Settings {
     events,
     defaults: { style: DEFAULT_STYLE, hostPlays: DEFAULT_HOST_PLAYS },
     outing: { eventDate: EVENT_DATE, teaseFrom: TEASE_FROM },
-    advent: { prizes: {} },
+    advent: { prizes: {}, teaseFrom: ADVENT_TEASE, teaseTo: ADVENT_TEASE },
     updated_at: 0,
     updated_by: '',
   };
@@ -118,6 +123,12 @@ export function normalise(input: unknown, base: Settings = defaultSettings()): S
     if (tease <= ev) { out.outing.eventDate = ev; out.outing.teaseFrom = tease; }
   }
 
+  if (i.advent && typeof i.advent === 'object' && ('teaseFrom' in i.advent || 'teaseTo' in i.advent)) {
+    const from = i.advent.teaseFrom === '' ? '' : isDate(i.advent.teaseFrom) ? i.advent.teaseFrom : out.advent.teaseFrom;
+    const to = i.advent.teaseTo === '' ? '' : isDate(i.advent.teaseTo) ? i.advent.teaseTo : out.advent.teaseTo;
+    if ((from && to && from <= to) || (!from && !to)) { out.advent.teaseFrom = from; out.advent.teaseTo = to; }
+  }
+
   // The dashboard always sends the whole list, so it replaces the old one.
   if (i.advent && typeof i.advent === 'object' && i.advent.prizes && typeof i.advent.prizes === 'object') {
     const prizes: Record<string, AdventPrize> = {};
@@ -128,7 +139,7 @@ export function normalise(input: unknown, base: Settings = defaultSettings()): S
       const svg = cleanSvg(p.svg);
       if (title || svg) prizes[String(d)] = { title, svg };
     }
-    out.advent = { prizes };
+    out.advent.prizes = prizes;
   }
 
   if (typeof i.updated_at === 'number') out.updated_at = i.updated_at;

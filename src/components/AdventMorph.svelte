@@ -8,6 +8,8 @@
   // winner's house is scrolled into view, lights up behind and swings its door
   // open with their name on the roof. "Back to the round" (or Esc) shrinks it back
   // into the card. Moved to <body> so no stage transform or overflow can clip it.
+  // With `soon` (the teaser, before the first door) the house it scrolls to is the
+  // first door's, still shut, with `pill` (when it opens) on its roof.
   import { onMount } from 'svelte';
   import AdventStreet from './AdventStreet.svelte';
   import { CANAL_PATH, type Street } from '../lib/adventDoors.js';
@@ -21,6 +23,8 @@
     icon,
     returnTo,
     onclose,
+    soon = false,
+    pill,
     onHush,
     onFireAt,
   }: {
@@ -35,6 +39,8 @@
     /** Where to shrink back to on close (the card, if it is still on screen). */
     returnTo: () => Box | null;
     onclose: () => void;
+    soon?: boolean;
+    pill?: string;
     /** Keep the reveal's confetti off the calendar (ms; 0 lets it play again). */
     onHush?: (ms: number) => void;
     /** Fireworks over a point of the screen, for the winner's house. */
@@ -113,7 +119,7 @@
       lit = true;
       onHush?.(0);
       const house = scroller.querySelector<HTMLElement>(`[data-door="${door}"] .hwrap`)?.getBoundingClientRect();
-      if (house && !reducedMotion) setTimeout(() => !closing && onFireAt?.(house.left + house.width / 2, house.top + house.height * 0.25), 450);
+      if (house && !reducedMotion && !soon) setTimeout(() => !closing && onFireAt?.(house.left + house.width / 2, house.top + house.height * 0.25), 450);
     })();
 
     return () => {
@@ -149,7 +155,7 @@
   <div class="am-scroll" bind:this={scroller}>
     <div class="am-page" bind:this={page}>
       <button type="button" class="am-back" bind:this={back} onclick={close}>← Back to the round</button>
-      <AdventStreet {street} highlight={door} {lit} />
+      <AdventStreet {street} highlight={door} {lit} {soon} {pill} />
     </div>
   </div>
   <svg class="am-canal" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><path d={CANAL_PATH} /></svg>
@@ -157,7 +163,8 @@
   <!-- A copy of the card where it stood, growing and fading as the street takes over. -->
   {#if !reducedMotion}
     <div
-      class="advent-door open am-ghost"
+      class="advent-door am-ghost"
+      class:open={!soon}
       bind:this={ghost}
       aria-hidden="true"
       style="top:{from.top}px;left:{from.left}px;width:{from.width}px;height:{from.height}px"
