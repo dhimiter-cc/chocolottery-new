@@ -22,9 +22,10 @@ import { baseThemeId, officeDate } from '../themes/resolve.js';
 import { getSettings } from './settings.js';
 import type { LeaderboardWin } from './types.js';
 
-import { DOORS } from './adventDoors.js';
+import { DOORS, type AdventTeaser } from './adventDoors.js';
 
 export { DOORS };
+export type { AdventTeaser };
 const LB_FILE = path.resolve('data', 'leaderboard.json');
 
 /** Today, as the doors see it. In dev only, ADVENT_TODAY=YYYY-MM-DD pretends. */
@@ -56,6 +57,10 @@ function addDays(date: string, n: number): string {
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
+
+/** "Tue 1 Dec": how the calendar writes a day. */
+export const dayLabel = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 
 export interface DoorDay {
   door: number;
@@ -134,6 +139,32 @@ export function nextDoor(): { door: number; waiting: number } | null {
   if (!adventTheme()) return null;
   const waiting = waitingDoors();
   return waiting.length ? { door: waiting[0], waiting: waiting.length } : null;
+}
+
+/** Before the first door opens, inside the teaser dates set in /admin (and while
+ *  the calendar's event is switched on): what the game says to tease it. Nothing
+ *  opens and no door is claimed; the lobby and the reveal only point at it. */
+export function adventTeaser(today = adventToday()): AdventTeaser | null {
+  const event = adventEvent();
+  if (!event) return null;
+  const s = getSettings();
+  if (s.events[event.id]?.enabled === false) return null;
+  const { teaseFrom, teaseTo } = s.advent;
+  if (!teaseFrom || today < teaseFrom || today > teaseTo) return null;
+  const first = schedule()[0];
+  if (today >= first.opensOn) return null;
+  const days = Math.round((Date.parse(`${first.opensOn}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
+  const w = getTheme(event.id).advent!;
+  const date = dayLabel(first.opensOn);
+  return {
+    door: first.door,
+    today,
+    days,
+    lobby: w.teaserLobby.replace('{date}', date),
+    lead: w.teaserLead,
+    line: days === 1 ? w.teaserTomorrow : w.teaserIn.replace('{n}', String(days)),
+    sign: w.teaserSign.replace('{date}', date),
+  };
 }
 
 /** Everything the dashboard and the /advent page need, in one go. */

@@ -109,6 +109,11 @@ export const WINTER: EventTheme = {
     lobbyWaiting: '{n} doors waiting today',
     revealLead: '🎄 Advent door {door}',
     surprise: 'A surprise from the calendar',
+    teaserLobby: '🎄 The advent calendar opens on {date} · one door per win',
+    teaserLead: '🎄 Advent calendar',
+    teaserIn: 'Opens in {n} days',
+    teaserTomorrow: 'Opens tomorrow',
+    teaserSign: 'Opens {date}',
   },
 
   barPrint: ({ sleeve }): PrintItem[] => [

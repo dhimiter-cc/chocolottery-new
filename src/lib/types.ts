@@ -1,3 +1,5 @@
+import type { AdventTeaser } from './adventDoors.js';
+
 export interface Player {
   name: string;
   last_seen: number;
@@ -145,4 +147,7 @@ export interface GameStateResponse {
   /** Advent, before the reveal: the door this round will open, and how many are
    *  waiting today (more than one on a Friday or Monday, or after a missed day). */
   advent_next: { door: number; waiting: number } | null;
+  /** Advent, before its first door: the teaser (lib/advent.ts adventTeaser), in
+   *  every phase while it runs. */
+  advent_teaser: AdventTeaser | null;
 }

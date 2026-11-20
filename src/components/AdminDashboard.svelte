@@ -58,7 +58,7 @@
   const filled = (prizes: Record<string, AdventPrize>) =>
     Object.fromEntries(Object.entries(prizes).filter(([, p]) => p.title.trim() || p.svg));
   const strip = (s: Settings) =>
-    JSON.stringify({ ...s, advent: { prizes: filled(s.advent.prizes) }, updated_at: 0, updated_by: '' });
+    JSON.stringify({ ...s, advent: { ...s.advent, prizes: filled(s.advent.prizes) }, updated_at: 0, updated_by: '' });
   let dirty = $derived(!!(draft && view && strip(draft) !== strip(view.settings)));
   let note = $state<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
 
@@ -345,6 +345,17 @@
           Doors without a title say "{adventEvent.advent?.surprise}". <a href="/advent" target="_blank" rel="noreferrer">See the calendar</a>
         </p>
         <p class="advent-status">{adventStatus}</p>
+        <div class="dates">
+          <label>Teaser from <input type="date" bind:value={draft.advent.teaseFrom} max={draft.advent.teaseTo || undefined} /></label>
+          <label>Teaser until <input type="date" bind:value={draft.advent.teaseTo} min={draft.advent.teaseFrom || undefined} /></label>
+          {#if draft.advent.teaseFrom || draft.advent.teaseTo}
+            <button type="button" class="link" onclick={() => { draft!.advent.teaseFrom = ''; draft!.advent.teaseTo = ''; }}>No teaser</button>
+          {/if}
+        </div>
+        <p class="hint">
+          Before the first door opens, on these days the lobby says when the calendar starts and each reveal
+          shows it with its doors still shut. Leave both empty for no teaser.
+        </p>
         <div class="doors">
           {#each view.advent.schedule as day (day.door)}
             {@const d = String(day.door)}

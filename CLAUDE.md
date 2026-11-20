@@ -132,8 +132,13 @@ back to the default, so nothing is left half-themed.
   fireworks over it (`EffectsCanvas.hush()` clears the reveal's confetti first, `fireAt()`).
   It plays once per door per device (sessionStorage); "Back to the round" or Esc shrinks it
   back into the card. Types and the canal path shared with the browser live in
-  `lib/adventDoors.ts` (`adventStreet.ts` is server-only). In dev, `ADVENT_TODAY=YYYY-MM-DD`
-  pretends it is that day.
+  `lib/adventDoors.ts` (`adventStreet.ts` is server-only). **Teaser:** before the first door,
+  on the days set in `/admin` (`settings.advent.teaseFrom`/`teaseTo`, shipped as 20 Nov 2026
+  only; both empty = none), `sanitiseState` sends `advent_teaser` (`adventTeaser()`) whatever
+  the theme: the lobby says when the calendar opens, and the reveal shows a shut-door card with
+  a countdown that grows into the street pointing at the first door (`soon` on AdventMorph and
+  AdventStreet), once a day per device. Nothing opens and no door is claimed. In dev,
+  `ADVENT_TODAY=YYYY-MM-DD` pretends it is that day.
 - **Costume avatars** (`costumes: true` on a theme): each player gets a random costume emoji at
   join (`lib/costumes.ts`, `player.costume`), shown as their lobby avatar.
 - **Rules:** gold stays the winner's colour; every animation respects

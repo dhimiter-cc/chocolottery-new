@@ -6,7 +6,7 @@ import { withLock } from './lock.js';
 import { remoteEnabled, remoteTarget, pullRemoteWins, pushRemoteWins } from './leaderboardRemote.js';
 import { UNWRAP_STEPS } from './bars.js';
 import { doorFor, pickTrick } from './trickOrTreat.js';
-import { claimDoor, noteWins, nextDoor } from './advent.js';
+import { adventTeaser, claimDoor, noteWins, nextDoor } from './advent.js';
 import { getSettings } from './settings.js';
 import type {
   Game, GameStyle, GameStateResponse, Player, CupboardItem, LeaderboardWin, PrizeSnack, AuditEntry, Suggestion,
@@ -518,6 +518,7 @@ export function sanitiseState(game: Game, myToken: string | null): GameStateResp
       ? { ...game.advent, icon: !!getSettings().advent.prizes[String(game.advent.door)]?.svg }
       : null,
     advent_next:      revealed ? null : nextDoor(),
+    advent_teaser:    adventTeaser(),
   };
 }
 
