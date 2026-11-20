@@ -123,9 +123,17 @@ back to the default, so nothing is left half-themed.
   `advent` (the opened door, after the reveal) and `advent_next` (before it, for the lobby
   line). Prizes (a title and an optional SVG per door) are a setting edited in `/admin`;
   icons are cleaned on save (`lib/svgClean.ts`) and only shown through `<img>` or
-  `/api/advent/<door>`, which forbids scripts. `/advent` draws the doors as canal houses in a
-  shuffled order fixed per year; `AdventDoor.svelte` swings the door open at the reveal. In
-  dev, `ADVENT_TODAY=YYYY-MM-DD` pretends it is that day.
+  `/api/advent/<door>`, which forbids scripts. The street of canal houses (shuffled order
+  fixed per year) is worked out in `lib/adventStreet.ts` (also `GET /api/advent`) and drawn by
+  `AdventStreet.svelte`, both on `/advent` (`?door=N` highlights and scrolls to that house) and
+  at the reveal: `AdventDoor.svelte` swings the little door open, and about a second later the
+  card grows into the whole street (`AdventMorph.svelte`, moved to `<body>`), which scrolls to
+  the winner's house, backlights it, opens its door and puts their name on the roof, with
+  fireworks over it (`EffectsCanvas.hush()` clears the reveal's confetti first, `fireAt()`).
+  It plays once per door per device (sessionStorage); "Back to the round" or Esc shrinks it
+  back into the card. Types and the canal path shared with the browser live in
+  `lib/adventDoors.ts` (`adventStreet.ts` is server-only). In dev, `ADVENT_TODAY=YYYY-MM-DD`
+  pretends it is that day.
 - **Costume avatars** (`costumes: true` on a theme): each player gets a random costume emoji at
   join (`lib/costumes.ts`, `player.costume`), shown as their lobby avatar.
 - **Rules:** gold stays the winner's colour; every animation respects
