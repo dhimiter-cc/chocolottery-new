@@ -23,6 +23,8 @@
   let canvas: HTMLCanvasElement;
   let particles: Particle[] = [];
   let rafId: number | null = null;
+  /** Until when (performance.now) nothing is drawn: see hush(). */
+  let hushUntil = 0;
 
   function rand(min: number, max: number) {
     return min + Math.random() * (max - min);
@@ -144,7 +146,34 @@
     ensureLoop();
   }
 
-  // Timed aerial firework bursts: each pops a shockwave ring + a radial spray of sparks.
+  // One firework at a point: a shockwave ring and a radial spray of sparks.
+  function burst(cx: number, cy: number, pal: string[]) {
+    particles.push(
+      spawnParticle({
+        x: cx, y: cy, vx: 0, vy: 0, g: 0, drag: 1,
+        size: 2, grow: rand(2.2, 3.4),
+        color: pal[0], maxLife: rand(28, 42), kind: 'ring',
+      }),
+    );
+    const n = 42;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + rand(-0.05, 0.05);
+      const sp = rand(3, 7);
+      particles.push(
+        spawnParticle({
+          x: cx, y: cy,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          g: 0.05, drag: 0.95,
+          size: rand(3, 6),
+          color: pal[Math.floor(Math.random() * pal.length)],
+          maxLife: rand(50, 100), kind: 'spark',
+        }),
+      );
+    }
+    ensureLoop();
+  }
+
+  // Timed aerial firework bursts at random points high on the screen.
   export function fireFireworks(bursts = 6) {
     const w = canvas.width / (window.devicePixelRatio || 1);
     const h = canvas.height / (window.devicePixelRatio || 1);
@@ -153,39 +182,31 @@
     for (let b = 0; b < bursts; b++) {
       setTimeout(() => {
         if (!canvas) return;
-        const cx = rand(0.18, 0.82) * w;
-        const cy = rand(0.12, 0.45) * h;
-        const pal = palettes[Math.floor(Math.random() * palettes.length)];
-
-        // Shockwave ring
-        particles.push(
-          spawnParticle({
-            x: cx, y: cy, vx: 0, vy: 0, g: 0, drag: 1,
-            size: 2, grow: rand(2.2, 3.4),
-            color: pal[0], maxLife: rand(28, 42), kind: 'ring',
-          }),
-        );
-
-        // Radial spark spray
-        const n = 42;
-        for (let i = 0; i < n; i++) {
-          const a = (i / n) * Math.PI * 2 + rand(-0.05, 0.05);
-          const sp = rand(3, 7);
-          particles.push(
-            spawnParticle({
-              x: cx, y: cy,
-              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              g: 0.05, drag: 0.95,
-              size: rand(3, 6),
-              color: pal[Math.floor(Math.random() * pal.length)],
-              maxLife: rand(50, 100), kind: 'spark',
-            }),
-          );
-        }
-        ensureLoop();
+        burst(rand(0.18, 0.82) * w, rand(0.12, 0.45) * h, palettes[Math.floor(Math.random() * palettes.length)]);
       }, delay);
       delay += rand(220, 420);
     }
+  }
+
+  /** A few fireworks over one spot, in page pixels (the winner's house in the
+   *  advent calendar), and confetti falling from it. */
+  export function fireAt(x: number, y: number, bursts = 3) {
+    const palettes = fx().fireworkPalettes;
+    for (let b = 0; b < bursts; b++) {
+      setTimeout(() => {
+        if (!canvas) return;
+        burst(x + rand(-60, 60), y + rand(-40, 20), palettes[Math.floor(Math.random() * palettes.length)]);
+      }, b * rand(220, 360));
+    }
+    fireDrop(x / window.innerWidth, y / window.innerHeight, 24);
+  }
+
+  /** Clear the canvas and keep it clear for `ms` (bursts already on a timer
+   *  included): the advent calendar opening over the reveal. */
+  export function hush(ms: number) {
+    hushUntil = performance.now() + ms;
+    particles = [];
+    ensureLoop();
   }
 
   // Some themes add glyphs drifting up out of the floor with the tears
@@ -385,6 +406,7 @@
     const dpr = window.devicePixelRatio || 1;
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (performance.now() < hushUntil) particles = []; // bursts still on a timer land here
 
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];

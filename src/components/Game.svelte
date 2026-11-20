@@ -443,7 +443,7 @@
 {#snippet barPrize()}
   {#if gameState}
     {#if trickOrTreat}<TrickOrTreat game={gameState} {sounds} />{/if}
-    <AdventDoor game={gameState} delay={500} />
+    <AdventDoor game={gameState} delay={500} onHush={(ms) => effectsCanvas?.hush(ms)} onFireAt={(x, y) => effectsCanvas?.fireAt(x, y)} />
     {#if gameState.prize_snack}
       <p class="bar-prize-snack">
         <b>🍫 Prize snack</b> {gameState.prize_snack.text}
@@ -658,7 +658,7 @@
 
           <!-- Advent door (straw mode; bar mode shows it inside the reveal canvas) -->
           {#if !eventLayout && !bars && (phase === 'reveal' || phase === 'done')}
-            <AdventDoor game={gameState} delay={5200} />
+            <AdventDoor game={gameState} delay={5200} onHush={(ms) => effectsCanvas?.hush(ms)} onFireAt={(x, y) => effectsCanvas?.fireAt(x, y)} />
           {/if}
 
           <!-- Prize snack card -->
