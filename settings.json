@@ -1,0 +1,31 @@
+{
+  "soundPack": "classic",
+  "theme": "auto",
+  "events": {
+    "halloween": {
+      "enabled": false,
+      "from": "",
+      "to": ""
+    },
+    "winter": {
+      "enabled": true,
+      "from": "",
+      "to": ""
+    }
+  },
+  "defaults": {
+    "style": "bars",
+    "hostPlays": false
+  },
+  "outing": {
+    "eventDate": "2026-09-25",
+    "teaseFrom": "2026-09-21"
+  },
+  "advent": {
+    "prizes": {},
+    "teaseFrom": "2026-11-20",
+    "teaseTo": "2026-11-20"
+  },
+  "updated_at": 1795176156509,
+  "updated_by": "admin"
+}
