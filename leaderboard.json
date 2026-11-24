@@ -3957,6 +3957,79 @@
           "opened_at": 1795178363978
         }
       ]
+    },
+    {
+      "name": "Nadim",
+      "game_code": "BEAN-7777",
+      "timestamp": 1795522194,
+      "month": "2026-11",
+      "participants": 6,
+      "player_names": [
+        "Nadim",
+        "Ali (FE)",
+        "Ali OG",
+        "Joey",
+        "Dmj",
+        "Po"
+      ],
+      "prize_snack": null,
+      "draw": {
+        "commit": "d74b2bbd40c2380ba72e6b5dfca9d65982042ba1df89c27316877488cdf27835",
+        "salt": "8d72d77d8a03673675e9e265b776fc38",
+        "straws": [
+          100,
+          35,
+          47,
+          34,
+          30,
+          64
+        ],
+        "drawn_at": 1795522121169
+      },
+      "audit": [
+        {
+          "name": "Joey",
+          "bar": 5,
+          "value": 64,
+          "picked_at": 1795522126877,
+          "opened_at": 1795522128639
+        },
+        {
+          "name": "Dmj",
+          "bar": 2,
+          "value": 47,
+          "picked_at": 1795522125246,
+          "opened_at": 1795522129799
+        },
+        {
+          "name": "Ali (FE)",
+          "bar": 1,
+          "value": 35,
+          "picked_at": 1795522126044,
+          "opened_at": 1795522130770
+        },
+        {
+          "name": "Ali OG",
+          "bar": 3,
+          "value": 34,
+          "picked_at": 1795522125429,
+          "opened_at": 1795522131987
+        },
+        {
+          "name": "Po",
+          "bar": 4,
+          "value": 30,
+          "picked_at": 1795522125984,
+          "opened_at": 1795522137201
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1795522126878,
+          "opened_at": 1795522194918
+        }
+      ]
     }
   ]
 }
