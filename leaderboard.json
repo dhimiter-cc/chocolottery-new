@@ -4030,6 +4030,106 @@
           "opened_at": 1795522194918
         }
       ]
+    },
+    {
+      "name": "Nadim",
+      "game_code": "CHOC-9322",
+      "timestamp": 1795522362,
+      "month": "2026-11",
+      "participants": 9,
+      "player_names": [
+        "Sofia",
+        "Dmj",
+        "Ali OG",
+        "Po",
+        "Hamza",
+        "Nadim",
+        "Joey",
+        "Ali (FE)",
+        "Theresa"
+      ],
+      "prize_snack": "Cake",
+      "draw": {
+        "commit": "3efeece30bbd628ebd5df2745abe263309e79264fbefe233af545fa8e897aa11",
+        "salt": "4ed69eff70c377d8f24c97f59f39b23c",
+        "straws": [
+          100,
+          59,
+          56,
+          29,
+          57,
+          44,
+          27,
+          38,
+          23
+        ],
+        "drawn_at": 1795522346040
+      },
+      "audit": [
+        {
+          "name": "Ali OG",
+          "bar": 4,
+          "value": 57,
+          "picked_at": 1795522350313,
+          "opened_at": 1795522354401
+        },
+        {
+          "name": "Theresa",
+          "bar": 1,
+          "value": 59,
+          "picked_at": 1795522351906,
+          "opened_at": 1795522354665
+        },
+        {
+          "name": "Nadim",
+          "bar": 0,
+          "value": 100,
+          "picked_at": 1795522350933,
+          "opened_at": 1795522355349
+        },
+        {
+          "name": "Hamza",
+          "bar": 2,
+          "value": 56,
+          "picked_at": 1795522350387,
+          "opened_at": 1795522355689
+        },
+        {
+          "name": "Dmj",
+          "bar": 5,
+          "value": 44,
+          "picked_at": 1795522351182,
+          "opened_at": 1795522356225
+        },
+        {
+          "name": "Po",
+          "bar": 7,
+          "value": 38,
+          "picked_at": 1795522350535,
+          "opened_at": 1795522356406
+        },
+        {
+          "name": "Sofia",
+          "bar": 8,
+          "value": 23,
+          "picked_at": 1795522351906,
+          "opened_at": 1795522357867
+        },
+        {
+          "name": "Ali (FE)",
+          "bar": 3,
+          "value": 29,
+          "picked_at": 1795522351048,
+          "opened_at": 1795522358500
+        },
+        {
+          "name": "Joey",
+          "bar": 6,
+          "value": 27,
+          "picked_at": 1795522350879,
+          "opened_at": 1795522362801
+        }
+      ]
     }
   ]
 }
